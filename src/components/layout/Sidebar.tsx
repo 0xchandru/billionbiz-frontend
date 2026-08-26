@@ -17,12 +17,12 @@ import styles from './Sidebar.module.css';
 const navItems = [
   { icon: Home, label: 'Dashboard', path: '/dashboard' },
   { icon: FileText, label: 'Pages', path: '/pages' },
+  { icon: Palette, label: 'Theme / Styles', path: '/theme' },
   { icon: Inbox, label: 'Orders', path: '/orders' },
   { icon: ShoppingBag, label: 'Products', path: '/products' },
   { icon: Users, label: 'Customers', path: '/customers' },
   { icon: BarChart2, label: 'Analytics', path: '/analytics' },
   { icon: Megaphone, label: 'Marketing', path: '/marketing' },
-  { icon: Palette, label: 'Theme / Styles', path: '/theme' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
