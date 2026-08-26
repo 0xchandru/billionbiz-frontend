@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Code, Share2, Share, Globe, Image as ImageIcon, Wand2, Trash2 } from 'lucide-react';
+import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Share, Globe, Wand2, Trash2 } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { useSiteStore, type SectionData } from '../../store/siteStore';
 import { SortableItem } from './SortableItem';
