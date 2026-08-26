@@ -1,0 +1,124 @@
+import React from 'react';
+
+const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
+  const { device } = props;
+  const isMobile = device === 'mobile';
+  const isTablet = device === 'tablet';
+
+  const layout = props.layout || 'left';
+  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const badge = props.badge || 'New Arrival';
+  const heading = props.heading || 'Elevate Your Creative Workflow';
+  const description = props.description || 'Discover the tools that empower professionals to build stunning digital experiences with ease.';
+  const primaryBtn = props.primaryBtn || 'Start Building Now';
+  const secondaryBtn = props.secondaryBtn || 'Explore Templates';
+  const image = props.image || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop';
+
+  const isCenter = layout === 'center';
+
+  return (
+    <section style={{
+      display: 'flex',
+      flexDirection: isCenter ? 'column' : (isMobile || isTablet ? 'column' : 'row'),
+      alignItems: 'center',
+      padding: isCenter 
+        ? (isMobile ? '60px 24px' : '100px 40px')
+        : (isMobile ? '60px 24px' : '80px 48px'),
+      backgroundColor: bgColor,
+      gap: isMobile ? '32px' : '48px',
+      textAlign: isCenter ? 'center' : (isMobile || isTablet ? 'center' : 'left'),
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: isCenter ? 'center' : (isMobile || isTablet ? 'center' : 'flex-start'),
+        maxWidth: isCenter ? '720px' : 'none',
+        width: '100%',
+      }}>
+        <span style={{
+          backgroundColor: 'var(--theme-secondary)',
+          color: 'var(--theme-bg)',
+          fontSize: '13px',
+          fontWeight: 600,
+          padding: '8px 16px',
+          borderRadius: '999px',
+          marginBottom: '24px',
+          letterSpacing: '0.5px',
+        }}>
+          {badge}
+        </span>
+        <h1 style={{
+          fontSize: isMobile ? '40px' : (isCenter ? '64px' : '72px'),
+          fontWeight: 800,
+          lineHeight: 1.05,
+          letterSpacing: '-2px',
+          marginBottom: '24px',
+          color: 'var(--theme-text)',
+          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+        }}>
+          {heading}
+        </h1>
+        <p style={{
+          fontSize: isMobile ? '16px' : '20px',
+          color: 'var(--theme-text)',
+          opacity: 0.7,
+          lineHeight: 1.6,
+          marginBottom: '40px',
+          fontWeight: 400,
+          maxWidth: '560px',
+        }}>
+          {description}
+        </p>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: isMobile || isTablet || isCenter ? 'center' : 'flex-start' }}>
+          <button style={{
+            backgroundColor: 'var(--theme-primary)',
+            color: 'var(--theme-bg)',
+            padding: '16px 32px',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            border: 'none',
+            transition: 'all 0.2s',
+          }}>
+            {primaryBtn}
+          </button>
+          <button style={{
+            backgroundColor: 'transparent',
+            border: '1px solid var(--theme-primary)',
+            color: 'var(--theme-primary)',
+            padding: '16px 32px',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}>
+            {secondaryBtn}
+          </button>
+        </div>
+      </div>
+
+      {!isCenter && (
+        <div style={{ flex: 1, display: 'flex', justifyContent: isMobile || isTablet ? 'center' : 'flex-end', width: '100%' }}>
+          <div style={{
+            width: isMobile ? '100%' : '90%',
+            height: isMobile ? '320px' : (isTablet ? '480px' : '640px'),
+            backgroundImage: `url(${image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            borderTopLeftRadius: '400px',
+            borderTopRightRadius: '400px',
+            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
+          }} />
+        </div>
+      )}
+    </section>
+  );
+};
+
+export default HeroBannerSection;
