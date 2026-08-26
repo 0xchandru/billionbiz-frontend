@@ -7,19 +7,6 @@ import { EditorCanvas } from '../../components/editor/EditorCanvas';
 import { useSiteStore } from '../../store/siteStore';
 
 const EditorLayout: React.FC = () => {
-  const { loadStore, saveStore, pages, theme, settings } = useSiteStore();
-
-  React.useEffect(() => {
-    loadStore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      saveStore();
-    }, 1000);
-    return () => clearTimeout(handler);
-  }, [pages, theme, settings, saveStore]);
   return (
     <div className={styles.editorWrapper}>
       <EditorTopBar />

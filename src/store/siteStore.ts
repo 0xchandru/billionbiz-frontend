@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { defaultPropsMap, sectionNameMap } from '../components/editor/SectionRenderer';
 
 export interface SectionData {
@@ -35,9 +36,6 @@ export interface SiteState {
   theme: ThemeData;
   settings: Record<string, any>;
   isLoading: boolean;
-  
-  loadStore: () => Promise<void>;
-  saveStore: () => Promise<void>;
   
   updateSectionProps: (pageId: string, sectionId: string, newProps: Record<string, any>) => void;
   reorderSections: (pageId: string, startIndex: number, endIndex: number) => void;
@@ -146,8 +144,10 @@ const initialPages: PageData[] = [
   }
 ];
 
-export const useSiteStore = create<SiteState>((set, get) => ({
-  pages: initialPages,
+export const useSiteStore = create<SiteState>()(
+  persist(
+    (set, get) => ({
+      pages: initialPages,
   theme: {
     presetName: 'Default',
     colors: {
@@ -169,36 +169,6 @@ export const useSiteStore = create<SiteState>((set, get) => ({
     copyright: '© 2025 BillionBiz. All rights reserved.'
   },
   isLoading: false,
-
-  loadStore: async () => {
-    set({ isLoading: true });
-    try {
-      const res = await fetch('http://localhost:4000/api/store');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.pages && data.pages.length > 0) {
-          set({ pages: data.pages, theme: data.theme || {}, settings: data.settings || {} });
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to load from backend, using default mock data.');
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  saveStore: async () => {
-    const { pages, theme, settings } = get();
-    try {
-      await fetch('http://localhost:4000/api/store', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pages, theme, settings })
-      });
-    } catch (e) {
-      console.error('Failed to save to backend');
-    }
-  },
 
   updateSectionProps: (pageId, sectionId, newProps) => set((state) => {
     const pages = state.pages.map(page => {
@@ -301,4 +271,9 @@ export const useSiteStore = create<SiteState>((set, get) => ({
   updateSettings: (newSettings) => set((state) => ({
     settings: { ...state.settings, ...newSettings }
   }))
-}));
+    }),
+    {
+      name: 'billionbiz-storage',
+    }
+  )
+);
