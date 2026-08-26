@@ -94,13 +94,10 @@ export const EditorLeftSidebar: React.FC = () => {
             <div className={styles.settingsList}>
               {[
                 { id: 'General', icon: LayoutTemplate, title: 'General', desc: 'Site info, logo, & contact' },
-                { id: 'SEO basic', icon: Search, title: 'SEO basic', desc: 'Title, meta description and indexing' },
-                { id: 'JSON-LD', icon: Code, title: 'JSON-LD', desc: 'Structured data for search engines' },
-                { id: 'Sitemap', icon: Share2, title: 'Sitemap', desc: 'Manage and update sitemap' },
+                { id: 'SEO & Geo', icon: Search, title: 'SEO & Geo', desc: 'SEO, structured data, sitemap & OG image' },
                 { id: 'Social media', icon: Share, title: 'Social media', desc: 'Social links and share settings' },
                 { id: 'Header & Footer', icon: LayoutTemplate, title: 'Header & Footer', desc: 'Manage header and footer content' },
-                { id: 'OG Image', icon: ImageIcon, title: 'OG Image', desc: 'Default social sharing image' },
-                { id: 'Language', icon: Globe, title: 'Language', desc: 'Default language and text' }
+                { id: 'Language', icon: Globe, title: 'Language', desc: 'Default language and region' }
               ].map((item, i) => (
                 <div 
                   key={i} 
