@@ -6,7 +6,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const isTablet = device === 'tablet';
 
   const layout = props.layout || 'left';
-  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const bgColor = props.bgColor || 'var(--theme-background)';
   const badge = props.badge || 'New Arrival';
   const heading = props.heading || 'Elevate Your Creative Workflow';
   const description = props.description || 'Discover the tools that empower professionals to build stunning digital experiences with ease.';
@@ -41,7 +41,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
       }}>
         <span style={{
           backgroundColor: 'var(--theme-secondary)',
-          color: 'var(--theme-bg)',
+          color: 'var(--theme-background)',
           fontSize: '13px',
           fontWeight: 600,
           padding: '8px 16px',
@@ -58,7 +58,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           letterSpacing: '-2px',
           marginBottom: '24px',
           color: 'var(--theme-text)',
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h1>
@@ -76,9 +76,9 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: isMobile || isTablet || isCenter ? 'center' : 'flex-start' }}>
           <button style={{
             backgroundColor: 'var(--theme-primary)',
-            color: 'var(--theme-bg)',
+            color: 'var(--theme-background)',
             padding: '16px 32px',
-            borderRadius: '8px',
+            borderRadius: 'var(--theme-radius)',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer',
@@ -92,7 +92,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
             border: '1px solid var(--theme-primary)',
             color: 'var(--theme-primary)',
             padding: '16px 32px',
-            borderRadius: '8px',
+            borderRadius: 'var(--theme-radius)',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer',

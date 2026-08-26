@@ -7,7 +7,7 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
   const heading = props.heading || 'Get in Touch';
   const description = props.description || 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.';
   const buttonText = props.buttonText || 'Send Message';
-  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const bgColor = props.bgColor || 'var(--theme-background)';
 
   return (
     <section style={{
@@ -25,7 +25,7 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
             letterSpacing: '-1px',
             color: 'var(--theme-text)',
             marginBottom: '16px',
-            fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+            fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
             {heading}
           </h2>

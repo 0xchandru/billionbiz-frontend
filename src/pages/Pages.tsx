@@ -21,39 +21,42 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Pages.module.css';
 
 const shopPages = [
-  { id: 1, title: 'Products List', desc: 'Display all products in a collection.', icon: ShoppingBag, color: '#198754', bgColor: '#e8f5e9' },
-  { id: 2, title: 'Product Details', desc: 'Show detailed information about a product.', icon: Package, color: '#198754', bgColor: '#e8f5e9' },
-  { id: 3, title: 'Cart', desc: 'View and manage items in the cart.', icon: ShoppingCart, color: '#0d6efd', bgColor: '#cfe2ff' },
-  { id: 4, title: 'Checkout', desc: 'Secure checkout process.', icon: CreditCard, color: '#198754', bgColor: '#e8f5e9' },
+  { id: 'products-list', title: 'Products List', desc: 'Display all products in a collection.', icon: ShoppingBag, color: '#198754', bgColor: '#e8f5e9' },
+  { id: 'product-details', title: 'Product Details', desc: 'Show detailed information about a product.', icon: Package, color: '#198754', bgColor: '#e8f5e9' },
+  { id: 'cart-page', title: 'Cart', desc: 'View and manage items in the cart.', icon: ShoppingCart, color: '#0d6efd', bgColor: '#cfe2ff' },
+  { id: 'checkout-page', title: 'Checkout', desc: 'Secure checkout process.', icon: CreditCard, color: '#198754', bgColor: '#e8f5e9' },
 ];
 
 const infoPages = [
-  { id: 5, title: 'About Us', desc: 'Tell your story and build trust with customers.', icon: User, color: '#0d6efd', bgColor: '#cfe2ff' },
-  { id: 6, title: 'Contact Us', desc: 'Help customers get in touch with you.', icon: Mail, color: '#0d6efd', bgColor: '#cfe2ff' },
-  { id: 7, title: 'FAQ', desc: 'Answer common questions.', icon: HelpCircle, color: '#fd7e14', bgColor: '#ffe5d0' },
-  { id: 8, title: 'Privacy Policy', desc: 'Your privacy policy information.', icon: Shield, color: '#fa5252', bgColor: '#ffe3e3' },
-  { id: 9, title: 'Terms & Conditions', desc: 'Terms and conditions of your site.', icon: FileText, color: '#6f42c1', bgColor: '#e0cffc' },
-  { id: 10, title: 'Refund Policy', desc: 'Your return and refund policy.', icon: RefreshCw, color: '#6f42c1', bgColor: '#e0cffc' },
+  { id: 'about-page', title: 'About Us', desc: 'Tell your story and build trust with customers.', icon: User, color: '#0d6efd', bgColor: '#cfe2ff' },
+  { id: 'contact-page', title: 'Contact Us', desc: 'Help customers get in touch with you.', icon: Mail, color: '#0d6efd', bgColor: '#cfe2ff' },
+  { id: 'faq-page', title: 'FAQ', desc: 'Answer common questions.', icon: HelpCircle, color: '#fd7e14', bgColor: '#ffe5d0' },
+  { id: 'privacy-policy-page', title: 'Privacy Policy', desc: 'Your privacy policy information.', icon: Shield, color: '#fa5252', bgColor: '#ffe3e3' },
+  { id: 'terms-conditions-page', title: 'Terms & Conditions', desc: 'Terms and conditions of your site.', icon: FileText, color: '#6f42c1', bgColor: '#e0cffc' },
+  { id: 'refund-policy-page', title: 'Refund Policy', desc: 'Your return and refund policy.', icon: RefreshCw, color: '#6f42c1', bgColor: '#e0cffc' },
 ];
 
-const PageCard = ({ page }: { page: any }) => (
-  <div className={styles.pageCard}>
-    <div className={styles.pageCardHeader}>
-      <div className={styles.pageTitleGroup}>
-        <div className={styles.pageIcon} style={{ backgroundColor: page.bgColor, color: page.color }}>
-          <page.icon size={20} />
+const PageCard = ({ page }: { page: any }) => {
+  const navigate = useNavigate();
+  return (
+    <div className={styles.pageCard} onClick={() => navigate('/editor?pageId=' + page.id + '&tab=pages')} style={{ cursor: 'pointer' }}>
+      <div className={styles.pageCardHeader}>
+        <div className={styles.pageTitleGroup}>
+          <div className={styles.pageIcon} style={{ backgroundColor: page.bgColor, color: page.color }}>
+            <page.icon size={20} />
+          </div>
+          <h4 className={styles.pageTitle}>{page.title}</h4>
         </div>
-        <h4 className={styles.pageTitle}>{page.title}</h4>
+        <button className={styles.moreBtn}>
+          <MoreHorizontal size={16} />
+        </button>
       </div>
-      <button className={styles.moreBtn}>
-        <MoreHorizontal size={16} />
-      </button>
+      <div className={styles.pageInfo}>
+        <p className={styles.pageDesc}>{page.desc}</p>
+      </div>
     </div>
-    <div className={styles.pageInfo}>
-      <p className={styles.pageDesc}>{page.desc}</p>
-    </div>
-  </div>
-);
+  );
+};
 
 const Pages = () => {
   const navigate = useNavigate();

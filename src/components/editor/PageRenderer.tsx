@@ -10,7 +10,41 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
   const { selectedSectionId, setSelectedSectionId } = useEditorStore();
   const storeDevice = useEditorStore(state => state.device);
   const device = overrideDevice || storeDevice;
-  const { addSection } = useSiteStore();
+  const { addSection, theme } = useSiteStore();
+
+  const themeStyles = `
+    .preview-theme-wrapper {
+      --theme-primary: ${theme.colors.primary};
+      --theme-secondary: ${theme.colors.secondary};
+      --theme-background: ${theme.colors.background};
+      --theme-text: ${theme.colors.text};
+      --theme-accent: ${theme.colors.accent};
+      --theme-border: ${theme.colors.border};
+      
+      --theme-font-heading: ${theme.typography.headingFont};
+      --theme-font-body: ${theme.typography.bodyFont};
+      --theme-base-size: ${theme.typography.baseSize}px;
+      
+      --theme-radius: ${theme.ui.borderRadius};
+      --theme-shadow: ${theme.ui.shadow};
+      
+      --theme-max-width: ${theme.layout.maxWidth}px;
+      
+      font-family: var(--theme-font-body);
+      font-size: var(--theme-base-size);
+      color: var(--theme-text);
+      background-color: var(--theme-background);
+    }
+    
+    .preview-theme-wrapper h1, 
+    .preview-theme-wrapper h2, 
+    .preview-theme-wrapper h3, 
+    .preview-theme-wrapper h4, 
+    .preview-theme-wrapper h5, 
+    .preview-theme-wrapper h6 {
+      font-family: var(--theme-font-heading);
+    }
+  `;
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -31,7 +65,8 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
   }, [selectedSectionId]);
 
   return (
-    <div className={styles.previewPage}>
+    <div className={`${styles.previewPage} preview-theme-wrapper`}>
+      <style>{themeStyles}</style>
       {page.sections.map(section => {
         if (isSectionHidden(section)) return null;
 

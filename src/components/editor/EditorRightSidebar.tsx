@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MoreVertical, Check, UploadCloud, Plus, Trash2, Calendar, Edit2, Monitor } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MoreVertical, Check, UploadCloud, Plus, Trash2, Calendar, Edit2, Monitor, EyeOff, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useEditorStore } from '../../store/editorStore';
 import { useSiteStore } from '../../store/siteStore';
 import styles from '../../pages/editor/EditorLayout.module.css';
@@ -12,7 +15,7 @@ interface EditorField {
   label: string;
   type: FieldType;
   options?: string[]; // for select
-  listFields?: { key: string; label: string; type: 'text' | 'textarea' | 'url' }[]; // for list items
+  listFields?: { key: string; label: string; type: 'text' | 'textarea' | 'url' | 'icon' }[]; // for list items
 }
 
 // --- Section editor configs ---
@@ -24,7 +27,12 @@ const sectionEditorConfigs: Record<string, EditorField[]> = {
     { key: 'logo', label: 'Logo Text', type: 'text' },
     { key: 'ctaText', label: 'CTA Button Text', type: 'text' },
     { key: 'showSearch', label: 'Show Search', type: 'toggle' },
-    { key: 'links', label: 'Navigation Links', type: 'list', listFields: [{ key: 'value', label: 'Link Name', type: 'text' }] },
+    { key: 'links', label: 'Desktop Navigation Links', type: 'list', listFields: [{ key: 'value', label: 'Link Name', type: 'text' }] },
+    { key: 'bottomNavLinks', label: 'Mobile Bottom Navigation', type: 'list', listFields: [
+      { key: 'icon', label: 'Icon', type: 'icon' },
+      { key: 'text', label: 'Text', type: 'text' },
+      { key: 'link', label: 'Link', type: 'url' },
+    ] },
   ],
   HeroBanner: [
     { key: 'badge', label: 'Badge Text', type: 'text' },
@@ -254,13 +262,60 @@ const FieldSelect: React.FC<{ value: string; onChange: (v: string) => void; opti
 
 // --- List editor for repeater fields ---
 
+const SortableListItem = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.8 : 1,
+    zIndex: isDragging ? 999 : 0,
+    position: isDragging ? 'relative' : undefined,
+    boxShadow: isDragging ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : undefined,
+    border: '1px solid var(--border-color)',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    backgroundColor: '#f8fafc',
+  } as React.CSSProperties;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div style={{ position: 'absolute', top: '10px', left: '8px', cursor: 'grab', color: 'var(--text-muted)' }} {...attributes} {...listeners}>
+        <GripVertical size={14} />
+      </div>
+      <div style={{ paddingLeft: '24px' }}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const ListEditor: React.FC<{
   items: any[];
-  listFields: { key: string; label: string; type: 'text' | 'textarea' | 'url' }[];
+  listFields: { key: string; label: string; type: 'text' | 'textarea' | 'url' | 'icon' }[];
   onChange: (items: any[]) => void;
   isStringList?: boolean;
 }> = ({ items, listFields, onChange, isStringList }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((_, i) => `item-${i}` === active.id);
+      const newIndex = items.findIndex((_, i) => `item-${i}` === over.id);
+      
+      const newItems = [...items];
+      const [movedItem] = newItems.splice(oldIndex, 1);
+      newItems.splice(newIndex, 0, movedItem);
+      onChange(newItems);
+
+      if (expandedIndex === oldIndex) setExpandedIndex(newIndex);
+      else if (expandedIndex === newIndex) setExpandedIndex(oldIndex);
+    }
+  };
 
   const handleItemChange = (index: number, key: string, value: string) => {
     if (isStringList) {
@@ -279,7 +334,7 @@ const ListEditor: React.FC<{
     if (isStringList) {
       onChange([...items, 'New Link']);
     } else {
-      const newItem: Record<string, string> = {};
+      const newItem: Record<string, string> = { id: `id-${Date.now()}` };
       listFields.forEach(f => { newItem[f.key] = ''; });
       onChange([...items, newItem]);
     }
@@ -293,77 +348,86 @@ const ListEditor: React.FC<{
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {items.map((item, i) => (
-        <div key={i} style={{
-          border: '1px solid var(--border-color)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          backgroundColor: '#f8fafc',
-        }}>
-          <div
-            onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '10px 12px',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: 'var(--text-main)',
-            }}
-          >
-            <span>{isStringList ? item : (item[listFields[0]?.key] || `Item ${i + 1}`)}</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Trash2
-                size={14}
-                style={{ color: '#ef4444', cursor: 'pointer' }}
-                onClick={(e) => { e.stopPropagation(); removeItem(i); }}
-              />
-              <ChevronDown
-                size={14}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map((_, i) => `item-${i}`)} strategy={verticalListSortingStrategy}>
+          {items.map((item, i) => (
+            <SortableListItem key={`item-${i}`} id={`item-${i}`}>
+              <div
+                onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
                 style={{
-                  transform: expandedIndex === i ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 12px 10px 4px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
                 }}
-              />
-            </div>
-          </div>
-          {expandedIndex === i && (
-            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-color)', backgroundColor: 'white' }}>
-              {isStringList ? (
-                <input
-                  type="text"
-                  className={styles.inputField}
-                  value={item || ''}
-                  onChange={(e) => handleItemChange(i, 'value', e.target.value)}
-                />
-              ) : (
-                listFields.map(field => (
-                  <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{field.label}</span>
-                    {field.type === 'textarea' ? (
-                      <textarea
-                        className={styles.textareaField}
-                        rows={2}
-                        value={item[field.key] || ''}
-                        onChange={(e) => handleItemChange(i, field.key, e.target.value)}
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        className={styles.inputField}
-                        value={item[field.key] || ''}
-                        onChange={(e) => handleItemChange(i, field.key, e.target.value)}
-                      />
-                    )}
-                  </div>
-                ))
+              >
+                <span>{isStringList ? item : (item[listFields[0]?.key] || `Item ${i + 1}`)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Trash2
+                    size={14}
+                    style={{ color: '#ef4444', cursor: 'pointer' }}
+                    onClick={(e) => { e.stopPropagation(); removeItem(i); }}
+                  />
+                  <ChevronDown
+                    size={14}
+                    style={{
+                      transform: expandedIndex === i ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s',
+                    }}
+                  />
+                </div>
+              </div>
+              {expandedIndex === i && (
+                <div style={{ padding: '12px', marginLeft: '-24px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-color)', backgroundColor: 'white' }}>
+                  {isStringList ? (
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      value={item || ''}
+                      onChange={(e) => handleItemChange(i, 'value', e.target.value)}
+                    />
+                  ) : (
+                    listFields.map(field => (
+                      <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{field.label}</span>
+                        {field.type === 'textarea' ? (
+                          <textarea
+                            className={styles.textareaField}
+                            rows={2}
+                            value={item[field.key] || ''}
+                            onChange={(e) => handleItemChange(i, field.key, e.target.value)}
+                          />
+                        ) : field.type === 'icon' ? (
+                          <select
+                            className={styles.inputField}
+                            value={item[field.key] || 'Home'}
+                            onChange={(e) => handleItemChange(i, field.key, e.target.value)}
+                          >
+                            {['Home', 'Search', 'ShoppingCart', 'User', 'Settings', 'Heart', 'Menu', 'Grid', 'List', 'Check'].map(icon => (
+                              <option key={icon} value={icon}>{icon}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            value={item[field.key] || ''}
+                            onChange={(e) => handleItemChange(i, field.key, e.target.value)}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </div>
-          )}
-        </div>
-      ))}
+            </SortableListItem>
+          ))}
+        </SortableContext>
+      </DndContext>
       <button
         onClick={addItem}
         style={{
@@ -391,8 +455,8 @@ const ListEditor: React.FC<{
 // --- Main Component ---
 
 export const EditorRightSidebar: React.FC = () => {
-  const { activeTab, isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen } = useEditorStore();
-  const { pages, updateSectionProps, theme, updateTheme } = useSiteStore();
+  const { activeTab, isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen, activeSettingItem } = useEditorStore();
+  const { pages, updateSectionProps, theme, updateTheme, updateSettings, settings } = useSiteStore();
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -403,10 +467,12 @@ export const EditorRightSidebar: React.FC = () => {
     }
   };
 
-  const isHidden = (activeTab === 'theme' || activeTab === 'settings' || (!isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen));
+  const isHidden = (activeTab === 'theme' || (activeTab === 'landing' && !isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen));
 
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
   const activeSection = activePage?.sections.find(s => s.id === selectedSectionId);
+
+  const { updatePageProps } = useSiteStore();
 
   const handlePropChange = (key: string, value: any) => {
     if (activePage && activeSection) {
@@ -414,12 +480,16 @@ export const EditorRightSidebar: React.FC = () => {
     }
   };
 
+  const handleSettingChange = (key: string, value: any) => {
+    updateSettings({ [key]: value });
+  };
+
   const presets = [
-    {name: 'Default', colors: { primary: '#198754', secondary: '#ff6b00', background: '#ffffff', text: '#0f172a' }},
-    {name: 'Ocean', colors: { primary: '#0ea5e9', secondary: '#0284c7', background: '#f0f9ff', text: '#082f49' }},
-    {name: 'Luxury', colors: { primary: '#000000', secondary: '#4b5563', background: '#fafafa', text: '#111111' }},
-    {name: 'Forest', colors: { primary: '#16a34a', secondary: '#854d0e', background: '#fefce8', text: '#1a2e05' }},
-    {name: 'Midnight', colors: { primary: '#8b5cf6', secondary: '#ec4899', background: '#0f0f23', text: '#e2e8f0' }},
+    {name: 'Default', colors: { primary: '#198754', secondary: '#ff6b00', background: '#ffffff', text: '#0f172a', accent: '#22c55e', border: '#e2e8f0' }},
+    {name: 'Ocean', colors: { primary: '#0ea5e9', secondary: '#0284c7', background: '#f0f9ff', text: '#082f49', accent: '#38bdf8', border: '#bae6fd' }},
+    {name: 'Luxury', colors: { primary: '#000000', secondary: '#4b5563', background: '#fafafa', text: '#111111', accent: '#d4af37', border: '#e5e5e5' }},
+    {name: 'Forest', colors: { primary: '#16a34a', secondary: '#854d0e', background: '#fefce8', text: '#1a2e05', accent: '#22c55e', border: '#dcfce7' }},
+    {name: 'Midnight', colors: { primary: '#8b5cf6', secondary: '#ec4899', background: '#0f0f23', text: '#e2e8f0', accent: '#c084fc', border: '#334155' }},
   ];
 
   const fonts = [
@@ -475,7 +545,96 @@ export const EditorRightSidebar: React.FC = () => {
 
   return (
     <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
-      {isColorWidgetOpen ? (
+      {activeTab === 'settings' ? (
+        <>
+          <div className={styles.panelHeader}>
+            <div className={styles.phLeft}>
+              <h3 className={styles.fw600}>{activeSettingItem || 'Global Settings'}</h3>
+            </div>
+          </div>
+          <div className={styles.propContent}>
+            {activeSettingItem === 'SEO basic' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Site Title</span>
+                  <input type="text" className={styles.inputField} value={settings?.siteTitle || ''} onChange={(e) => handleSettingChange('siteTitle', e.target.value)} placeholder="BillionBiz" />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Meta Description</span>
+                  <textarea className={styles.textareaField} value={settings?.siteDescription || ''} onChange={(e) => handleSettingChange('siteDescription', e.target.value)} rows={4} placeholder="A short description of your site" />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'JSON-LD' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Configure structured data for search engines.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Organization Name</span>
+                  <input type="text" className={styles.inputField} value={settings?.orgName || ''} onChange={(e) => handleSettingChange('orgName', e.target.value)} />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'Sitemap' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Your sitemap is generated automatically.</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Enable Sitemap</span>
+                  <input type="checkbox" checked={settings?.enableSitemap !== false} onChange={(e) => handleSettingChange('enableSitemap', e.target.checked)} />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'Social media' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Twitter URL</span>
+                  <input type="url" className={styles.inputField} value={settings?.twitterUrl || ''} onChange={(e) => handleSettingChange('twitterUrl', e.target.value)} placeholder="https://twitter.com/..." />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Instagram URL</span>
+                  <input type="url" className={styles.inputField} value={settings?.instagramUrl || ''} onChange={(e) => handleSettingChange('instagramUrl', e.target.value)} placeholder="https://instagram.com/..." />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Facebook URL</span>
+                  <input type="url" className={styles.inputField} value={settings?.facebookUrl || ''} onChange={(e) => handleSettingChange('facebookUrl', e.target.value)} placeholder="https://facebook.com/..." />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'Header & Footer' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Global Logo Text</span>
+                  <input type="text" className={styles.inputField} value={settings?.logoText || ''} onChange={(e) => handleSettingChange('logoText', e.target.value)} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Footer Copyright</span>
+                  <input type="text" className={styles.inputField} value={settings?.copyrightText || ''} onChange={(e) => handleSettingChange('copyrightText', e.target.value)} />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'OG Image' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Set the default image when sharing your site.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Image URL</span>
+                  <input type="url" className={styles.inputField} value={settings?.ogImageUrl || ''} onChange={(e) => handleSettingChange('ogImageUrl', e.target.value)} placeholder="https://..." />
+                </div>
+              </div>
+            )}
+            {activeSettingItem === 'Language' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Site Language</span>
+                  <select className={styles.inputField} value={settings?.language || 'en'} onChange={(e) => handleSettingChange('language', e.target.value)}>
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : isColorWidgetOpen ? (
         <>
           <div className={styles.panelHeader}>
             <div className={styles.phLeft}>
@@ -544,9 +703,9 @@ export const EditorRightSidebar: React.FC = () => {
             {fonts.map((t, i) => (
               <div 
                 key={i} 
-                className={`${styles.themeCard} ${theme.typography?.fontFamily === t.style.fontFamily ? styles.tcActive : ''}`}
+                className={`${styles.themeCard} ${theme.typography?.headingFont === t.style.fontFamily ? styles.tcActive : ''}`}
                 style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                onClick={() => updateTheme({ typography: { fontFamily: t.style.fontFamily } })}
+                onClick={() => updateTheme({ typography: { ...theme.typography, headingFont: t.style.fontFamily, bodyFont: t.style.fontFamily } })}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ fontSize: '20px', fontWeight: 'bold', width: '32px', textAlign: 'center', color: 'var(--text-main)', ...t.style }}>Ag</div>
@@ -554,7 +713,7 @@ export const EditorRightSidebar: React.FC = () => {
                     <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>{t.name}</span>
                   </div>
                 </div>
-                {theme.typography?.fontFamily === t.style.fontFamily && <Check size={16} color="var(--primary)" />}
+                {theme.typography?.headingFont === t.style.fontFamily && <Check size={16} color="var(--primary)" />}
               </div>
             ))}
 
@@ -577,12 +736,8 @@ export const EditorRightSidebar: React.FC = () => {
         <>
           <div className={styles.panelHeader}>
             <div className={styles.phLeft}>
-              <button className={styles.iconBtn} onClick={closeRightSidebar}>
-                <ChevronRight size={20} className={styles.backIcon} />
-              </button>
               <h3 className={styles.fw600}>{activePage?.name}</h3>
             </div>
-            <MoreVertical size={20} className={styles.moreIcon} />
           </div>
 
           <div className={styles.propTabs}>
@@ -592,12 +747,32 @@ export const EditorRightSidebar: React.FC = () => {
             <div className={styles.propTab}>SEO</div>
           </div>
 
-          <div className={styles.propContent}>
+          <div className={styles.propContent} style={{ padding: '16px' }}>
             <div className={styles.propSection}>
-              <h4 className={styles.fw600}>Page layout</h4>
-              <div className={styles.formRow}>
-                <span className={styles.labelSm}>Content width</span>
-                <div className={styles.selectBox}><span>Boxed</span><ChevronDown size={14}/></div>
+              <h4 className={styles.fw600} style={{ fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>Page Properties</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Page Name</span>
+                  <input type="text" className={styles.inputField} value={activePage?.name || ''} onChange={(e) => updatePageProps(activePage.id, { name: e.target.value })} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>URL Path</span>
+                  <input type="text" className={styles.inputField} value={activePage?.path || ''} onChange={(e) => updatePageProps(activePage.id, { path: e.target.value })} />
+                </div>
+              </div>
+            </div>
+            
+            <div className={styles.propSection} style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
+              <h4 className={styles.fw600} style={{ fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>SEO Settings</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>SEO Title</span>
+                  <input type="text" className={styles.inputField} value={activePage?.seoTitle || ''} onChange={(e) => updatePageProps(activePage.id, { seoTitle: e.target.value })} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>SEO Description</span>
+                  <textarea className={styles.textareaField} value={activePage?.seoDescription || ''} onChange={(e) => updatePageProps(activePage.id, { seoDescription: e.target.value })} rows={4} />
+                </div>
               </div>
             </div>
           </div>
@@ -846,6 +1021,13 @@ export const EditorRightSidebar: React.FC = () => {
               </div>
             )}
           </div>
+
+          {activeSection.isHidden && (
+            <div style={{ margin: '16px', padding: '12px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #ffeeba' }}>
+              <EyeOff size={16} style={{ flexShrink: 0 }} />
+              <span>This section is currently hidden.</span>
+            </div>
+          )}
         </>
       ) : (
         <div className={styles.propContent}>

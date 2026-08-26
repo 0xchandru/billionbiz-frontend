@@ -17,7 +17,7 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
   ];
 
   return (
-    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-bg)' }}>
+    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
       <h2 style={{
         fontSize: isMobile ? '32px' : '40px',
         fontWeight: 700,
@@ -25,7 +25,7 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
         color: 'var(--theme-text)',
         textAlign: 'center',
         marginBottom: '40px',
-        fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+        fontFamily: 'var(--theme-font-heading), sans-serif',
       }}>
         {heading}
       </h2>

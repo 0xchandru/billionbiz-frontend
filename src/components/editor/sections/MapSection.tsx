@@ -13,7 +13,7 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const hours = props.hours || 'Mon-Fri: 9am - 6pm | Sat: 10am - 4pm';
 
   return (
-    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-bg)' }}>
+    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
       <div style={{ display: 'flex', flexDirection: isMobile || isTablet ? 'column' : 'row', gap: '48px', alignItems: 'stretch' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <h2 style={{
@@ -21,7 +21,7 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
             fontWeight: 700,
             letterSpacing: '-1px',
             color: 'var(--theme-text)',
-            fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+            fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
             {heading}
           </h2>

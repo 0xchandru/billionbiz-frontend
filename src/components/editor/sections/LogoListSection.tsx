@@ -47,7 +47,7 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
             color: 'var(--theme-text)',
             opacity: 0.2,
             letterSpacing: '-0.5px',
-            fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+            fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
             {logo.image ? (
               <img src={logo.image} alt={logo.name} style={{ height: '32px', objectFit: 'contain', opacity: 0.4 }} />

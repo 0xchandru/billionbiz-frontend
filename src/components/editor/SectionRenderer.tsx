@@ -1,4 +1,5 @@
 import React from 'react';
+import { Home, Search, ShoppingCart, User, Settings, Heart, Menu, Grid, List, Check } from 'lucide-react';
 import type { SectionData } from '../../store/siteStore';
 import { useEditorStore } from '../../store/editorStore';
 
@@ -44,16 +45,27 @@ const Header: React.FC<{ props: any }> = ({ props }) => {
   const ctaText = props.ctaText || 'Sign Up';
   const isMobile = props.device === 'mobile';
   const isTablet = props.device === 'tablet';
+  const bottomNavLinks = props.bottomNavLinks || [
+    { id: 'home', icon: 'Home', text: 'Home', link: '/' },
+    { id: 'shop', icon: 'Grid', text: 'Shop', link: '/collections/all' },
+    { id: 'cart', icon: 'ShoppingCart', text: 'Cart', link: '/cart' },
+    { id: 'profile', icon: 'User', text: 'Profile', link: '/profile' }
+  ];
+
+  const IconMap: Record<string, React.FC<any>> = {
+    Home, Search, ShoppingCart, User, Settings, Heart, Menu, Grid, List, Check
+  };
 
   return (
-    <header style={{
+    <>
+      <header style={{
       padding: isMobile ? '16px 20px' : '20px 48px',
       display: 'flex',
       flexDirection: isMobile ? 'column' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       gap: isMobile ? '16px' : '0',
-      backgroundColor: 'var(--theme-bg)',
+      backgroundColor: 'var(--theme-background)',
       borderBottom: '1px solid #e2e8f0',
     }}>
       <div style={{
@@ -61,7 +73,7 @@ const Header: React.FC<{ props: any }> = ({ props }) => {
         fontWeight: 800,
         color: 'var(--theme-text)',
         letterSpacing: '-0.5px',
-        fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+        fontFamily: 'var(--theme-font-heading), sans-serif',
       }}>
         {logo}
       </div>
@@ -119,6 +131,43 @@ const Header: React.FC<{ props: any }> = ({ props }) => {
         </div>
       )}
     </header>
+    {isMobile && bottomNavLinks && bottomNavLinks.length > 0 && (
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'var(--theme-background)',
+        borderTop: '1px solid #e2e8f0',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        padding: '12px 16px',
+        paddingBottom: 'calc(12px + env(safe-area-inset-bottom))',
+        zIndex: 999,
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.05)',
+      }}>
+        {bottomNavLinks.map((item: any) => {
+          const Icon = IconMap[item.icon] || Home;
+          return (
+            <a key={item.id} href={item.link} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              textDecoration: 'none',
+              color: 'var(--theme-text)',
+              opacity: 0.7,
+              flex: 1,
+            }}>
+              <Icon size={20} />
+              <span style={{ fontSize: '10px', fontWeight: 600 }}>{item.text}</span>
+            </a>
+          );
+        })}
+      </div>
+    )}
+    </>
   );
 };
 
@@ -154,7 +203,7 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
             fontSize: '24px',
             fontWeight: 800,
             marginBottom: '16px',
-            fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+            fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
             {logo}
           </h3>
@@ -200,13 +249,19 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
         </div>
       </div>
       <div style={{
-        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
         opacity: 0.4,
         fontSize: '13px',
         borderTop: '1px solid rgba(255,255,255,0.1)',
         paddingTop: '32px',
       }}>
-        {copyright}
+        <span>{copyright}</span>
+        <a href="https://billionbiz.in" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none', fontWeight: 600 }}>
+          Powered by BillionBiz
+        </a>
       </div>
     </footer>
   );
@@ -237,7 +292,18 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
 // Used by addSection to provide rich defaults for every section type
 export const defaultPropsMap: Record<string, Record<string, any>> = {
   AnnouncementBar: { text: 'Free shipping on all orders over $50!' },
-  Header: { logo: 'BillionBiz', links: ['Home', 'Shop', 'Collections', 'About', 'Contact'], showSearch: true, ctaText: 'Sign Up' },
+  Header: { 
+    logo: 'BillionBiz', 
+    links: ['Home', 'Shop', 'Collections', 'About', 'Contact'], 
+    showSearch: true, 
+    ctaText: 'Sign Up',
+    bottomNavLinks: [
+      { id: 'home', icon: 'Home', text: 'Home', link: '/' },
+      { id: 'shop', icon: 'Grid', text: 'Shop', link: '/collections/all' },
+      { id: 'cart', icon: 'ShoppingCart', text: 'Cart', link: '/cart' },
+      { id: 'profile', icon: 'User', text: 'Profile', link: '/profile' }
+    ]
+  },
   HeroBanner: {
     badge: 'New Arrival',
     heading: 'Elevate Your Creative Workflow',
@@ -246,7 +312,7 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     secondaryBtn: 'Explore Templates',
     image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop',
     layout: 'left',
-    bgColor: 'var(--theme-bg)',
+    bgColor: 'var(--theme-background)',
   },
   FeaturedCollection: {
     heading: 'Featured Collection',
@@ -266,13 +332,13 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     imagePosition: 'left',
     buttonText: 'Learn More',
     buttonLink: '#',
-    bgColor: 'var(--theme-bg)',
+    bgColor: 'var(--theme-background)',
   },
   RichText: {
     heading: 'Our Mission',
     body: 'We believe in creating products that are both beautiful and functional. Our team of designers and engineers work together to push the boundaries of what\'s possible.',
     alignment: 'center',
-    bgColor: 'var(--theme-bg)',
+    bgColor: 'var(--theme-background)',
   },
   Newsletter: {
     heading: 'Stay in the Loop',
@@ -300,7 +366,7 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     heading: 'See it in Action',
     description: 'Watch how our products transform everyday spaces into extraordinary experiences.',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    bgColor: 'var(--theme-bg)',
+    bgColor: 'var(--theme-background)',
   },
   FAQ: {
     heading: 'Frequently Asked Questions',
@@ -316,7 +382,7 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     heading: 'Get in Touch',
     description: 'Have a question? Fill out the form below and we\'ll get back to you within 24 hours.',
     buttonText: 'Send Message',
-    bgColor: 'var(--theme-bg)',
+    bgColor: 'var(--theme-background)',
   },
   BlogPosts: {
     heading: 'Latest from Our Blog',

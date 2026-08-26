@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Code, Share2, Share, Globe, Image as ImageIcon, Wand2 } from 'lucide-react';
+import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Code, Share2, Share, Globe, Image as ImageIcon, Wand2, Trash2 } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { useSiteStore, type SectionData } from '../../store/siteStore';
 import { SortableItem } from './SortableItem';
@@ -9,20 +9,23 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorLeftSidebar: React.FC = () => {
-  const { 
-    activeTab, 
+  const {
+    activeTab,
     setActiveTab,
-    selectedSectionId, 
-    setSelectedSectionId, 
-    selectedPageId, 
-    setSelectedPageId, 
-    setColorWidgetOpen, 
+    selectedSectionId,
+    setSelectedSectionId,
+    selectedPageId,
+    setSelectedPageId,
+    setColorWidgetOpen,
     setTypographyWidgetOpen,
-    setAddSectionWidgetOpen
+    setAddSectionWidgetOpen,
+    activeSettingItem,
+    setActiveSettingItem
   } = useEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme } = useSiteStore();
+  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, addPage, removePage } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
   const [sectionToDelete, setSectionToDelete] = React.useState<string | null>(null);
+  const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -33,17 +36,17 @@ export const EditorLeftSidebar: React.FC = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (over && active.id !== over.id && activePage) {
       const oldIndex = activePage.sections.findIndex(s => s.id === active.id);
       let newIndex = activePage.sections.findIndex(s => s.id === over.id);
-      
+
       if (oldIndex !== -1 && newIndex !== -1) {
         // Find indices of locked sections
         const annIndex = activePage.sections.findIndex(s => s.type === 'AnnouncementBar');
         const headerIndex = activePage.sections.findIndex(s => s.type === 'Header');
         const footerIndex = activePage.sections.findIndex(s => s.type === 'Footer');
-        
+
         // The highest index among top locked elements
         const minIndex = Math.max(annIndex, headerIndex) + 1;
         // The index of the footer (if exists)
@@ -90,16 +93,21 @@ export const EditorLeftSidebar: React.FC = () => {
             </div>
             <div className={styles.settingsList}>
               {[
-                {icon: Search, title: 'SEO basic', desc: 'Title, meta description and indexing', active: true},
-                {icon: Code, title: 'JSON-LD', desc: 'Structured data for search engines'},
-                {icon: Share2, title: 'Sitemap', desc: 'Manage and update sitemap'},
-                {icon: Share, title: 'Social media', desc: 'Social links and share settings'},
-                {icon: LayoutTemplate, title: 'Header & Footer', desc: 'Manage header and footer content'},
-                {icon: ImageIcon, title: 'OG Image', desc: 'Default social sharing image'},
-                {icon: Globe, title: 'Language', desc: 'Default language and text'}
+                { id: 'SEO basic', icon: Search, title: 'SEO basic', desc: 'Title, meta description and indexing' },
+                { id: 'JSON-LD', icon: Code, title: 'JSON-LD', desc: 'Structured data for search engines' },
+                { id: 'Sitemap', icon: Share2, title: 'Sitemap', desc: 'Manage and update sitemap' },
+                { id: 'Social media', icon: Share, title: 'Social media', desc: 'Social links and share settings' },
+                { id: 'Header & Footer', icon: LayoutTemplate, title: 'Header & Footer', desc: 'Manage header and footer content' },
+                { id: 'OG Image', icon: ImageIcon, title: 'OG Image', desc: 'Default social sharing image' },
+                { id: 'Language', icon: Globe, title: 'Language', desc: 'Default language and text' }
               ].map((item, i) => (
-                <div key={i} className={`${styles.settingItem} ${item.active ? styles.settingItemActive : ''}`}>
-                  <item.icon size={18} className={item.active ? styles.siIconActive : styles.siIcon} />
+                <div 
+                  key={i} 
+                  className={`${styles.settingItem} ${activeSettingItem === item.id ? styles.settingItemActive : ''}`}
+                  onClick={() => setActiveSettingItem(item.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <item.icon size={18} className={activeSettingItem === item.id ? styles.siIconActive : styles.siIcon} />
                   <div className={styles.siContent}>
                     <h4>{item.title}</h4>
                     <p>{item.desc}</p>
@@ -113,7 +121,7 @@ export const EditorLeftSidebar: React.FC = () => {
             <div className={styles.sectionHeaderCol}>
               <h3 className={styles.fw600}>Theme styles</h3>
             </div>
-            
+
             <div className={styles.inheritThemeBlock}>
               <Wand2 size={20} className={styles.itIcon} />
               <div className={styles.itContent}>
@@ -122,67 +130,154 @@ export const EditorLeftSidebar: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles.themeCategoryList}>
+            <div className={styles.themeCategoryList} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              
               <div className={styles.themeCategory}>
-                <div className={styles.tcHeader}>
-                  <h4>Color palettes</h4>
-                  <a href="#">Edit all</a>
+                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Global Colors</h4>
                 </div>
-                <div className={styles.tcGrid}>
-                  {[
-                    {name: 'Default', colors: { primary: '#198754', secondary: '#ff6b00', background: '#ffffff', text: '#0f172a' }},
-                    {name: 'Ocean', colors: { primary: '#0ea5e9', secondary: '#0284c7', background: '#f0f9ff', text: '#082f49' }},
-                    {name: 'Luxury', colors: { primary: '#000000', secondary: '#4b5563', background: '#fafafa', text: '#111111' }}
-                  ].map((t, i) => (
-                    <div 
-                      key={i} 
-                      className={`${styles.themeCard} ${theme.presetName === t.name ? styles.tcActive : ''}`}
-                      onClick={() => updateTheme({ presetName: t.name, colors: t.colors })}
-                    >
-                      <div className={styles.tcLeft}>
-                        <span className={styles.tcName}>{t.name}</span>
-                      </div>
-                      <div className={styles.tcColors}>
-                        {Object.values(t.colors).map((c, j) => <span key={j} style={{backgroundColor: c, flex: 1}}></span>)}
-                      </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {Object.entries(theme.colors).map(([key, value]) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', textTransform: 'capitalize', color: 'var(--text-main)' }}>{key}</span>
+                      <input 
+                        type="color" 
+                        value={value} 
+                        onChange={(e) => updateTheme({ colors: { ...theme.colors, [key]: e.target.value } })}
+                        style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '6px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                      />
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className={styles.themeCategory}>
-                <div className={styles.tcHeader}>
-                  <h4>Typography</h4>
-                  <a href="#">Edit fonts</a>
+                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Typography</h4>
                 </div>
-                <div className={styles.tcGrid}>
-                  {[
-                    {name: 'Modern Sans', style: {fontFamily: 'Inter'}, active: true},
-                    {name: 'Classic Serif', style: {fontFamily: 'Georgia'}},
-                    {name: 'Mono Space', style: {fontFamily: 'monospace'}}
-                  ].map((t, i) => (
-                    <div key={i} className={`${styles.themeCard} ${t.active ? styles.tcActive : ''}`}>
-                      <div className={styles.tcLeft}>
-                        <div className={styles.tcThumbnail} style={{display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 'bold', color: 'var(--text-main)', ...t.style}}>Ag</div>
-                        <span className={styles.tcName}>{t.name}</span>
-                      </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Heading Font</label>
+                    <select 
+                      value={theme.typography.headingFont}
+                      onChange={(e) => updateTheme({ typography: { ...theme.typography, headingFont: e.target.value } })}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
+                    >
+                      <option value="Outfit, sans-serif">Outfit</option>
+                      <option value="Inter, sans-serif">Inter</option>
+                      <option value="Playfair Display, serif">Playfair Display</option>
+                      <option value="Roboto, sans-serif">Roboto</option>
+                      <option value="Space Grotesk, sans-serif">Space Grotesk</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Body Font</label>
+                    <select 
+                      value={theme.typography.bodyFont}
+                      onChange={(e) => updateTheme({ typography: { ...theme.typography, bodyFont: e.target.value } })}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
+                    >
+                      <option value="Inter, sans-serif">Inter</option>
+                      <option value="Roboto, sans-serif">Roboto</option>
+                      <option value="Lato, sans-serif">Lato</option>
+                      <option value="Open Sans, sans-serif">Open Sans</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Base Size</label>
+                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{theme.typography.baseSize}px</span>
                     </div>
-                  ))}
+                    <input 
+                      type="range" min="12" max="24" step="1" 
+                      value={theme.typography.baseSize}
+                      onChange={(e) => updateTheme({ typography: { ...theme.typography, baseSize: parseInt(e.target.value) } })}
+                      style={{ accentColor: 'var(--theme-primary)' }}
+                    />
+                  </div>
                 </div>
               </div>
+
+              <div className={styles.themeCategory}>
+                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>UI Elements</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Border Radius</label>
+                    <select 
+                      value={theme.ui.borderRadius}
+                      onChange={(e) => updateTheme({ ui: { ...theme.ui, borderRadius: e.target.value } })}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
+                    >
+                      <option value="0px">Sharp (0px)</option>
+                      <option value="4px">Slight (4px)</option>
+                      <option value="8px">Rounded (8px)</option>
+                      <option value="16px">Extra Rounded (16px)</option>
+                      <option value="24px">Soft (24px)</option>
+                      <option value="999px">Pill (999px)</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Shadows</label>
+                    <select 
+                      value={theme.ui.shadow}
+                      onChange={(e) => updateTheme({ ui: { ...theme.ui, shadow: e.target.value } })}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
+                    >
+                      <option value="none">None</option>
+                      <option value="0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)">Soft</option>
+                      <option value="0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)">Medium</option>
+                      <option value="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)">Large</option>
+                      <option value="0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)">Extra Large</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.themeCategory}>
+                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Layout</h4>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Max Width</label>
+                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{theme.layout.maxWidth}px</span>
+                    </div>
+                    <input 
+                      type="range" min="800" max="1600" step="100" 
+                      value={theme.layout.maxWidth}
+                      onChange={(e) => updateTheme({ layout: { ...theme.layout, maxWidth: parseInt(e.target.value) } })}
+                      style={{ accentColor: 'var(--theme-primary)' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         ) : activeTab === 'pages' ? (
           <>
-            <div className={styles.sectionHeader}>
+            <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '12px' }}>
               <h3 className={styles.fw600}>All pages</h3>
+              <button 
+                onClick={() => {
+                  const name = `New Page ${pages.length + 1}`;
+                  addPage(name, `/${name.toLowerCase().replace(/ /g, '-')}`);
+                }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
+              >
+                <Plus size={14} /> Add
+              </button>
             </div>
             <div className={styles.pageList}>
               {pages.map(p => (
-                <div 
-                  key={p.id} 
+                <div
+                  key={p.id}
                   className={`${styles.pageItem} ${selectedPageId === p.id ? styles.activePageItem : ''}`}
                   onClick={() => setSelectedPageId(p.id)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className={styles.pageItemLeft}>
                     <LayoutTemplate size={18} className={selectedPageId === p.id ? styles.pageIconActive : styles.pageIconDef} />
@@ -192,7 +287,19 @@ export const EditorLeftSidebar: React.FC = () => {
                     </div>
                   </div>
                   <div className={styles.pageItemRight}>
-                    <MoreVertical size={14} className={styles.moreIcon} />
+                    {p.type === 'Custom' ? (
+                      <Trash2 
+                        size={14} 
+                        className={styles.moreIcon} 
+                        style={{ color: '#ef4444', cursor: 'pointer' }} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPageToDelete(p.id);
+                        }} 
+                      />
+                    ) : (
+                      <MoreVertical size={14} className={styles.moreIcon} />
+                    )}
                   </div>
                 </div>
               ))}
@@ -209,13 +316,13 @@ export const EditorLeftSidebar: React.FC = () => {
 
               <div className={styles.sectionsList}>
                 {activePage && (
-                  <DndContext 
+                  <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
                     modifiers={[restrictToVerticalAxis]}
                   >
-                    <SortableContext 
+                    <SortableContext
                       items={activePage.sections.map(s => s.id)}
                       strategy={verticalListSortingStrategy}
                     >
@@ -240,24 +347,24 @@ export const EditorLeftSidebar: React.FC = () => {
               </div>
             </div>
 
-            <div className={styles.miniThemeGroup} style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px', backgroundColor: 'var(--panel-bg)', paddingBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-               <button className={styles.addSectionBtn} onClick={() => setAddSectionWidgetOpen(true)} style={{ marginBottom: '4px' }}>
-                 <Plus size={16} /> Add section
-               </button>
-               
-               <div className={styles.miniThemeItem} onClick={() => setColorWidgetOpen(true)}>
-                  <span>Color palette</span>
-                  <div className={styles.miniColors}>
-                    <span style={{backgroundColor: theme?.colors?.primary || '#198754'}}></span>
-                    <span style={{backgroundColor: theme?.colors?.secondary || '#ff6b00'}}></span>
-                    <span style={{backgroundColor: theme?.colors?.background || '#ffffff'}}></span>
-                    <span style={{backgroundColor: theme?.colors?.text || '#0f172a'}}></span>
-                  </div>
-               </div>
-               <div className={styles.miniThemeItem} onClick={() => setTypographyWidgetOpen(true)}>
-                  <span>Typography</span>
-                  <div className={styles.miniFont} style={{fontFamily: theme?.typography?.fontFamily || 'Inter'}}>Ag</div>
-               </div>
+            <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px', backgroundColor: 'var(--panel-bg)', display: 'flex', gap: '8px' }}>
+              <button 
+                className={styles.addSectionBtn} 
+                onClick={() => setAddSectionWidgetOpen(true)} 
+                style={{ flex: 1, margin: 0, padding: '8px', fontSize: '13px', width: 'auto' }}
+              >
+                <Plus size={16} /> Add
+              </button>
+
+              <div className={styles.miniThemeItem} onClick={() => setColorWidgetOpen(true)} style={{ padding: '8px 12px', width: 'auto', flexShrink: 0, margin: 0 }} title="Color palette">
+                <div className={styles.miniColors} style={{ gap: '4px' }}>
+                  <span style={{ backgroundColor: theme?.colors?.primary || '#198754', borderRadius: '4px' }}></span>
+                  <span style={{ backgroundColor: theme?.colors?.secondary || '#ff6b00', borderRadius: '4px' }}></span>
+                </div>
+              </div>
+              <div className={styles.miniThemeItem} onClick={() => setTypographyWidgetOpen(true)} style={{ padding: '8px 16px', width: 'auto', flexShrink: 0, margin: 0 }} title="Typography">
+                <div style={{ fontFamily: theme?.typography?.bodyFont || 'Inter', fontSize: '14px', fontWeight: 'bold' }}>Ag</div>
+              </div>
             </div>
           </div>
         )}
@@ -268,16 +375,44 @@ export const EditorLeftSidebar: React.FC = () => {
             <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontFamily: '"Outfit", sans-serif' }}>Delete Section</h3>
             <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--text-muted)' }}>Are you sure you want to delete this section? This action cannot be undone.</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button 
+              <button
                 onClick={() => setSectionToDelete(null)}
                 style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={() => {
                   removeSection(activePage.id, sectionToDelete);
                   setSectionToDelete(null);
+                }}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {pageToDelete && (
+        <div className={styles.fullscreenModalOverlay} style={{ zIndex: 99999 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '320px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontFamily: '"Outfit", sans-serif' }}>Delete Page</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--text-muted)' }}>Are you sure you want to delete this page? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setPageToDelete(null)}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  removePage(pageToDelete);
+                  if (selectedPageId === pageToDelete) {
+                    setSelectedPageId(pages[0].id);
+                  }
+                  setPageToDelete(null);
                 }}
                 style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)' }}
               >

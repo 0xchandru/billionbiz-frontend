@@ -1267,7 +1267,18 @@
 
 .activeSectionBorder {
   position: relative;
-  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.activeSectionBorder::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid var(--primary);
+  pointer-events: none;
+  z-index: 9999;
 }
 
 .sectionLabel {

@@ -7,7 +7,7 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const heading = props.heading || 'See it in Action';
   const description = props.description || 'Watch how our products transform everyday spaces into extraordinary experiences.';
   const videoUrl = props.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const bgColor = props.bgColor || 'var(--theme-background)';
 
   // Convert youtube/vimeo URLs to embed URLs
   let embedUrl = videoUrl;
@@ -35,7 +35,7 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
           letterSpacing: '-1px',
           color: 'var(--theme-text)',
           marginBottom: '16px',
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h2>

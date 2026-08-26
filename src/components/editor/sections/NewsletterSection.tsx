@@ -23,7 +23,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           letterSpacing: '-0.5px',
           color: textColor,
           marginBottom: '16px',
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h2>

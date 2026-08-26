@@ -7,7 +7,7 @@ const RichTextSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
   const heading = props.heading || 'Our Mission';
   const body = props.body || 'We believe in creating products that are both beautiful and functional. Our team of designers and engineers work together to push the boundaries of what\'s possible, crafting experiences that delight and inspire.';
   const alignment = props.alignment || 'center';
-  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const bgColor = props.bgColor || 'var(--theme-background)';
 
   return (
     <section style={{
@@ -23,7 +23,7 @@ const RichTextSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
           color: 'var(--theme-text)',
           marginBottom: '24px',
           lineHeight: 1.2,
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h2>

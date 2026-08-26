@@ -11,7 +11,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
   const imagePosition = props.imagePosition || 'left';
   const buttonText = props.buttonText || 'Learn More';
   const buttonLink = props.buttonLink || '#';
-  const bgColor = props.bgColor || 'var(--theme-bg)';
+  const bgColor = props.bgColor || 'var(--theme-background)';
 
   const isRight = imagePosition === 'right';
 
@@ -32,7 +32,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
           letterSpacing: '-1px',
           color: 'var(--theme-text)',
           lineHeight: 1.2,
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h2>

@@ -12,14 +12,14 @@ const BlogPostsSection: React.FC<{ props: Record<string, any> }> = ({ props }) =
   ];
 
   return (
-    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-bg)' }}>
+    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', marginBottom: '40px', gap: isMobile ? '16px' : '0' }}>
         <h2 style={{
           fontSize: isMobile ? '32px' : '40px',
           fontWeight: 700,
           letterSpacing: '-1px',
           color: 'var(--theme-text)',
-          fontFamily: 'var(--theme-font, "Outfit"), sans-serif',
+          fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h2>

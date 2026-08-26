@@ -13,6 +13,7 @@ interface EditorState {
   isTypographyWidgetOpen: boolean;
   isAddSectionWidgetOpen: boolean;
   insertIndex: number | null;
+  activeSettingItem: string | null;
   
   setActiveTab: (tab: EditorTab) => void;
   setDevice: (device: DeviceType) => void;
@@ -23,6 +24,7 @@ interface EditorState {
   setTypographyWidgetOpen: (isOpen: boolean) => void;
   setAddSectionWidgetOpen: (isOpen: boolean) => void;
   setInsertIndex: (index: number | null) => void;
+  setActiveSettingItem: (item: string | null) => void;
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -35,14 +37,22 @@ export const useEditorStore = create<EditorState>((set) => ({
   isTypographyWidgetOpen: false,
   isAddSectionWidgetOpen: false,
   insertIndex: null,
+  activeSettingItem: 'SEO basic',
 
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (tab) => set((state) => ({ 
+    activeTab: tab,
+    isRightSidebarOpen: tab === 'pages' ? true : (state.selectedSectionId !== null)
+  })),
   setDevice: (device) => set({ device }),
   setSelectedSectionId: (id) => set({ 
     selectedSectionId: id,
     isRightSidebarOpen: id !== null
   }),
-  setSelectedPageId: (id) => set({ selectedPageId: id, isRightSidebarOpen: true }),
+  setSelectedPageId: (id) => set({ 
+    selectedPageId: id, 
+    isRightSidebarOpen: true,
+    selectedSectionId: null
+  }),
   closeRightSidebar: () => set({ 
     isRightSidebarOpen: false,
     selectedSectionId: null
@@ -51,4 +61,5 @@ export const useEditorStore = create<EditorState>((set) => ({
   setTypographyWidgetOpen: (isOpen) => set({ isTypographyWidgetOpen: isOpen, isColorWidgetOpen: false, isAddSectionWidgetOpen: false }),
   setAddSectionWidgetOpen: (isOpen) => set({ isAddSectionWidgetOpen: isOpen, isColorWidgetOpen: false, isTypographyWidgetOpen: false }),
   setInsertIndex: (index) => set({ insertIndex: index }),
+  setActiveSettingItem: (item) => set({ activeSettingItem: item }),
 }));
