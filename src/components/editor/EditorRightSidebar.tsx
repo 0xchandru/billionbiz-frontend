@@ -455,8 +455,8 @@ const ListEditor: React.FC<{
 // --- Main Component ---
 
 export const EditorRightSidebar: React.FC = () => {
-  const { activeTab, isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen, activeSettingItem } = useEditorStore();
-  const { pages, updateSectionProps, theme, updateTheme, updateSettings, settings } = useSiteStore();
+  const { activeTab, isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen } = useEditorStore();
+  const { pages, updateSectionProps, theme, updateTheme } = useSiteStore();
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -467,7 +467,7 @@ export const EditorRightSidebar: React.FC = () => {
     }
   };
 
-  const isHidden = (activeTab === 'theme' || (activeTab === 'landing' && !isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen));
+  const isHidden = (activeTab === 'settings' || activeTab === 'theme' || (!isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen));
 
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
   const activeSection = activePage?.sections.find(s => s.id === selectedSectionId);
@@ -480,9 +480,7 @@ export const EditorRightSidebar: React.FC = () => {
     }
   };
 
-  const handleSettingChange = (key: string, value: any) => {
-    updateSettings({ [key]: value });
-  };
+
 
   const presets = [
     {name: 'Default', colors: { primary: '#198754', secondary: '#ff6b00', background: '#ffffff', text: '#0f172a', accent: '#22c55e', border: '#e2e8f0' }},
@@ -545,96 +543,7 @@ export const EditorRightSidebar: React.FC = () => {
 
   return (
     <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
-      {activeTab === 'settings' ? (
-        <>
-          <div className={styles.panelHeader}>
-            <div className={styles.phLeft}>
-              <h3 className={styles.fw600}>{activeSettingItem || 'Global Settings'}</h3>
-            </div>
-          </div>
-          <div className={styles.propContent}>
-            {activeSettingItem === 'SEO basic' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Site Title</span>
-                  <input type="text" className={styles.inputField} value={settings?.siteTitle || ''} onChange={(e) => handleSettingChange('siteTitle', e.target.value)} placeholder="BillionBiz" />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Meta Description</span>
-                  <textarea className={styles.textareaField} value={settings?.siteDescription || ''} onChange={(e) => handleSettingChange('siteDescription', e.target.value)} rows={4} placeholder="A short description of your site" />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'JSON-LD' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Configure structured data for search engines.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Organization Name</span>
-                  <input type="text" className={styles.inputField} value={settings?.orgName || ''} onChange={(e) => handleSettingChange('orgName', e.target.value)} />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'Sitemap' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Your sitemap is generated automatically.</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--text-main)' }}>Enable Sitemap</span>
-                  <input type="checkbox" checked={settings?.enableSitemap !== false} onChange={(e) => handleSettingChange('enableSitemap', e.target.checked)} />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'Social media' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Twitter URL</span>
-                  <input type="url" className={styles.inputField} value={settings?.twitterUrl || ''} onChange={(e) => handleSettingChange('twitterUrl', e.target.value)} placeholder="https://twitter.com/..." />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Instagram URL</span>
-                  <input type="url" className={styles.inputField} value={settings?.instagramUrl || ''} onChange={(e) => handleSettingChange('instagramUrl', e.target.value)} placeholder="https://instagram.com/..." />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Facebook URL</span>
-                  <input type="url" className={styles.inputField} value={settings?.facebookUrl || ''} onChange={(e) => handleSettingChange('facebookUrl', e.target.value)} placeholder="https://facebook.com/..." />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'Header & Footer' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Global Logo Text</span>
-                  <input type="text" className={styles.inputField} value={settings?.logoText || ''} onChange={(e) => handleSettingChange('logoText', e.target.value)} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Footer Copyright</span>
-                  <input type="text" className={styles.inputField} value={settings?.copyrightText || ''} onChange={(e) => handleSettingChange('copyrightText', e.target.value)} />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'OG Image' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Set the default image when sharing your site.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Image URL</span>
-                  <input type="url" className={styles.inputField} value={settings?.ogImageUrl || ''} onChange={(e) => handleSettingChange('ogImageUrl', e.target.value)} placeholder="https://..." />
-                </div>
-              </div>
-            )}
-            {activeSettingItem === 'Language' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Site Language</span>
-                  <select className={styles.inputField} value={settings?.language || 'en'} onChange={(e) => handleSettingChange('language', e.target.value)}>
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                  </select>
-                </div>
-              </div>
-            )}
-          </div>
-        </>
-      ) : isColorWidgetOpen ? (
+      {isColorWidgetOpen ? (
         <>
           <div className={styles.panelHeader}>
             <div className={styles.phLeft}>
@@ -736,6 +645,9 @@ export const EditorRightSidebar: React.FC = () => {
         <>
           <div className={styles.panelHeader}>
             <div className={styles.phLeft}>
+              <button className={styles.iconBtn} onClick={closeRightSidebar}>
+                <ChevronRight size={20} className={styles.backIcon} />
+              </button>
               <h3 className={styles.fw600}>{activePage?.name}</h3>
             </div>
           </div>

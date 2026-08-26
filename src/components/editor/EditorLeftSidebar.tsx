@@ -22,7 +22,7 @@ export const EditorLeftSidebar: React.FC = () => {
     activeSettingItem,
     setActiveSettingItem
   } = useEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, addPage, removePage } = useSiteStore();
+  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, removePage } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
   const [sectionToDelete, setSectionToDelete] = React.useState<string | null>(null);
   const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
@@ -93,6 +93,7 @@ export const EditorLeftSidebar: React.FC = () => {
             </div>
             <div className={styles.settingsList}>
               {[
+                { id: 'General', icon: LayoutTemplate, title: 'General', desc: 'Site info, logo, & contact' },
                 { id: 'SEO basic', icon: Search, title: 'SEO basic', desc: 'Title, meta description and indexing' },
                 { id: 'JSON-LD', icon: Code, title: 'JSON-LD', desc: 'Structured data for search engines' },
                 { id: 'Sitemap', icon: Share2, title: 'Sitemap', desc: 'Manage and update sitemap' },
@@ -261,18 +262,9 @@ export const EditorLeftSidebar: React.FC = () => {
           <>
             <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '12px' }}>
               <h3 className={styles.fw600}>All pages</h3>
-              <button 
-                onClick={() => {
-                  const name = `New Page ${pages.length + 1}`;
-                  addPage(name, `/${name.toLowerCase().replace(/ /g, '-')}`);
-                }}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
-              >
-                <Plus size={14} /> Add
-              </button>
             </div>
             <div className={styles.pageList}>
-              {pages.map(p => (
+              {pages.filter(p => p.path !== '/').map(p => (
                 <div
                   key={p.id}
                   className={`${styles.pageItem} ${selectedPageId === p.id ? styles.activePageItem : ''}`}
