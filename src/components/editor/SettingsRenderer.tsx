@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { useSiteStore } from '../../store/siteStore';
+import { ListEditor } from './EditorRightSidebar';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const SettingsRenderer: React.FC = () => {
@@ -326,6 +327,47 @@ export const SettingsRenderer: React.FC = () => {
                       />
                       <span className={styles.scHint}>This appears in the footer bottom</span>
                    </div>
+                </div>
+             </div>
+          )}
+
+          {/* ── Mobile Apps ── */}
+          {activeSettingItem === 'Mobile Apps' && (
+             <div className={styles.scCardFull}>
+                <h3>Mobile Navigation</h3>
+                <p>Configure the mobile app-like bottom navigation bar</p>
+
+                <div className={styles.scFormGroup} style={{ marginTop: '16px' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', border: '1px solid var(--border-color)', borderRadius: '6px', marginBottom: '20px' }}>
+                      <div>
+                         <span style={{ fontSize: '14px', fontWeight: 500, display: 'block' }}>Show Bottom Navigation</span>
+                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Enable sticky bottom nav on mobile devices</span>
+                      </div>
+                      <input
+                         type="checkbox"
+                         style={{ width: '18px', height: '18px' }}
+                         checked={settings.showBottomNav !== false}
+                         onChange={(e) => updateSettings({ showBottomNav: e.target.checked })}
+                      />
+                   </div>
+
+                   {settings.showBottomNav !== false && (
+                      <div className={styles.scFormGroup}>
+                         <label>Navigation Items (Max 5)</label>
+                         <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                            <ListEditor
+                               items={settings.bottomNavLinks || []}
+                               onChange={(items) => updateSettings({ bottomNavLinks: items })}
+                               maxItems={5}
+                               listFields={[
+                                  { key: 'icon', label: 'Icon', type: 'icon' },
+                                  { key: 'text', label: 'Text', type: 'text' },
+                                  { key: 'link', label: 'Link', type: 'url' },
+                               ]}
+                            />
+                         </div>
+                      </div>
+                   )}
                 </div>
              </div>
           )}

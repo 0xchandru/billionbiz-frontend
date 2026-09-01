@@ -350,11 +350,57 @@
 .sectionsList {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.sectionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionCategoryHeader {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  padding: 8px 4px 4px;
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.sectionCategoryHeader:first-child {
+  margin-top: 0;
+}
+
+.groupAddBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  margin-top: 4px;
+  transition: var(--transition);
+}
+
+.groupAddBtn:hover {
+  background-color: var(--primary-light);
 }
 
 .sortableWrapper {
   position: relative;
+}
+
+.sortableWrapper:hover {
+  z-index: 20;
 }
 
 .insertArea {
@@ -402,8 +448,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   background-color: white;
   border: 1px solid var(--border-color);
@@ -413,19 +459,60 @@
 
 .sectionItem:hover {
   border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .activeSectionItem {
   background-color: #fefce8;
   border-color: #fde047;
-  box-shadow: 0 4px 12px rgba(253, 224, 71, 0.15);
+  box-shadow: 0 2px 8px rgba(253, 224, 71, 0.15);
 }
 
 .activeSectionItem:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(253, 224, 71, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(253, 224, 71, 0.2);
+}
+
+.menuOpenSectionItem {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sectionCategoryHeader {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  padding: 4px 4px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.miniAddBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.miniAddBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: var(--primary);
+}
+
+.miniAddBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .sectionItemLeft {
@@ -958,7 +1045,7 @@
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-family: inherit;
   transition: var(--transition);
   background: #f8fafc;
@@ -976,7 +1063,7 @@
   padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-family: inherit;
   resize: vertical;
   transition: var(--transition);
@@ -1265,6 +1352,24 @@
   justify-content: center;
 }
 
+.previewSectionWrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.previewSectionWrapper:hover:not(.activeSectionBorder)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--primary);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 10;
+}
+
 .activeSectionBorder {
   position: relative;
 }
@@ -1278,7 +1383,7 @@
   bottom: 0;
   border: 2px solid var(--primary);
   pointer-events: none;
-  z-index: 9999;
+  z-index: 15;
 }
 
 .sectionLabel {
@@ -2303,15 +2408,17 @@
 /* Dropdown Menu Styles */
 .dropdownMenu {
   position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 8px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  min-width: 200px;
-  z-index: 1000;
-  padding: 8px 0;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background-color: #ffffff !important;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: max-content;
+  min-width: 140px;
+  z-index: 99999;
+  padding: 4px;
   display: flex;
   flex-direction: column;
 }

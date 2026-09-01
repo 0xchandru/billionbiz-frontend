@@ -5,6 +5,8 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useEditorStore } from '../../store/editorStore';
 import { useSiteStore } from '../../store/siteStore';
+import { getSectionConfig } from './sectionConfigs';
+import { TabRenderer } from './ui/TabRenderer';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 // --- Editor field config types ---
@@ -28,11 +30,6 @@ const sectionEditorConfigs: Record<string, EditorField[]> = {
     { key: 'ctaText', label: 'CTA Button Text', type: 'text' },
     { key: 'showSearch', label: 'Show Search', type: 'toggle' },
     { key: 'links', label: 'Desktop Navigation Links', type: 'list', listFields: [{ key: 'value', label: 'Link Name', type: 'text' }] },
-    { key: 'bottomNavLinks', label: 'Mobile Bottom Navigation', type: 'list', listFields: [
-      { key: 'icon', label: 'Icon', type: 'icon' },
-      { key: 'text', label: 'Text', type: 'text' },
-      { key: 'link', label: 'Link', type: 'url' },
-    ] },
   ],
   HeroBanner: [
     { key: 'badge', label: 'Badge Text', type: 'text' },
@@ -289,12 +286,15 @@ const SortableListItem = ({ id, children }: { id: string; children: React.ReactN
   );
 };
 
-const ListEditor: React.FC<{
+interface ListEditorProps {
   items: any[];
-  listFields: { key: string; label: string; type: 'text' | 'textarea' | 'url' | 'icon' }[];
   onChange: (items: any[]) => void;
+  listFields?: { key: string; label: string; type: 'text' | 'textarea' | 'url' | 'icon' }[];
+  maxItems?: number;
   isStringList?: boolean;
-}> = ({ items, listFields, onChange, isStringList }) => {
+}
+
+export const ListEditor: React.FC<ListEditorProps> = ({ items, onChange, listFields = [], maxItems, isStringList }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const sensors = useSensors(
@@ -331,6 +331,10 @@ const ListEditor: React.FC<{
   };
 
   const addItem = () => {
+    if (maxItems && items.length >= maxItems) {
+      alert(`You can only add up to ${maxItems} items.`);
+      return;
+    }
     if (isStringList) {
       onChange([...items, 'New Link']);
     } else {
@@ -540,6 +544,8 @@ export const EditorRightSidebar: React.FC = () => {
 
   // Get editor config for the active section
   const editorConfig = activeSection ? sectionEditorConfigs[activeSection.type] : null;
+  // Get new config-driven section config (takes priority over legacy editorConfig)
+  const sectionConfig = activeSection ? getSectionConfig(activeSection.type) : undefined;
 
   return (
     <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
@@ -689,7 +695,39 @@ export const EditorRightSidebar: React.FC = () => {
             </div>
           </div>
         </>
+      ) : activeSection && sectionConfig ? (
+        /* ======= NEW CONFIG-DRIVEN EDITOR ======= */
+        <>
+          <div className={styles.panelHeader}>
+            <div className={styles.phLeft}>
+              <button className={styles.iconBtn} onClick={closeRightSidebar}>
+                <ChevronRight size={20} className={styles.backIcon} />
+              </button>
+              <h3 className={styles.fw600}>{activeSection.name}</h3>
+            </div>
+            <MoreVertical size={20} className={styles.moreIcon} />
+          </div>
+
+          <TabRenderer
+            tabs={sectionConfig.getTabs(
+              activeSection.props?.selectedLayout || sectionConfig.layouts?.[0]?.id,
+              activeSection.props
+            )}
+            layouts={sectionConfig.layouts}
+            props={activeSection.props || {}}
+            onPropChange={handlePropChange}
+            sectionName={activeSection.name}
+          />
+
+          {activeSection.isHidden && (
+            <div style={{ margin: '16px', padding: '12px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #ffeeba' }}>
+              <EyeOff size={16} style={{ flexShrink: 0 }} />
+              <span>This section is currently hidden.</span>
+            </div>
+          )}
+        </>
       ) : activeSection && editorConfig ? (
+        /* ======= LEGACY FLAT EDITOR (fallback for unmigrated sections) ======= */
         <>
           <div className={styles.panelHeader}>
             <div className={styles.phLeft}>
@@ -737,7 +775,7 @@ export const EditorRightSidebar: React.FC = () => {
             {activeEditorTab === 'content' ? (
               <>
                 {editorConfig
-                  .filter(f => f.type !== 'color') // Color fields go in Design tab
+                  .filter(f => f.type !== 'color')
                   .map(field => renderField(field))
                 }
               </>
@@ -818,7 +856,7 @@ export const EditorRightSidebar: React.FC = () => {
                             onClick={() => {
                               const currentVis = activeSection?.props?.visibility || {};
                               const devKey = dev as 'desktop' | 'tablet' | 'mobile';
-                              const currentVal = currentVis[devKey] !== false; // true by default
+                              const currentVal = currentVis[devKey] !== false;
                               handlePropChange('visibility', { ...currentVis, [devKey]: !currentVal });
                             }}
                             style={{

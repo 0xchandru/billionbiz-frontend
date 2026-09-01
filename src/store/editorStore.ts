@@ -14,6 +14,7 @@ interface EditorState {
   isAddSectionWidgetOpen: boolean;
   insertIndex: number | null;
   activeSettingItem: string | null;
+  activeSectionTab: string | null;
   
   setActiveTab: (tab: EditorTab) => void;
   setDevice: (device: DeviceType) => void;
@@ -25,6 +26,7 @@ interface EditorState {
   setAddSectionWidgetOpen: (isOpen: boolean) => void;
   setInsertIndex: (index: number | null) => void;
   setActiveSettingItem: (item: string | null) => void;
+  setActiveSectionTab: (tab: string | null) => void;
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -38,6 +40,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   isAddSectionWidgetOpen: false,
   insertIndex: null,
   activeSettingItem: 'SEO basic',
+  activeSectionTab: null,
 
   setActiveTab: (tab) => set((state) => ({ 
     activeTab: tab,
@@ -62,4 +65,5 @@ export const useEditorStore = create<EditorState>((set) => ({
   setAddSectionWidgetOpen: (isOpen) => set({ isAddSectionWidgetOpen: isOpen, isColorWidgetOpen: false, isTypographyWidgetOpen: false }),
   setInsertIndex: (index) => set({ insertIndex: index }),
   setActiveSettingItem: (item) => set({ activeSettingItem: item }),
+  setActiveSectionTab: (tab) => set({ activeSectionTab: tab }),
 }));

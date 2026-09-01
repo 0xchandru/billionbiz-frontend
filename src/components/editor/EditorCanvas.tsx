@@ -47,19 +47,24 @@ export const EditorCanvas: React.FC = () => {
             justifyContent: 'center',
             padding: `${paddingY / 2}px 0`,
          }}>
-            <div 
-               className={styles.canvasWrapper} 
-               style={{ 
+            <div style={{ 
+               width: `${targetWidth * scale}px`, 
+               height: `${domHeight * scale}px` 
+            }}>
+               <div style={{
+                  transform: `scale(${scale})`,
+                  transformOrigin: 'top left',
                   width: `${targetWidth}px`,
-                  minWidth: `${targetWidth}px`,
-                  maxWidth: `${targetWidth}px`,
                   height: `${domHeight}px`,
-                  zoom: scale,
-                  margin: '0 auto',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-               }}
-            >
+               }}>
+                  <div 
+                     className={styles.canvasWrapper} 
+                     style={{ 
+                        width: '100%',
+                        height: '100%',
+                        margin: '0',
+                     }}
+                  >
                {activeTab === 'pages' || activeTab === 'theme' ? (
                   <div className={styles.previewPage}>
                      <div className={styles.announcementBar}>{settings.announcement}</div>
@@ -156,7 +161,9 @@ export const EditorCanvas: React.FC = () => {
                )}
             </div>
          </div>
-      );
+      </div>
+      </div>
+   );
    };
 
    return (

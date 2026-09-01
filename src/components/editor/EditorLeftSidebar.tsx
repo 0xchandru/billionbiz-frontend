@@ -1,10 +1,11 @@
 import React from 'react';
-import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Share, Globe, Wand2, Trash2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Share, Globe, Wand2, Trash2, Smartphone } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
-import { useSiteStore, type SectionData } from '../../store/siteStore';
+import { useSiteStore } from '../../store/siteStore';
 import { SortableItem } from './SortableItem';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
@@ -16,16 +17,52 @@ export const EditorLeftSidebar: React.FC = () => {
     setSelectedSectionId,
     selectedPageId,
     setSelectedPageId,
-    setColorWidgetOpen,
-    setTypographyWidgetOpen,
     setAddSectionWidgetOpen,
     activeSettingItem,
     setActiveSettingItem
   } = useEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, removePage } = useSiteStore();
+  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, removePage, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
+
+  // Cleanup duplicate locked sections that might have been added manually before restrictions
+  React.useEffect(() => {
+    if (activePage) {
+      const headerCount = activePage.sections.filter(s => s.type === 'Header').length;
+      const footerCount = activePage.sections.filter(s => s.type === 'Footer').length;
+      
+      if (headerCount > 1 || footerCount > 1) {
+        const seen = new Set();
+        const deduplicated = activePage.sections.filter(s => {
+          if (s.type === 'Header' || s.type === 'Footer') {
+            if (seen.has(s.type)) return false;
+            seen.add(s.type);
+          }
+          return true;
+        });
+        updatePageProps(activePage.id, { sections: deduplicated });
+      }
+    }
+  }, [activePage, updatePageProps]);
   const [sectionToDelete, setSectionToDelete] = React.useState<string | null>(null);
   const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
+  const [headerAddOpen, setHeaderAddOpen] = React.useState(false);
+  const [footerAddOpen, setFooterAddOpen] = React.useState(false);
+  
+  const headerAddRef = React.useRef<HTMLDivElement>(null);
+  const footerAddRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (headerAddRef.current && !headerAddRef.current.contains(event.target as Node)) {
+        setHeaderAddOpen(false);
+      }
+      if (footerAddRef.current && !footerAddRef.current.contains(event.target as Node)) {
+        setFooterAddOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -42,24 +79,48 @@ export const EditorLeftSidebar: React.FC = () => {
       let newIndex = activePage.sections.findIndex(s => s.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        // Find indices of locked sections
-        const annIndex = activePage.sections.findIndex(s => s.type === 'AnnouncementBar');
+        const headerGroupTypes = ['AnnouncementBar', 'UtilityBar', 'Header'];
+        const footerGroupTypes = ['FooterMenu', 'FooterText', 'Footer'];
+        
+        const isHeaderItem = headerGroupTypes.includes(activePage.sections[oldIndex].type);
+        const isFooterItem = footerGroupTypes.includes(activePage.sections[oldIndex].type);
+        const isBodyItem = !isHeaderItem && !isFooterItem;
+
         const headerIndex = activePage.sections.findIndex(s => s.type === 'Header');
         const footerIndex = activePage.sections.findIndex(s => s.type === 'Footer');
+        
+        const firstFooterItemIndex = activePage.sections.findIndex(s => footerGroupTypes.includes(s.type));
+        const actualFooterStartIndex = firstFooterItemIndex !== -1 ? firstFooterItemIndex : footerIndex;
 
-        // The highest index among top locked elements
-        const minIndex = Math.max(annIndex, headerIndex) + 1;
-        // The index of the footer (if exists)
-        const maxIndex = footerIndex !== -1 ? footerIndex - 1 : activePage.sections.length - 1;
-
-        if (newIndex < minIndex) newIndex = minIndex;
-        if (newIndex > maxIndex) newIndex = maxIndex;
+        if (isHeaderItem) {
+          if (newIndex > headerIndex) newIndex = headerIndex;
+        } else if (isFooterItem) {
+          if (newIndex < actualFooterStartIndex) newIndex = actualFooterStartIndex;
+          if (newIndex > footerIndex) newIndex = footerIndex;
+        } else if (isBodyItem) {
+          if (newIndex <= headerIndex) newIndex = headerIndex + 1;
+          if (newIndex >= actualFooterStartIndex && actualFooterStartIndex !== -1) newIndex = actualFooterStartIndex - 1;
+        }
 
         if (oldIndex !== newIndex) {
           reorderSections(activePage.id, oldIndex, newIndex);
         }
       }
     }
+  };
+
+  const handleAddHeaderItem = (type: string) => {
+    if (!activePage) return;
+    const insertIndex = activePage.sections.findIndex(s => s.type === 'Header');
+    useSiteStore.getState().addSection(activePage.id, type, insertIndex);
+    setHeaderAddOpen(false);
+  };
+
+  const handleAddFooterItem = (type: string) => {
+    if (!activePage) return;
+    const insertIndex = activePage.sections.findIndex(s => s.type === 'Footer');
+    useSiteStore.getState().addSection(activePage.id, type, insertIndex !== -1 ? insertIndex : undefined);
+    setFooterAddOpen(false);
   };
 
   return (
@@ -84,7 +145,7 @@ export const EditorLeftSidebar: React.FC = () => {
         </button>
       </div>
 
-      <div className={styles.panelContent}>
+      <div className={styles.panelContent} style={activeTab === 'landing' ? { padding: 0 } : {}}>
         {activeTab === 'settings' ? (
           <div className={styles.settingsSidebar}>
             <div className={styles.sectionHeaderCol}>
@@ -97,6 +158,7 @@ export const EditorLeftSidebar: React.FC = () => {
                 { id: 'SEO & Geo', icon: Search, title: 'SEO & Geo', desc: 'SEO, structured data, sitemap & OG image' },
                 { id: 'Social media', icon: Share, title: 'Social media', desc: 'Social links and share settings' },
                 { id: 'Header & Footer', icon: LayoutTemplate, title: 'Header & Footer', desc: 'Manage header and footer content' },
+                { id: 'Mobile Apps', icon: Smartphone, title: 'Mobile Apps', desc: 'Configure mobile bottom navigation' },
                 { id: 'Language', icon: Globe, title: 'Language', desc: 'Default language and region' }
               ].map((item, i) => (
                 <div 
@@ -297,7 +359,7 @@ export const EditorLeftSidebar: React.FC = () => {
           </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '20px', paddingRight: '12px' }} className={styles.innerScroll}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className={styles.innerScroll}>
               <div className={styles.sectionHeader}>
                 <h3 className={styles.fw600}>{activePage?.name || 'Home page'}</h3>
                 <ChevronDown size={16} />
@@ -309,56 +371,177 @@ export const EditorLeftSidebar: React.FC = () => {
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
-                    modifiers={[restrictToVerticalAxis]}
+                    modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                   >
                     <SortableContext
                       items={activePage.sections.map(s => s.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {activePage.sections.map((section: SectionData, index: number) => (
-                        <SortableItem
-                          key={section.id}
-                          id={section.id}
-                          section={section}
-                          isSelected={selectedSectionId === section.id}
-                          onSelect={() => setSelectedSectionId(section.id)}
-                          onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
-                          onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
-                          onInsertClick={() => {
-                            useEditorStore.getState().setInsertIndex(index + 1);
+                      <div className={styles.sectionGroup}>
+                        <div className={styles.sectionCategoryHeader}>
+                          <span>Header</span>
+                          <div style={{ position: 'relative' }} ref={headerAddRef}>
+                            <button 
+                              className={styles.miniAddBtn}
+                              disabled={activePage.sections.some(s => s.type === 'AnnouncementBar') && activePage.sections.some(s => s.type === 'UtilityBar')}
+                              onClick={() => setHeaderAddOpen(!headerAddOpen)}
+                              title="Add header block"
+                              style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
+                            >
+                              <Plus size={12} /> Add
+                            </button>
+                            {headerAddOpen && (
+                              <div className={styles.dropdownMenu} style={{ top: '100%', right: 0 }}>
+                                <button 
+                                  className={styles.dropdownItem} 
+                                  disabled={activePage.sections.some(s => s.type === 'AnnouncementBar')}
+                                  style={{ 
+                                    opacity: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 0.5 : 1, 
+                                    cursor: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 'not-allowed' : 'pointer' 
+                                  }}
+                                  onClick={() => !activePage.sections.some(s => s.type === 'AnnouncementBar') && handleAddHeaderItem('AnnouncementBar')}
+                                >
+                                  Announcement Bar
+                                </button>
+                                <button 
+                                  className={styles.dropdownItem} 
+                                  disabled={activePage.sections.some(s => s.type === 'UtilityBar')}
+                                  style={{ 
+                                    opacity: activePage.sections.some(s => s.type === 'UtilityBar') ? 0.5 : 1, 
+                                    cursor: activePage.sections.some(s => s.type === 'UtilityBar') ? 'not-allowed' : 'pointer' 
+                                  }}
+                                  onClick={() => !activePage.sections.some(s => s.type === 'UtilityBar') && handleAddHeaderItem('UtilityBar')}
+                                >
+                                  Utility Bar
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {activePage.sections.filter(s => ['AnnouncementBar', 'UtilityBar', 'Header'].includes(s.type)).map(section => {
+                          return (
+                            <SortableItem
+                              key={section.id}
+                              id={section.id}
+                              section={section}
+                              isSelected={selectedSectionId === section.id}
+                              onSelect={() => setSelectedSectionId(section.id)}
+                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      <div className={styles.sectionGroup}>
+                        <div className={styles.sectionCategoryHeader}>Template</div>
+                        {activePage.sections.filter(s => !['AnnouncementBar', 'UtilityBar', 'Header', 'FooterMenu', 'FooterText', 'Footer'].includes(s.type)).map(section => {
+                          const index = activePage.sections.findIndex(s => s.id === section.id);
+                          return (
+                            <SortableItem
+                              key={section.id}
+                              id={section.id}
+                              section={section}
+                              isSelected={selectedSectionId === section.id}
+                              onSelect={() => setSelectedSectionId(section.id)}
+                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                              onInsertClick={() => {
+                                useEditorStore.getState().setInsertIndex(index + 1);
+                                setAddSectionWidgetOpen(true);
+                              }}
+                            />
+                          );
+                        })}
+                        <button 
+                          className={styles.groupAddBtn} 
+                          onClick={() => {
+                            const lastBodyIndex = activePage.sections.findIndex(s => s.type === 'Footer');
+                            useEditorStore.getState().setInsertIndex(lastBodyIndex !== -1 ? lastBodyIndex : null);
                             setAddSectionWidgetOpen(true);
                           }}
-                        />
-                      ))}
+                        >
+                          <Plus size={14} /> Add section
+                        </button>
+                      </div>
+
+                      <div className={styles.sectionGroup}>
+                        <div className={styles.sectionCategoryHeader}>
+                          <span>Footer</span>
+                          <div style={{ position: 'relative' }} ref={footerAddRef}>
+                            <button 
+                              className={styles.miniAddBtn}
+                              onClick={() => setFooterAddOpen(!footerAddOpen)}
+                              title="Add footer block"
+                              style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
+                            >
+                              <Plus size={12} /> Add
+                            </button>
+                            {footerAddOpen && (
+                              <div className={styles.dropdownMenu} style={{ bottom: '100%', right: 0, top: 'auto', marginBottom: '4px', marginTop: 0 }}>
+                                <button 
+                                  className={styles.dropdownItem} 
+                                  disabled={activePage.sections.some(s => s.type === 'FooterMenu')}
+                                  style={{ 
+                                    opacity: activePage.sections.some(s => s.type === 'FooterMenu') ? 0.5 : 1, 
+                                    cursor: activePage.sections.some(s => s.type === 'FooterMenu') ? 'not-allowed' : 'pointer' 
+                                  }}
+                                  onClick={() => !activePage.sections.some(s => s.type === 'FooterMenu') && handleAddFooterItem('FooterMenu')}
+                                >
+                                  Footer Menu
+                                </button>
+                                <button 
+                                  className={styles.dropdownItem} 
+                                  disabled={activePage.sections.some(s => s.type === 'FooterText')}
+                                  style={{ 
+                                    opacity: activePage.sections.some(s => s.type === 'FooterText') ? 0.5 : 1, 
+                                    cursor: activePage.sections.some(s => s.type === 'FooterText') ? 'not-allowed' : 'pointer' 
+                                  }}
+                                  onClick={() => !activePage.sections.some(s => s.type === 'FooterText') && handleAddFooterItem('FooterText')}
+                                >
+                                  Footer Text
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {activePage.sections.filter(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type)).map(section => {
+                          return (
+                            <SortableItem
+                              key={section.id}
+                              id={section.id}
+                              section={section}
+                              isSelected={selectedSectionId === section.id}
+                              onSelect={() => setSelectedSectionId(section.id)}
+                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                            />
+                          );
+                        })}
+                      </div>
                     </SortableContext>
                   </DndContext>
                 )}
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px', backgroundColor: 'var(--panel-bg)', display: 'flex', gap: '8px' }}>
+            <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px', backgroundColor: 'var(--panel-bg)' }}>
               <button 
                 className={styles.addSectionBtn} 
-                onClick={() => setAddSectionWidgetOpen(true)} 
-                style={{ flex: 1, margin: 0, padding: '8px', fontSize: '13px', width: 'auto' }}
+                onClick={() => {
+                  const lastBodyIndex = activePage?.sections.findIndex(s => s.type === 'Footer') ?? -1;
+                  useEditorStore.getState().setInsertIndex(lastBodyIndex !== -1 ? lastBodyIndex : null);
+                  setAddSectionWidgetOpen(true);
+                }} 
+                style={{ width: '100%', margin: 0, padding: '10px', fontSize: '13px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
               >
-                <Plus size={16} /> Add
+                <Plus size={16} /> Add Section
               </button>
-
-              <div className={styles.miniThemeItem} onClick={() => setColorWidgetOpen(true)} style={{ padding: '8px 12px', width: 'auto', flexShrink: 0, margin: 0 }} title="Color palette">
-                <div className={styles.miniColors} style={{ gap: '4px' }}>
-                  <span style={{ backgroundColor: theme?.colors?.primary || '#198754', borderRadius: '4px' }}></span>
-                  <span style={{ backgroundColor: theme?.colors?.secondary || '#ff6b00', borderRadius: '4px' }}></span>
-                </div>
-              </div>
-              <div className={styles.miniThemeItem} onClick={() => setTypographyWidgetOpen(true)} style={{ padding: '8px 16px', width: 'auto', flexShrink: 0, margin: 0 }} title="Typography">
-                <div style={{ fontFamily: theme?.typography?.bodyFont || 'Inter', fontSize: '14px', fontWeight: 'bold' }}>Ag</div>
-              </div>
             </div>
           </div>
         )}
       </div>
-      {sectionToDelete && (
+      {sectionToDelete && createPortal(
         <div className={styles.fullscreenModalOverlay} style={{ zIndex: 99999 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '320px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontFamily: '"Outfit", sans-serif' }}>Delete Section</h3>
@@ -381,9 +564,10 @@ export const EditorLeftSidebar: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-      {pageToDelete && (
+      {pageToDelete && createPortal(
         <div className={styles.fullscreenModalOverlay} style={{ zIndex: 99999 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '320px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontFamily: '"Outfit", sans-serif' }}>Delete Page</h3>
@@ -409,7 +593,8 @@ export const EditorLeftSidebar: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </aside>
   );

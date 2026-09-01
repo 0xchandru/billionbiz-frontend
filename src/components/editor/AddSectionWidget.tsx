@@ -34,21 +34,19 @@ export const AddSectionWidget: React.FC = () => {
   ];
 
   const sectionOptions = [
-    { type: 'HeroBanner', name: 'Hero Carousel', desc: 'Multi-slide hero banner', category: 'Hero', tags: ['carousel', 'banner', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=200&fit=crop' },
+    { type: 'HeroBanner', name: 'Hero Banner', desc: 'Standard hero banner', category: 'Hero', tags: ['hero', 'banner'], badges: [], img: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=200&fit=crop' },
+    { type: 'HeroCarousel', name: 'Hero Carousel', desc: 'Multi-slide hero banner', category: 'Hero', tags: ['carousel', 'banner', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=200&fit=crop' },
     { type: 'FeaturedCollection', name: 'Dynamic Showcase', desc: 'Smart Grid/Carousel', category: 'Products', tags: ['carousel', 'grid'], badges: ['NEW'], img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=200&fit=crop' },
-    { type: 'Newsletter', name: 'Announcement Bar', desc: 'Top banner', category: 'Navigation', tags: ['announcement', 'banner', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=400&h=200&fit=crop' },
-    { type: 'Testimonials', name: 'Best Selling', desc: 'Top products grid', category: 'Products', tags: ['bestsellers', 'popular', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400&h=200&fit=crop' },
+    { type: 'CategoryList', name: 'Category List', desc: 'List product categories', category: 'Products', tags: ['categories', 'grid'], badges: [], img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=200&fit=crop' },
+    { type: 'Newsletter', name: 'Newsletter Signup', desc: 'Email signup banner', category: 'Navigation', tags: ['announcement', 'banner', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=400&h=200&fit=crop' },
+    { type: 'Testimonials', name: 'Testimonials', desc: 'Show customer reviews', category: 'Social Proof', tags: ['reviews', 'social', '3 variants'], badges: [], img: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400&h=200&fit=crop' },
     { type: 'ImageWithText', name: 'Image with Text', desc: 'Text side-by-side with an image.', category: 'Content', tags: ['image', 'text'], badges: [], img: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?w=400&h=200&fit=crop' },
     { type: 'Video', name: 'Video Player', desc: 'Embed a YouTube or Vimeo player.', category: 'Content', tags: ['video', 'media'], badges: [], img: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=200&fit=crop' },
     { type: 'RichText', name: 'Rich Text', desc: 'A simple block of formatted text.', category: 'Content', tags: ['text', 'typography'], badges: [], img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=200&fit=crop' },
-    { type: 'Header', name: 'Standard Header', desc: 'Top navigation bar.', category: 'Navigation', tags: ['header', 'menu'], badges: [], img: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=400&h=200&fit=crop' },
-    { type: 'Footer', name: 'Standard Footer', desc: 'Bottom links and copyright.', category: 'Navigation', tags: ['footer', 'links'], badges: [], img: 'https://images.unsplash.com/photo-1507238692062-710e95dbf8cb?w=400&h=200&fit=crop' },
     { type: 'FAQ', name: 'FAQ Accordion', desc: 'Frequently asked questions.', category: 'Content', tags: ['faq', 'accordion'], badges: [], img: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=400&h=200&fit=crop' },
     { type: 'ContactForm', name: 'Contact Form', desc: 'Let customers get in touch.', category: 'Contact', tags: ['form', 'contact'], badges: [], img: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=400&h=200&fit=crop' },
     { type: 'BlogPosts', name: 'Latest Articles', desc: 'Latest articles from your blog.', category: 'Content', tags: ['blog', 'news'], badges: [], img: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&h=200&fit=crop' },
     { type: 'LogoList', name: 'Brand Marquee', desc: 'Logos of brands or partners.', category: 'Social Proof', tags: ['logos', 'marquee'], badges: [], img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=200&fit=crop' },
-    { type: 'PricingTable', name: 'Pricing Tiers', desc: 'Compare plans and pricing.', category: 'Commerce', tags: ['pricing', 'plans'], badges: [], img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&h=200&fit=crop' },
-    { type: 'Map', name: 'Store Locator', desc: 'Google Maps embed.', category: 'Contact', tags: ['map', 'location'], badges: [], img: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=200&fit=crop' },
   ];
 
   const filteredSections = sectionOptions.filter(opt => {

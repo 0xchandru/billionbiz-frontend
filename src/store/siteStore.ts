@@ -60,6 +60,7 @@ export interface SiteState {
   toggleSectionVisibility: (pageId: string, sectionId: string) => void;
   addSection: (pageId: string, sectionType: string, insertIndex?: number) => void;
   removeSection: (pageId: string, sectionId: string) => void;
+  duplicateSection: (pageId: string, sectionId: string) => void;
   updatePageProps: (pageId: string, newProps: Partial<PageData>) => void;
   addPage: (name: string, path: string) => void;
   removePage: (pageId: string) => void;
@@ -87,23 +88,12 @@ const initialPages: PageData[] = [
     seoTitle: 'BillionBiz | Build, Launch & Grow Your Business',
     seoDescription: 'The best platform to launch your store.',
     sections: [
-      createSection('announcement-bar-landing', 'AnnouncementBar', { isHidden: true }),
-      createSection('header-landing', 'Header'),
-      createSection('sec-hero', 'HeroBanner'),
-      createSection('sec-logos', 'LogoList'),
-      createSection('sec-feat', 'FeaturedCollection'),
-      createSection('sec-imgtext', 'ImageWithText'),
-      createSection('sec-richtext', 'RichText'),
-      createSection('sec-testimonials', 'Testimonials'),
-      createSection('sec-video', 'Video'),
-      createSection('sec-blog', 'BlogPosts'),
-      createSection('sec-gallery', 'Gallery'),
-      createSection('sec-newsletter', 'Newsletter'),
-      createSection('sec-faq', 'FAQ'),
-      createSection('sec-pricing', 'PricingTable'),
-      createSection('sec-contact', 'ContactForm'),
-      createSection('sec-map', 'Map'),
-      createSection('footer-landing', 'Footer'),
+      createSection('announcement-bar', 'AnnouncementBar'),
+      createSection('utility-bar', 'UtilityBar'),
+      createSection('header-main', 'Header'),
+      createSection('footer-menu', 'FooterMenu'),
+      createSection('footer-text', 'FooterText'),
+      createSection('footer-main', 'Footer'),
     ]
   },
   {
@@ -113,10 +103,11 @@ const initialPages: PageData[] = [
     type: 'System',
     seoTitle: 'All Products - BillionBiz',
     sections: [
-      createSection('announcement-bar-sys', 'AnnouncementBar', { isHidden: true }),
+      createSection('announcement-bar-sys', 'AnnouncementBar'),
+      createSection('utility-bar-sys', 'UtilityBar'),
       createSection('header-sys', 'Header'),
-      createSection('hero-1', 'HeroBanner', { props: { ...defaultPropsMap.HeroBanner, heading: 'Shop Our Collections', badge: 'Shop Now' } }),
-      createSection('collection-1', 'FeaturedCollection'),
+      createSection('footer-menu-sys', 'FooterMenu'),
+      createSection('footer-text-sys', 'FooterText'),
       createSection('footer-sys', 'Footer'),
     ]
   },
@@ -128,9 +119,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Product Name - BillionBiz',
     sections: [
       createSection('header-prod', 'Header'),
-      createSection('sec-imgtext-prod', 'ImageWithText', { props: { ...defaultPropsMap.ImageWithText, heading: 'Premium Widget', buttonText: 'Add to Cart' } }),
-      createSection('sec-richtext-prod', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Description' } }),
-      createSection('collection-prod-related', 'FeaturedCollection', { props: { ...defaultPropsMap.FeaturedCollection, heading: 'You may also like' } }),
       createSection('footer-prod', 'Footer'),
     ]
   },
@@ -142,7 +130,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Your Cart - BillionBiz',
     sections: [
       createSection('header-cart', 'Header'),
-      createSection('sec-richtext-cart', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Your Cart', body: 'Your cart is currently empty.' } }),
       createSection('footer-cart', 'Footer'),
     ]
   },
@@ -154,7 +141,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Checkout - BillionBiz',
     sections: [
       createSection('header-checkout', 'Header'),
-      createSection('sec-richtext-checkout', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Checkout', body: 'Please fill in your payment details below.' } }),
       createSection('footer-checkout', 'Footer'),
     ]
   },
@@ -165,12 +151,8 @@ const initialPages: PageData[] = [
     type: 'System',
     seoTitle: 'About Us - BillionBiz',
     sections: [
-      createSection('announcement-bar-about', 'AnnouncementBar', { isHidden: true }),
+      createSection('announcement-bar-about', 'AnnouncementBar'),
       createSection('header-about', 'Header'),
-      createSection('hero-2', 'HeroBanner', { props: { ...defaultPropsMap.HeroBanner, heading: 'Our Story', description: 'We started with a simple idea: make great design accessible to everyone.', layout: 'center' } }),
-      createSection('sec-richtext-about', 'RichText'),
-      createSection('sec-gallery-about', 'Gallery'),
-      createSection('sec-logos-about', 'LogoList'),
       createSection('footer-about', 'Footer'),
     ]
   },
@@ -181,11 +163,8 @@ const initialPages: PageData[] = [
     type: 'System',
     seoTitle: 'Contact Us - BillionBiz',
     sections: [
-      createSection('announcement-bar-contact', 'AnnouncementBar', { isHidden: true }),
+      createSection('announcement-bar-contact', 'AnnouncementBar'),
       createSection('header-contact', 'Header'),
-      createSection('sec-contact-page', 'ContactForm'),
-      createSection('sec-map-contact', 'Map'),
-      createSection('sec-faq-contact', 'FAQ'),
       createSection('footer-contact', 'Footer'),
     ]
   },
@@ -196,10 +175,8 @@ const initialPages: PageData[] = [
     type: 'System',
     seoTitle: 'FAQ - BillionBiz',
     sections: [
-      createSection('announcement-bar-faq', 'AnnouncementBar', { isHidden: true }),
+      createSection('announcement-bar-faq', 'AnnouncementBar'),
       createSection('header-faq', 'Header'),
-      createSection('sec-faq-page', 'FAQ', { props: { ...defaultPropsMap.FAQ, heading: 'Frequently Asked Questions' } }),
-      createSection('sec-contact-faq', 'ContactForm', { props: { ...defaultPropsMap.ContactForm, heading: 'Still Have Questions?', description: 'Can\'t find what you\'re looking for? Send us a message.' } }),
       createSection('footer-faq', 'Footer'),
     ]
   },
@@ -211,7 +188,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Privacy Policy - BillionBiz',
     sections: [
       createSection('header-privacy', 'Header'),
-      createSection('sec-richtext-privacy', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Privacy Policy', body: 'We value your privacy...' } }),
       createSection('footer-privacy', 'Footer'),
     ]
   },
@@ -223,7 +199,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Terms & Conditions - BillionBiz',
     sections: [
       createSection('header-terms', 'Header'),
-      createSection('sec-richtext-terms', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Terms & Conditions', body: 'By using this site, you agree to our terms...' } }),
       createSection('footer-terms', 'Footer'),
     ]
   },
@@ -235,7 +210,6 @@ const initialPages: PageData[] = [
     seoTitle: 'Refund Policy - BillionBiz',
     sections: [
       createSection('header-refunds', 'Header'),
-      createSection('sec-richtext-refunds', 'RichText', { props: { ...defaultPropsMap.RichText, heading: 'Refund Policy', body: 'We offer a 30-day money-back guarantee...' } }),
       createSection('footer-refunds', 'Footer'),
     ]
   }
@@ -279,7 +253,14 @@ export const useSiteStore = create<SiteState>()(
     description: 'Build stunning websites, launch your store, and grow your business with BillionBiz.',
     language: 'English',
     announcement: 'Free shipping on orders above $99',
-    copyright: '© 2025 BillionBiz. All rights reserved.'
+    copyright: '© 2025 BillionBiz. All rights reserved.',
+    showBottomNav: true,
+    bottomNavLinks: [
+      { id: 'home', icon: 'Home', text: 'Home', link: '/' },
+      { id: 'shop', icon: 'Grid', text: 'Shop', link: '/collections/all' },
+      { id: 'cart', icon: 'ShoppingCart', text: 'Cart', link: '/cart' },
+      { id: 'profile', icon: 'User', text: 'Profile', link: '/profile' }
+    ]
   },
   isLoading: false,
 
@@ -354,6 +335,25 @@ export const useSiteStore = create<SiteState>()(
     return { pages };
   }),
 
+  duplicateSection: (pageId, sectionId) => set((state) => {
+    const pages = state.pages.map(page => {
+      if (page.id !== pageId) return page;
+      const sectionIndex = page.sections.findIndex(sec => sec.id === sectionId);
+      if (sectionIndex === -1) return page;
+      const original = page.sections[sectionIndex];
+      const duplicate: SectionData = {
+        ...original,
+        id: `sec-${Date.now()}`,
+        name: `${original.name} (Copy)`,
+        props: JSON.parse(JSON.stringify(original.props)),
+      };
+      const sections = [...page.sections];
+      sections.splice(sectionIndex + 1, 0, duplicate);
+      return { ...page, sections };
+    });
+    return { pages };
+  }),
+
   updatePageProps: (pageId, newProps) => set((state) => {
     const pages = state.pages.map(page => 
       page.id === pageId ? { ...page, ...newProps } : page
@@ -368,9 +368,9 @@ export const useSiteStore = create<SiteState>()(
       path,
       type: 'Custom',
       sections: [
-        createSection(`announcement-bar-${Date.now()}`, 'AnnouncementBar', { isHidden: true }),
+        createSection(`announcement-bar-${Date.now()}`, 'AnnouncementBar'),
+        createSection(`utility-bar-${Date.now()}`, 'UtilityBar'),
         createSection(`header-${Date.now()}`, 'Header'),
-        createSection(`sec-hero-${Date.now()}`, 'HeroBanner', { props: { ...defaultPropsMap.HeroBanner, heading: name } }),
         createSection(`footer-${Date.now()}`, 'Footer'),
       ]
     };
@@ -390,7 +390,7 @@ export const useSiteStore = create<SiteState>()(
   }))
     }),
     {
-      name: 'billionbiz-storage-v2',
+      name: 'billionbiz-storage-v3',
     }
   )
 );

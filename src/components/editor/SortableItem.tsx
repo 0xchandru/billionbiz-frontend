@@ -32,7 +32,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({
   } = useSortable({ id });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const [menuPos, setMenuPos] = useState<{top: number | 'auto', bottom?: number | 'auto', left: number, maxHeight?: number}>({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -59,12 +59,12 @@ export const SortableItem: React.FC<SortableItemProps> = ({
     transform: CSS.Translate.toString(transform),
     transition: isDragging ? 'none' : transition,
     opacity: isDragging ? 0.8 : 1,
-    zIndex: isDragging ? 999 : 0,
+    zIndex: isDragging ? 999 : undefined,
     position: isDragging ? 'relative' : undefined,
     boxShadow: isDragging ? '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' : undefined,
   } as React.CSSProperties;
 
-  const isLocked = section.type === 'Header' || section.type === 'Footer' || section.type === 'AnnouncementBar';
+  const isLocked = section.type === 'Header' || section.type === 'Footer';
 
   return (
     <div
@@ -73,21 +73,13 @@ export const SortableItem: React.FC<SortableItemProps> = ({
       className={styles.sortableWrapper}
     >
       <div 
-        className={`${styles.sectionItem} ${isSelected ? styles.activeSectionItem : ''}`}
+        className={`${styles.sectionItem} ${isSelected ? styles.activeSectionItem : (isMenuOpen ? styles.menuOpenSectionItem : '')}`}
         onClick={onSelect}
       >
         <div className={styles.sectionItemLeft}>
           {isLocked ? (
-            <div style={{ width: '16px', display: 'flex', alignItems: 'center' }}>
-               {section.type === 'AnnouncementBar' && (
-                 <div 
-                   style={{ cursor: 'pointer', display: 'flex', color: 'var(--text-muted)' }} 
-                   onClick={onToggleVisibility}
-                   title={section.isHidden ? 'Show announcement bar' : 'Hide announcement bar'}
-                 >
-                   {section.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                 </div>
-               )}
+            <div style={{ width: '16px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+               <Lock size={14} />
             </div>
           ) : (
             <div {...attributes} {...listeners} style={{ cursor: 'grab', display: 'flex', alignItems: 'center' }}>
@@ -97,87 +89,111 @@ export const SortableItem: React.FC<SortableItemProps> = ({
           <span className={styles.sectionName}>{section.name}</span>
         </div>
         <div className={styles.sectionItemRight}>
-          {isLocked ? (
-            <Lock size={14} style={{ color: 'var(--text-muted)' }} />
-          ) : (
-            <div style={{ position: 'relative' }} ref={menuRef}>
-              <div 
-                style={{ cursor: 'pointer', display: 'flex', padding: '4px' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isMenuOpen) {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setMenuPos({ top: rect.top, left: rect.right + 8 });
-                  }
-                  setIsMenuOpen(!isMenuOpen);
-                }}
-              >
-                <MoreVertical size={16} style={{ color: 'var(--text-muted)' }} />
-              </div>
-              
-              {isMenuOpen && createPortal(
+          {!isLocked && (
+              <div style={{ position: 'relative' }} ref={menuRef}>
                 <div 
-                  ref={dropdownRef}
-                  className={styles.dropdownMenu} 
-                  style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, margin: 0 }}
-                  onClick={(e) => e.stopPropagation()}
+                  style={{ cursor: 'pointer', display: 'flex', padding: '4px' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isMenuOpen) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const spaceBelow = window.innerHeight - rect.bottom;
+                      // Menu is about 400px tall. If there's less than 400px below and more space above, align to bottom.
+                      const useBottom = spaceBelow < 420 && rect.top > spaceBelow;
+                      
+                      if (useBottom) {
+                        setMenuPos({ 
+                          top: 'auto',
+                          bottom: window.innerHeight - rect.bottom, 
+                          left: rect.right + 8,
+                          maxHeight: rect.top - 20 // Space above the item
+                        });
+                      } else {
+                        setMenuPos({ 
+                          top: rect.top, 
+                          bottom: 'auto',
+                          left: rect.right + 8,
+                          maxHeight: spaceBelow - 20 // Space below the item
+                        });
+                      }
+                    }
+                    setIsMenuOpen(!isMenuOpen);
+                  }}
                 >
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <ChevronUp size={16} /> Move Up
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <ChevronDown size={16} /> Move Down
-                  </button>
-                  
-                  <div className={styles.dropdownDivider}></div>
-                  
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Copy size={16} /> Duplicate
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Clock size={16} /> Schedule visibility
-                  </button>
-                  
-                  <button className={styles.dropdownItem} onClick={(e) => {
-                    onToggleVisibility(e);
-                    setIsMenuOpen(false);
-                  }}>
-                    {section.isHidden ? <Eye size={16} /> : <EyeOff size={16} />} 
-                    {section.isHidden ? 'Show' : 'Hide'}
-                  </button>
-                  
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Smartphone size={16} /> Hide on mobile
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Monitor size={16} /> Hide on desktop
-                  </button>
-                  
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Code size={16} /> Copy as code
-                  </button>
-                  <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
-                    <Bookmark size={16} /> Save as snippet
-                  </button>
-                  <button className={`${styles.dropdownItem} ${styles.disabled}`} disabled>
-                    <Bookmark size={16} /> Apply preset
-                  </button>
-                  
-                  <div className={styles.dropdownDivider}></div>
-                  
-                  <button 
-                    className={`${styles.dropdownItem} ${styles.dangerText}`}
-                    onClick={(e) => {
-                      onRemove(e);
-                      setIsMenuOpen(false);
+                  <MoreVertical size={16} style={{ color: 'var(--text-muted)' }} />
+                </div>
+                
+                {isMenuOpen && createPortal(
+                  <div 
+                    ref={dropdownRef}
+                    className={styles.dropdownMenu} 
+                    style={{ 
+                      position: 'fixed', 
+                      top: menuPos.top, 
+                      bottom: menuPos.bottom,
+                      left: menuPos.left, 
+                      margin: 0,
+                      maxHeight: menuPos.maxHeight ? `${menuPos.maxHeight}px` : 'calc(100vh - 20px)',
+                      overflowY: 'auto'
                     }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Trash2 size={16} /> Delete
-                  </button>
-                </div>,
-                document.body
-              )}
-            </div>
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <ChevronUp size={16} /> Move Up
+                    </button>
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <ChevronDown size={16} /> Move Down
+                    </button>
+                    
+                    <div className={styles.dropdownDivider}></div>
+                    
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Copy size={16} /> Duplicate
+                    </button>
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Clock size={16} /> Schedule visibility
+                    </button>
+                    
+                    <button className={styles.dropdownItem} onClick={(e) => {
+                      onToggleVisibility(e);
+                      setIsMenuOpen(false);
+                    }}>
+                      {section.isHidden ? <Eye size={16} /> : <EyeOff size={16} />} 
+                      {section.isHidden ? 'Show' : 'Hide'}
+                    </button>
+                    
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Smartphone size={16} /> Hide on mobile
+                    </button>
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Monitor size={16} /> Hide on desktop
+                    </button>
+                    
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Code size={16} /> Copy as code
+                    </button>
+                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                      <Bookmark size={16} /> Save as snippet
+                    </button>
+                    <button className={`${styles.dropdownItem} ${styles.disabled}`} disabled>
+                      <Bookmark size={16} /> Apply preset
+                    </button>
+                    
+                    <div className={styles.dropdownDivider}></div>
+                    
+                    <button 
+                      className={`${styles.dropdownItem} ${styles.dangerText}`}
+                      onClick={(e) => {
+                        onRemove(e);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <Trash2 size={16} /> Delete
+                    </button>
+                  </div>,
+                  document.body
+                )}
+              </div>
           )}
         </div>
       </div>

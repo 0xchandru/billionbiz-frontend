@@ -8,6 +8,7 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
   const heading = props.heading || 'Featured Collection';
   const linkText = props.linkText || 'View all';
   const columns = props.columns || 4;
+  const layout = props.selectedLayout || props.layout || 'grid';
   
   const displayColumns = isMobile ? 1 : (isTablet ? Math.min(2, columns) : columns);
 
@@ -17,6 +18,30 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
     { name: 'Oak Side Table', price: '$249.00', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop' },
     { name: 'Linen Cushion Set', price: '$67.00', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop' },
   ];
+
+  let listStyle: React.CSSProperties = {};
+  if (layout === 'carousel') {
+    listStyle = {
+      display: 'flex',
+      overflowX: 'auto',
+      gap: isMobile ? '16px' : '24px',
+      paddingBottom: '16px', // For scrollbar
+      scrollSnapType: 'x mandatory',
+    };
+  } else if (layout === 'mosaic' && !isMobile) {
+    listStyle = {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gridAutoRows: 'minmax(200px, auto)',
+      gap: '24px',
+    };
+  } else {
+    listStyle = {
+      display: 'grid',
+      gridTemplateColumns: `repeat(${displayColumns}, 1fr)`,
+      gap: isMobile ? '32px' : '24px',
+    };
+  }
 
   return (
     <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
@@ -34,42 +59,53 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
           {linkText} →
         </a>
       </div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${displayColumns}, 1fr)`,
-        gap: isMobile ? '32px' : '24px',
-      }}>
-        {products.map((product: any, i: number) => (
-          <div key={i} style={{
+      <div style={listStyle}>
+        {products.map((product: any, i: number) => {
+          
+          let itemStyle: React.CSSProperties = {
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
             cursor: 'pointer',
-          }}>
-            <div style={{
-              width: '100%',
-              aspectRatio: '1/1',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              backgroundColor: '#f1f5f9',
-              position: 'relative',
-            }}>
-              <img
-                src={product.image}
-                alt={product.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-              />
+          };
+
+          if (layout === 'carousel') {
+            itemStyle.minWidth = isMobile ? '280px' : '320px';
+            itemStyle.scrollSnapAlign = 'start';
+          } else if (layout === 'mosaic' && !isMobile) {
+             // Just an example mosaic logic
+             if (i === 0) { itemStyle.gridColumn = 'span 2'; itemStyle.gridRow = 'span 2'; }
+             else if (i === 1) { itemStyle.gridColumn = 'span 2'; itemStyle.gridRow = 'span 1'; }
+          }
+
+          return (
+            <div key={i} style={itemStyle}>
+              <div style={{
+                width: '100%',
+                height: (layout === 'mosaic' && !isMobile && i === 0) ? '100%' : 'auto',
+                aspectRatio: (layout === 'mosaic' && !isMobile && i === 0) ? 'auto' : '1/1',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                backgroundColor: '#f1f5f9',
+                position: 'relative',
+              }}>
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--theme-text)', marginBottom: '4px' }}>
+                  {product.name}
+                </h4>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--theme-primary)' }}>
+                  {product.price}
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--theme-text)', marginBottom: '4px' }}>
-                {product.name}
-              </h4>
-              <p style={{ fontSize: '15px', fontWeight: 700, color: 'var(--theme-primary)' }}>
-                {product.price}
-              </p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

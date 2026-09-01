@@ -5,7 +5,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const layout = props.layout || 'left';
+  const layout = props.selectedLayout || props.layout || 'left';
   const bgColor = props.bgColor || 'var(--theme-background)';
   const badge = props.badge || 'New Arrival';
   const heading = props.heading || 'Elevate Your Creative Workflow';
@@ -15,6 +15,22 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const image = props.image || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop';
 
   const isCenter = layout === 'center';
+
+  const imageBlock = (
+    <div style={{ flex: 1, display: 'flex', justifyContent: isMobile || isTablet ? 'center' : (layout === 'right' ? 'flex-start' : 'flex-end'), width: '100%' }}>
+      <div style={{
+        width: isMobile ? '100%' : '90%',
+        height: isMobile ? '320px' : (isTablet ? '480px' : '640px'),
+        backgroundImage: `url(${image})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        borderTopLeftRadius: layout === 'right' ? '0' : '400px',
+        borderTopRightRadius: layout === 'right' ? '400px' : '400px',
+        borderBottomLeftRadius: layout === 'right' ? '400px' : '0',
+        boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
+      }} />
+    </div>
+  );
 
   return (
     <section style={{
@@ -30,6 +46,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
       position: 'relative',
       overflow: 'hidden',
     }}>
+      {layout === 'right' && !isMobile && !isTablet && imageBlock}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -103,7 +120,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
         </div>
       </div>
 
-      {!isCenter && (
+      {!isCenter && layout !== 'right' && (
         <div style={{ flex: 1, display: 'flex', justifyContent: isMobile || isTablet ? 'center' : 'flex-end', width: '100%' }}>
           <div style={{
             width: isMobile ? '100%' : '90%',
