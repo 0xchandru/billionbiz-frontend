@@ -215,7 +215,7 @@ const Header: React.FC<{ props: any }> = ({ props }) => {
     padding: isMobile ? '0 20px' : '0 48px',
     backgroundColor: bgColor,
     borderBottom: props.transparent ? 'none' : '1px solid #e2e8f0',
-    position: props.sticky ? 'sticky' : 'relative',
+    position: props.sticky !== false ? 'sticky' : 'relative',
     top: 0,
     zIndex: 100,
     color: textColor,

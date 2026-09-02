@@ -461,7 +461,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({ items, onChange, listFie
 // --- Main Component ---
 
 export const EditorRightSidebar: React.FC = () => {
-  const { isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen } = useLandingEditorStore();
+  const { isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen, activePanel } = useLandingEditorStore();
   const { pages, updateSectionProps, theme, updateTheme, updatePageProps } = useSiteStore();
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
@@ -479,13 +479,32 @@ export const EditorRightSidebar: React.FC = () => {
   const activeSection = activePage?.sections.find(s => s.id === selectedSectionId);
 
   React.useEffect(() => {
-    if (isRightSidebarOpen && selectedPageId === 'landing-page' && !activeSection && !isColorWidgetOpen && !isTypographyWidgetOpen) {
+    if (isRightSidebarOpen && activePanel === 'editor' && selectedPageId === 'landing-page' && !activeSection && !isColorWidgetOpen && !isTypographyWidgetOpen) {
       useLandingEditorStore.setState({ isRightSidebarOpen: false });
     }
-  }, [isRightSidebarOpen, selectedPageId, activeSection, isColorWidgetOpen, isTypographyWidgetOpen]);
+  }, [isRightSidebarOpen, activePanel, selectedPageId, activeSection, isColorWidgetOpen, isTypographyWidgetOpen]);
 
-  if (selectedPageId !== 'landing-page') {
-    const pageConfig = getPageConfig(activePage.id.replace('-page', '')); // it expects base type
+  // Determine if we should show Page Settings
+  // We show page settings if we are in the 'pages' tab, OR if there is no active section selected.
+  const shouldShowPageSettings = activePanel === 'pages' || !activeSection;
+
+  if (shouldShowPageSettings) {
+    let pageConfig = getPageConfig(activePage.id.replace('-page', '')); 
+    
+    // Fallback config for landing-page or pages without a registered config
+    if (!pageConfig) {
+      pageConfig = {
+        type: activePage.type,
+        name: activePage.name,
+        category: activePage.category,
+        path: activePage.path,
+        description: 'Manage page settings',
+        defaultSections: [],
+        layouts: [],
+        getTabs: () => []
+      } as any;
+    }
+
     if (pageConfig) {
       return (
         <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>

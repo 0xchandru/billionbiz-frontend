@@ -32,8 +32,8 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
   // Build the full list of available tabs
   const allTabs: { id: string; label: string }[] = [];
 
-  // Always have a Layout tab since we're merging Spacing into it
-  allTabs.push({ id: '__layout__', label: 'Layout' });
+  // Always have a Look tab since we're merging Spacing into it
+  allTabs.push({ id: '__look__', label: 'Look' });
 
   // Dynamic tabs from config (filtered by conditions)
   tabs.forEach((tab) => {
@@ -45,7 +45,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
   allTabs.push({ id: '__visibility__', label: 'Visibility' });
   allTabs.push({ id: '__advanced__', label: 'Advanced' });
 
-  const [activeTabId, setActiveTabId] = useState(allTabs[0]?.id || '__layout__');
+  const [activeTabId, setActiveTabId] = useState(allTabs[0]?.id || '__look__');
   const tabsRef = useRef<HTMLDivElement>(null);
 
   // Ensure active tab is valid
@@ -59,8 +59,8 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
 
   // Render the content of the active tab
   const renderTabContent = () => {
-    // Layout tab (now includes Spacing)
-    if (validTabId === '__layout__') {
+    // Look tab (now includes Spacing and Global Theme elements)
+    if (validTabId === '__look__') {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {layouts && layouts.length > 0 && (

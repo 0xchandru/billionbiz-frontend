@@ -92,7 +92,7 @@ const Pages = () => {
             and converts visitors into customers.
           </p>
           <div className={styles.heroActions}>
-            <button className={styles.btnPrimary} onClick={() => navigate('/editor/landing')}>
+            <button className={styles.btnPrimary} onClick={() => navigate('/editor')}>
               <Edit2 size={16} />
               <span>Start Editing Landing Page</span>
             </button>

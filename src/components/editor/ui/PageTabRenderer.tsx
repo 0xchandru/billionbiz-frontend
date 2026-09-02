@@ -27,9 +27,9 @@ export const PageTabRenderer: React.FC<PageTabRendererProps> = ({
   // Build the full list of available tabs
   const allTabs: { id: string; label: string }[] = [];
 
-  // Always have a Templates tab and Layout tab
+  // Always have a Templates tab and Look tab
   allTabs.push({ id: '__templates__', label: 'Templates' });
-  allTabs.push({ id: '__layout__', label: 'Layout' });
+  allTabs.push({ id: '__look__', label: 'Look' });
 
   // Dynamic tabs from config
   tabs.forEach((tab) => {
@@ -77,8 +77,8 @@ export const PageTabRenderer: React.FC<PageTabRendererProps> = ({
       );
     }
 
-    // 2. Layout & Spacing tab
-    if (validTabId === '__layout__') {
+    // 2. Look & Spacing tab
+    if (validTabId === '__look__') {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           

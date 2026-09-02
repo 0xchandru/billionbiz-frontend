@@ -100,6 +100,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             ref={(el) => { sectionRefs.current[section.id] = el; }}
             className={`${isEditable ? styles.previewSectionWrapper : ''} ${isEditable && selectedSectionId === section.id ? styles.activeSectionBorder : ''}`}
             onClick={() => isEditable && setSelectedSectionId(section.id)}
+            style={section.type === 'Header' && section.props?.sticky !== false ? { position: 'sticky', top: 0, zIndex: 100 } : {}}
           >
             {isEditable && selectedSectionId === section.id && (
               <div className={styles.sectionLabel}>

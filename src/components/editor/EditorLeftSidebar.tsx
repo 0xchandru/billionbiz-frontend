@@ -4,8 +4,9 @@ import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Wand2, S
 
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
-import { getPageConfigsGrouped, getCategoryDisplayName } from './pageConfigs';
+import { getCategoryDisplayName, getPageConfig } from './pageConfigs';
 import { SortableItem } from './SortableItem';
+import { Home } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -19,7 +20,6 @@ export const EditorLeftSidebar: React.FC = () => {
   } = useLandingEditorStore();
   const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
-  const groupedConfigs = getPageConfigsGrouped();
 
   // Cleanup duplicate locked sections that might have been added manually before restrictions
   React.useEffect(() => {
@@ -64,6 +64,13 @@ export const EditorLeftSidebar: React.FC = () => {
 
   React.useEffect(() => {
     if (activeTab === 'pages') {
+      const firstNonLandingPage = useSiteStore.getState().pages.find(p => p.id !== 'landing-page');
+      if (firstNonLandingPage) {
+        useLandingEditorStore.getState().setSelectedPageId(firstNonLandingPage.id);
+      }
+
+      // Ensure right sidebar is open when switching to pages tab
+      useLandingEditorStore.setState({ isRightSidebarOpen: true });
       setTimeout(() => {
         const activeElement = document.querySelector(`.${styles.activePageItem}`);
         if (activeElement) {
@@ -167,9 +174,17 @@ export const EditorLeftSidebar: React.FC = () => {
                 <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your website pages</p>
               </div>
               <div style={{ padding: '0 12px 16px' }}>
-                {Object.entries(groupedConfigs).map(([category, configs]) => {
-                if (configs.length === 0) return null;
-                const isCollapsed = collapsedCategories[category];
+                {(() => {
+                  const groupedPages = pages.reduce((acc, page) => {
+                    if (page.id === 'landing-page') return acc;
+                    if (!acc[page.category]) acc[page.category] = [];
+                    acc[page.category].push(page);
+                    return acc;
+                  }, {} as Record<string, typeof pages>);
+
+                  return Object.entries(groupedPages).map(([category, categoryPages]) => {
+                    if (categoryPages.length === 0) return null;
+                    const isCollapsed = collapsedCategories[category];
                 return (
                   <div key={category} className={styles.categoryGroup} style={{ marginBottom: '16px' }}>
                     <div 
@@ -185,10 +200,10 @@ export const EditorLeftSidebar: React.FC = () => {
                       {getCategoryDisplayName(category as any)}
                       {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                     </div>
-                    {!isCollapsed && configs.map(config => {
-                      const pageId = `${config.type}-page`;
+                    {!isCollapsed && categoryPages.map(page => {
+                      const pageId = page.id;
                       const isSelected = pageId === selectedPageId;
-                      const Icon = config.icon || Settings;
+                      const Icon = page.type === 'landing' ? Home : (getPageConfig(page.type)?.icon || Settings);
                       return (
                         <div 
                           key={pageId} 
@@ -212,15 +227,16 @@ export const EditorLeftSidebar: React.FC = () => {
                             <Icon size={16} />
                           </div>
                           <div style={{ textAlign: 'left', flex: 1, overflow: 'hidden' }}>
-                            <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{config.name}</h4>
-                            <p style={{ margin: 0, fontSize: '11px', color: isSelected ? 'var(--primary)' : 'var(--text-muted)', opacity: isSelected ? 0.8 : 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{config.path}</p>
+                            <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{page.name}</h4>
+                            <p style={{ margin: 0, fontSize: '11px', color: isSelected ? 'var(--primary)' : 'var(--text-muted)', opacity: isSelected ? 0.8 : 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{page.path}</p>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 );
-              })}
+              });
+              })()}
               </div>
             </div>
           </div>
