@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import type { PageData } from '../../store/siteStore';
 import { SectionRenderer } from './SectionRenderer';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { Settings, Copy, Trash2, Plus, Home, Search, ShoppingCart, User as UserIcon, Heart, Menu, Grid, List, Check } from 'lucide-react';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }> = ({ page, overrideDevice }) => {
-  const { selectedSectionId, setSelectedSectionId } = useEditorStore();
-  const storeDevice = useEditorStore(state => state.device);
+  const { selectedSectionId, setSelectedSectionId } = useLandingEditorStore();
+  const storeDevice = useLandingEditorStore(state => state.device);
   const device = overrideDevice || storeDevice;
   const { addSection, theme } = useSiteStore();
   const settings = useSiteStore(state => state.settings);
@@ -85,40 +85,46 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
       style={{ paddingBottom: (device === 'mobile' && hasHeader && showBottomNav && bottomNavLinks.length > 0) ? '80px' : '0' }}
     >
       <style>{themeStyles}</style>
-      {page.sections.map(section => {
+      {[
+        ...page.sections.filter(s => ['AnnouncementBar', 'UtilityBar', 'Header'].includes(s.type)),
+        ...page.sections.filter(s => !['AnnouncementBar', 'UtilityBar', 'Header', 'FooterMenu', 'FooterText', 'Footer'].includes(s.type)),
+        ...page.sections.filter(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type))
+      ].map(section => {
         if (isSectionHidden(section)) return null;
+
+        const isEditable = page.id === 'landing-page';
 
         return (
           <div 
             key={section.id} 
-          ref={(el) => { sectionRefs.current[section.id] = el; }}
-          className={`${styles.previewSectionWrapper} ${selectedSectionId === section.id ? styles.activeSectionBorder : ''}`}
-          onClick={() => setSelectedSectionId(section.id)}
-        >
-          {selectedSectionId === section.id && (
-            <div className={styles.sectionLabel}>
-              <span>{section.name}</span>
-              <div className={styles.sectionQuickActions}>
-                <Settings size={12} />
-                <Copy size={12} />
-                <Trash2 size={12} />
+            ref={(el) => { sectionRefs.current[section.id] = el; }}
+            className={`${isEditable ? styles.previewSectionWrapper : ''} ${isEditable && selectedSectionId === section.id ? styles.activeSectionBorder : ''}`}
+            onClick={() => isEditable && setSelectedSectionId(section.id)}
+          >
+            {isEditable && selectedSectionId === section.id && (
+              <div className={styles.sectionLabel}>
+                <span>{section.name}</span>
+                <div className={styles.sectionQuickActions}>
+                  <Settings size={12} />
+                  <Copy size={12} />
+                  <Trash2 size={12} />
+                </div>
               </div>
-            </div>
-          )}
-          
-          <SectionRenderer section={section} overrideDevice={overrideDevice} />
-          
-          {selectedSectionId === section.id && (
-            <div className={styles.addSectionDivider}>
-              <button 
-                className={styles.addSectionFloating} 
-                onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection'); }}
-              >
-                <Plus size={14}/> Add section
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+            
+            <SectionRenderer section={section} overrideDevice={overrideDevice} />
+            
+            {isEditable && selectedSectionId === section.id && (
+              <div className={styles.addSectionDivider}>
+                <button 
+                  className={styles.addSectionFloating} 
+                  onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection'); }}
+                >
+                  <Plus size={14}/> Add section
+                </button>
+              </div>
+            )}
+          </div>
         );
       })}
       

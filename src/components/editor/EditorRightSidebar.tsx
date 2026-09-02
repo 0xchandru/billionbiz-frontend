@@ -3,10 +3,12 @@ import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MoreVertical, Check,
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { getSectionConfig } from './sectionConfigs';
 import { TabRenderer } from './ui/TabRenderer';
+import { PageTabRenderer } from './ui/PageTabRenderer';
+import { getPageConfig } from './pageConfigs';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 // --- Editor field config types ---
@@ -459,8 +461,8 @@ export const ListEditor: React.FC<ListEditorProps> = ({ items, onChange, listFie
 // --- Main Component ---
 
 export const EditorRightSidebar: React.FC = () => {
-  const { activeTab, isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen } = useEditorStore();
-  const { pages, updateSectionProps, theme, updateTheme } = useSiteStore();
+  const { isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen } = useLandingEditorStore();
+  const { pages, updateSectionProps, theme, updateTheme, updatePageProps } = useSiteStore();
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -471,12 +473,44 @@ export const EditorRightSidebar: React.FC = () => {
     }
   };
 
-  const isHidden = (activeTab === 'settings' || activeTab === 'theme' || (!isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen));
+  const isHidden = !isRightSidebarOpen && !isColorWidgetOpen && !isTypographyWidgetOpen;
 
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
   const activeSection = activePage?.sections.find(s => s.id === selectedSectionId);
 
-  const { updatePageProps } = useSiteStore();
+  React.useEffect(() => {
+    if (isRightSidebarOpen && selectedPageId === 'landing-page' && !activeSection && !isColorWidgetOpen && !isTypographyWidgetOpen) {
+      useLandingEditorStore.setState({ isRightSidebarOpen: false });
+    }
+  }, [isRightSidebarOpen, selectedPageId, activeSection, isColorWidgetOpen, isTypographyWidgetOpen]);
+
+  if (selectedPageId !== 'landing-page') {
+    const pageConfig = getPageConfig(activePage.id.replace('-page', '')); // it expects base type
+    if (pageConfig) {
+      return (
+        <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
+          <div className={styles.panelHeader}>
+            <div className={styles.phLeft}>
+              <button className={styles.iconBtn} onClick={() => closeRightSidebar()}>
+                <ChevronRight size={20} className={styles.backIcon} />
+              </button>
+              <h3 className={styles.fw600}>{pageConfig.name} Settings</h3>
+            </div>
+          </div>
+          <div className={styles.propContent} style={{ padding: 0 }}>
+            <PageTabRenderer
+              tabs={pageConfig.getTabs(activePage.pageProps?._selectedLayout, activePage.pageProps)}
+              layouts={pageConfig.layouts}
+              props={activePage.pageProps || {}}
+              onPropChange={(key, value) => updatePageProps(activePage.id, { [key]: value })}
+              pageName={pageConfig.name}
+            />
+          </div>
+        </aside>
+      );
+    }
+  }
+
 
   const handlePropChange = (key: string, value: any) => {
     if (activePage && activeSection) {
@@ -644,54 +678,6 @@ export const EditorRightSidebar: React.FC = () => {
               <button style={{ marginTop: '8px', padding: '6px 12px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: '4px', fontWeight: 600, border: 'none', cursor: 'pointer', fontSize: '12px' }}>
                 Browse files
               </button>
-            </div>
-          </div>
-        </>
-      ) : activeTab === 'pages' ? (
-        <>
-          <div className={styles.panelHeader}>
-            <div className={styles.phLeft}>
-              <button className={styles.iconBtn} onClick={closeRightSidebar}>
-                <ChevronRight size={20} className={styles.backIcon} />
-              </button>
-              <h3 className={styles.fw600}>{activePage?.name}</h3>
-            </div>
-          </div>
-
-          <div className={styles.propTabs}>
-            <div className={`${styles.propTab} ${styles.activePropTab}`}>Design</div>
-            <div className={styles.propTab}>Theme</div>
-            <div className={styles.propTab}>Contents</div>
-            <div className={styles.propTab}>SEO</div>
-          </div>
-
-          <div className={styles.propContent} style={{ padding: '16px' }}>
-            <div className={styles.propSection}>
-              <h4 className={styles.fw600} style={{ fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>Page Properties</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Page Name</span>
-                  <input type="text" className={styles.inputField} value={activePage?.name || ''} onChange={(e) => updatePageProps(activePage.id, { name: e.target.value })} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>URL Path</span>
-                  <input type="text" className={styles.inputField} value={activePage?.path || ''} onChange={(e) => updatePageProps(activePage.id, { path: e.target.value })} />
-                </div>
-              </div>
-            </div>
-            
-            <div className={styles.propSection} style={{ marginTop: '24px', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
-              <h4 className={styles.fw600} style={{ fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>SEO Settings</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>SEO Title</span>
-                  <input type="text" className={styles.inputField} value={activePage?.seoTitle || ''} onChange={(e) => updatePageProps(activePage.id, { seoTitle: e.target.value })} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>SEO Description</span>
-                  <textarea className={styles.textareaField} value={activePage?.seoDescription || ''} onChange={(e) => updatePageProps(activePage.id, { seoDescription: e.target.value })} rows={4} />
-                </div>
-              </div>
             </div>
           </div>
         </>
@@ -980,9 +966,21 @@ export const EditorRightSidebar: React.FC = () => {
           )}
         </>
       ) : (
-        <div className={styles.propContent}>
-          <p className={styles.labelSm} style={{textAlign: 'center', marginTop: '40px'}}>Select a section to edit its properties.</p>
-        </div>
+        <>
+          <div className={styles.panelHeader}>
+            <div className={styles.phLeft}>
+              <button className={styles.iconBtn} onClick={closeRightSidebar}>
+                <ChevronRight size={20} className={styles.backIcon} />
+              </button>
+              <h3 className={styles.fw600}>Page Settings</h3>
+            </div>
+          </div>
+          <div className={styles.propContent}>
+            <p className={styles.labelSm} style={{textAlign: 'center', marginTop: '40px'}}>
+              Select a section to edit its properties, or use the tabs above to manage global page settings.
+            </p>
+          </div>
+        </>
       )}
     </aside>
   );

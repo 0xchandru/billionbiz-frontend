@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { defaultPropsMap, sectionNameMap } from '../components/editor/SectionRenderer';
+import { getAllPageConfigs } from '../components/editor/pageConfigs';
+import type { PageCategory } from '../components/editor/pageConfigs/types';
 
 export interface SectionData {
   id: string;
@@ -14,10 +16,21 @@ export interface PageData {
   id: string;
   name: string;
   path: string;
-  type: 'System' | 'Custom';
+  type: string;                // page config type key (e.g., 'shop', 'product-details')
+  category: PageCategory;      // storefront, commerce, customer, legal, system
+  status: 'draft' | 'published';
   seoTitle?: string;
   seoDescription?: string;
+  socialImage?: string;
+  canonicalUrl?: string;
+  searchVisibility?: boolean;
   sections: SectionData[];
+  pageProps: Record<string, any>; // page-level props (layout, content, style, etc.)
+  visibility: {
+    desktop: boolean;
+    tablet: boolean;
+    mobile: boolean;
+  };
 }
 
 export interface ThemeData {
@@ -66,6 +79,11 @@ export interface SiteState {
   removePage: (pageId: string) => void;
   updateTheme: (newTheme: Partial<ThemeData>) => void;
   updateSettings: (newSettings: Record<string, any>) => void;
+  // New methods for Pages Editor
+  updatePageSettings: (pageId: string, settings: Record<string, any>) => void;
+  resetPageToDefault: (pageId: string) => void;
+  publishPage: (pageId: string) => void;
+  unpublishPage: (pageId: string) => void;
 }
 
 // Helper to create a section with default props
@@ -74,17 +92,52 @@ const createSection = (id: string, type: string, overrides?: Partial<SectionData
   type,
   name: sectionNameMap[type] || type.replace(/([A-Z])/g, ' $1').trim(),
   isHidden: false,
-  props: { ...(defaultPropsMap[type] || {}) },
+  props: { ...defaultPropsMap[type] },
   ...overrides,
 });
 
-// Initial mock data — Full showcase of all section types and pages
+// Helper to generate default sections for a page config
+const generateDefaultSections = (pageId: string, configType: string): SectionData[] => {
+  const config = getAllPageConfigs().find(c => c.type === configType);
+  if (!config) return [];
+  return config.defaultSections.map((def, i) => 
+    createSection(`${pageId}-${def.type.toLowerCase()}-${i}`, def.type, {
+      name: def.name,
+      props: { ...defaultPropsMap[def.type], ...def.defaultProps },
+    })
+  );
+};
+
+// Build the initial pages from page configs
+const buildPredefinedPages = (): PageData[] => {
+  const configs = getAllPageConfigs();
+  return configs.map(config => {
+    const pageId = `${config.type}-page`;
+    return {
+      id: pageId,
+      name: config.name,
+      path: config.path,
+      type: config.type,
+      category: config.category,
+      status: 'published' as const,
+      seoTitle: `${config.name} - BillionBiz`,
+      seoDescription: config.description || '',
+      sections: generateDefaultSections(pageId, config.type),
+      pageProps: { ...config.defaultProps },
+      visibility: { desktop: true, tablet: true, mobile: true },
+    };
+  });
+};
+
+// Initial mock data — Landing page + predefined pages
 const initialPages: PageData[] = [
   {
     id: 'landing-page',
     name: 'Home page',
     path: '/',
-    type: 'System',
+    type: 'landing',
+    category: 'storefront',
+    status: 'published',
     seoTitle: 'BillionBiz | Build, Launch & Grow Your Business',
     seoDescription: 'The best platform to launch your store.',
     sections: [
@@ -94,125 +147,11 @@ const initialPages: PageData[] = [
       createSection('footer-menu', 'FooterMenu'),
       createSection('footer-text', 'FooterText'),
       createSection('footer-main', 'Footer'),
-    ]
+    ],
+    pageProps: {},
+    visibility: { desktop: true, tablet: true, mobile: true },
   },
-  {
-    id: 'products-list',
-    name: 'Products List',
-    path: '/collections/all',
-    type: 'System',
-    seoTitle: 'All Products - BillionBiz',
-    sections: [
-      createSection('announcement-bar-sys', 'AnnouncementBar'),
-      createSection('utility-bar-sys', 'UtilityBar'),
-      createSection('header-sys', 'Header'),
-      createSection('footer-menu-sys', 'FooterMenu'),
-      createSection('footer-text-sys', 'FooterText'),
-      createSection('footer-sys', 'Footer'),
-    ]
-  },
-  {
-    id: 'product-details',
-    name: 'Product Details',
-    path: '/products/sample',
-    type: 'System',
-    seoTitle: 'Product Name - BillionBiz',
-    sections: [
-      createSection('header-prod', 'Header'),
-      createSection('footer-prod', 'Footer'),
-    ]
-  },
-  {
-    id: 'cart-page',
-    name: 'Cart',
-    path: '/cart',
-    type: 'System',
-    seoTitle: 'Your Cart - BillionBiz',
-    sections: [
-      createSection('header-cart', 'Header'),
-      createSection('footer-cart', 'Footer'),
-    ]
-  },
-  {
-    id: 'checkout-page',
-    name: 'Checkout',
-    path: '/checkout',
-    type: 'System',
-    seoTitle: 'Checkout - BillionBiz',
-    sections: [
-      createSection('header-checkout', 'Header'),
-      createSection('footer-checkout', 'Footer'),
-    ]
-  },
-  {
-    id: 'about-page',
-    name: 'About Us',
-    path: '/about',
-    type: 'System',
-    seoTitle: 'About Us - BillionBiz',
-    sections: [
-      createSection('announcement-bar-about', 'AnnouncementBar'),
-      createSection('header-about', 'Header'),
-      createSection('footer-about', 'Footer'),
-    ]
-  },
-  {
-    id: 'contact-page',
-    name: 'Contact Us',
-    path: '/contact',
-    type: 'System',
-    seoTitle: 'Contact Us - BillionBiz',
-    sections: [
-      createSection('announcement-bar-contact', 'AnnouncementBar'),
-      createSection('header-contact', 'Header'),
-      createSection('footer-contact', 'Footer'),
-    ]
-  },
-  {
-    id: 'faq-page',
-    name: 'FAQ',
-    path: '/faq',
-    type: 'System',
-    seoTitle: 'FAQ - BillionBiz',
-    sections: [
-      createSection('announcement-bar-faq', 'AnnouncementBar'),
-      createSection('header-faq', 'Header'),
-      createSection('footer-faq', 'Footer'),
-    ]
-  },
-  {
-    id: 'privacy-policy-page',
-    name: 'Privacy Policy',
-    path: '/policies/privacy',
-    type: 'System',
-    seoTitle: 'Privacy Policy - BillionBiz',
-    sections: [
-      createSection('header-privacy', 'Header'),
-      createSection('footer-privacy', 'Footer'),
-    ]
-  },
-  {
-    id: 'terms-conditions-page',
-    name: 'Terms & Conditions',
-    path: '/policies/terms',
-    type: 'System',
-    seoTitle: 'Terms & Conditions - BillionBiz',
-    sections: [
-      createSection('header-terms', 'Header'),
-      createSection('footer-terms', 'Footer'),
-    ]
-  },
-  {
-    id: 'refund-policy-page',
-    name: 'Refund Policy',
-    path: '/policies/refunds',
-    type: 'System',
-    seoTitle: 'Refund Policy - BillionBiz',
-    sections: [
-      createSection('header-refunds', 'Header'),
-      createSection('footer-refunds', 'Footer'),
-    ]
-  }
+  ...buildPredefinedPages(),
 ];
 
 export const useSiteStore = create<SiteState>()(
@@ -372,7 +311,11 @@ export const useSiteStore = create<SiteState>()(
         createSection(`utility-bar-${Date.now()}`, 'UtilityBar'),
         createSection(`header-${Date.now()}`, 'Header'),
         createSection(`footer-${Date.now()}`, 'Footer'),
-      ]
+      ],
+      category: 'storefront',
+      status: 'draft',
+      pageProps: {},
+      visibility: { desktop: true, tablet: true, mobile: true }
     };
     return { pages: [...state.pages, newPage] };
   }),
@@ -387,10 +330,48 @@ export const useSiteStore = create<SiteState>()(
 
   updateSettings: (newSettings) => set((state) => ({
     settings: { ...state.settings, ...newSettings }
-  }))
+  })),
+
+  // --- Pages Editor Methods ---
+  
+  updatePageSettings: (pageId, settings) => set((state) => {
+    const pages = state.pages.map(page => 
+      page.id === pageId ? { ...page, pageProps: { ...page.pageProps, ...settings } } : page
+    );
+    return { pages };
+  }),
+  
+  resetPageToDefault: (pageId) => set((state) => {
+    const pages = state.pages.map(page => {
+      if (page.id !== pageId) return page;
+      const config = getAllPageConfigs().find(c => c.type === page.type);
+      if (!config) return page;
+      
+      return {
+        ...page,
+        sections: generateDefaultSections(pageId, config.type),
+        pageProps: { ...config.defaultProps }
+      };
+    });
+    return { pages };
+  }),
+  
+  publishPage: (pageId) => set((state) => {
+    const pages = state.pages.map(page => 
+      page.id === pageId ? { ...page, status: 'published' as const } : page
+    );
+    return { pages };
+  }),
+  
+  unpublishPage: (pageId) => set((state) => {
+    const pages = state.pages.map(page => 
+      page.id === pageId ? { ...page, status: 'draft' as const } : page
+    );
+    return { pages };
+  })
     }),
     {
-      name: 'billionbiz-storage-v3',
+      name: 'billionbiz-storage-v4',
     }
   )
 );

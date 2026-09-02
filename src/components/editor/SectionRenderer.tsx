@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import type { SectionData } from '../../store/siteStore';
-import { useEditorStore } from '../../store/editorStore';
 
 // Import all section components
 import HeroBannerSection from './sections/HeroBannerSection';
@@ -18,6 +17,32 @@ import BlogPostsSection from './sections/BlogPostsSection';
 import GallerySection from './sections/GallerySection';
 import MapSection from './sections/MapSection';
 import PricingTableSection from './sections/PricingTableSection';
+
+// --- Generic Placeholder Section ---
+const PlaceholderSection: React.FC<{ props: any }> = ({ props }) => {
+  return (
+    <div style={{
+      padding: '60px 20px',
+      backgroundColor: 'var(--theme-bg, #f8fafc)',
+      border: '1px dashed #cbd5e1',
+      borderRadius: '8px',
+      textAlign: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '200px',
+      margin: '16px 0'
+    }}>
+      <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--theme-text, #333)' }}>
+        {props.name || 'Section Placeholder'}
+      </h3>
+      <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+        This section is generated dynamically based on your store's data and layout settings.
+      </p>
+    </div>
+  );
+};
 
 // --- Built-in Announcement Bar, Header, Footer ---
 
@@ -690,6 +715,21 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
   FooterMenu,
   FooterText,
   Footer,
+  PageHeader: PlaceholderSection,
+  Breadcrumbs: PlaceholderSection,
+  ProductListing: PlaceholderSection,
+  ProductDetails: PlaceholderSection,
+  ProductRecommendations: PlaceholderSection,
+  CartItems: PlaceholderSection,
+  CartSummary: PlaceholderSection,
+  CheckoutContent: PlaceholderSection,
+  CollectionGrid: PlaceholderSection,
+  CollectionHero: PlaceholderSection,
+  LoginForm: PlaceholderSection,
+  RegisterForm: PlaceholderSection,
+  OrderList: PlaceholderSection,
+  OrderInfo: PlaceholderSection,
+  OrderItems: PlaceholderSection,
 };
 
 // --- Default Props Map ---
@@ -853,6 +893,21 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
       { title: 'Support', links: ['Help Center', 'Contact', 'Status', 'Privacy Policy'] },
     ],
   },
+  PageHeader: { heading: 'Page Title', description: 'Page description goes here.' },
+  Breadcrumbs: {},
+  ProductListing: {},
+  ProductDetails: {},
+  ProductRecommendations: {},
+  CartItems: {},
+  CartSummary: {},
+  CheckoutContent: {},
+  CollectionGrid: {},
+  CollectionHero: {},
+  LoginForm: {},
+  RegisterForm: {},
+  OrderList: {},
+  OrderInfo: {},
+  OrderItems: {},
 };
 
 // --- Section name map ---
@@ -876,15 +931,19 @@ export const sectionNameMap: Record<string, string> = {
   Gallery: 'Gallery',
   Map: 'Map',
   PricingTable: 'Pricing Table',
-  FooterMenu: 'Footer Menu',
-  FooterText: 'Footer Text',
-  Footer: 'Footer',
+  CheckoutContent: 'Checkout Content',
+  CollectionGrid: 'Collection Grid',
+  CollectionHero: 'Collection Hero',
+  LoginForm: 'Login Form',
+  RegisterForm: 'Register Form',
+  OrderList: 'Order List',
+  OrderInfo: 'Order Info',
+  OrderItems: 'Order Items',
 };
 
 // --- Renderer ---
 export const SectionRenderer: React.FC<{ section: SectionData, overrideDevice?: string }> = ({ section, overrideDevice }) => {
-  const storeDevice = useEditorStore(state => state.device);
-  const device = overrideDevice || storeDevice;
+  const device = overrideDevice || 'desktop';
 
   if (section.isHidden) return null;
 

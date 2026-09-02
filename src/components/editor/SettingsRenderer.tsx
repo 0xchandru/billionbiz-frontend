@@ -1,12 +1,12 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { ListEditor } from './EditorRightSidebar';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const SettingsRenderer: React.FC = () => {
-  const { activeSettingItem } = useEditorStore();
+  const { activeSettingItem } = useLandingEditorStore();
   const { settings, updateSettings } = useSiteStore();
 
   return (

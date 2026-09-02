@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Search, ChevronDown, ChevronRight, User, ShoppingBag } from 'lucide-react';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { PageRenderer } from './PageRenderer';
 import { SettingsRenderer } from './SettingsRenderer';
@@ -8,7 +8,7 @@ import { AddSectionWidget } from './AddSectionWidget';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorCanvas: React.FC = () => {
-   const { isRightSidebarOpen, activeTab, device, selectedPageId } = useEditorStore();
+   const { isRightSidebarOpen, activePanel: activeTab, device, selectedPageId } = useLandingEditorStore();
    const { pages, theme, settings } = useSiteStore();
    const containerRef = useRef<HTMLDivElement>(null);
    const [containerSize, setContainerSize] = useState({ width: 1280, height: 800 });
@@ -65,7 +65,7 @@ export const EditorCanvas: React.FC = () => {
                         margin: '0',
                      }}
                   >
-               {activeTab === 'pages' || activeTab === 'theme' ? (
+               {activeTab === 'theme' ? (
                   <div className={styles.previewPage}>
                      <div className={styles.announcementBar}>{settings.announcement}</div>
                      <div className={styles.previewHeader}>
@@ -169,7 +169,7 @@ export const EditorCanvas: React.FC = () => {
    return (
       <div
          ref={containerRef}
-         className={`${styles.canvasArea} ${isRightSidebarOpen && activeTab === 'landing' ? styles.canvasShrink : ''}`}
+         className={`${styles.canvasArea} ${isRightSidebarOpen && activeTab === 'editor' ? styles.canvasShrink : ''}`}
          style={{
             '--theme-primary': theme?.colors?.primary || '#198754',
             '--theme-secondary': theme?.colors?.secondary || '#ff6b00',

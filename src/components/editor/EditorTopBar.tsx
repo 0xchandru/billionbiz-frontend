@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Undo, Redo, ChevronDown, Monitor, Tablet, Smartphone, ArrowLeft, Columns } from 'lucide-react';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorTopBar: React.FC = () => {
   const navigate = useNavigate();
-  const { device, setDevice } = useEditorStore();
+  const { device, setDevice } = useLandingEditorStore();
 
   return (
     <header className={styles.topBar}>

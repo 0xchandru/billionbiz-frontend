@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, HelpCircle, FileText, MapPin, Grid, MessageSquare, LayoutTemplate, Share2, ShoppingBag } from 'lucide-react';
-import { useEditorStore } from '../../store/editorStore';
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const AddSectionWidget: React.FC = () => {
-  const { isAddSectionWidgetOpen, setAddSectionWidgetOpen, selectedPageId, insertIndex, setInsertIndex } = useEditorStore();
+  const { isAddSectionWidgetOpen, setAddSectionWidgetOpen, insertIndex, setInsertIndex } = useLandingEditorStore();
+  const selectedPageId = 'landing-page';
   const { pages, addSection } = useSiteStore();
   const [activeCategory, setActiveCategory] = useState('All Sections');
   const [searchQuery, setSearchQuery] = useState('');

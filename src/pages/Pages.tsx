@@ -39,7 +39,7 @@ const infoPages = [
 const PageCard = ({ page }: { page: any }) => {
   const navigate = useNavigate();
   return (
-    <div className={styles.pageCard} onClick={() => navigate('/editor?pageId=' + page.id + '&tab=pages')} style={{ cursor: 'pointer' }}>
+    <div className={styles.pageCard} onClick={() => navigate('/editor/pages?pageId=' + page.id)} style={{ cursor: 'pointer' }}>
       <div className={styles.pageCardHeader}>
         <div className={styles.pageTitleGroup}>
           <div className={styles.pageIcon} style={{ backgroundColor: page.bgColor, color: page.color }}>
@@ -92,7 +92,7 @@ const Pages = () => {
             and converts visitors into customers.
           </p>
           <div className={styles.heroActions}>
-            <button className={styles.btnPrimary} onClick={() => navigate('/editor')}>
+            <button className={styles.btnPrimary} onClick={() => navigate('/editor/landing')}>
               <Edit2 size={16} />
               <span>Start Editing Landing Page</span>
             </button>

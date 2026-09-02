@@ -1,8 +1,10 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ChevronDown, Plus, Settings, MoreVertical, LayoutTemplate, Palette, FileText, Share, Globe, Wand2, Trash2, Smartphone } from 'lucide-react';
-import { useEditorStore } from '../../store/editorStore';
+import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Wand2, Smartphone, Files, ChevronDown, ChevronRight } from 'lucide-react';
+
+import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
+import { getPageConfigsGrouped, getCategoryDisplayName } from './pageConfigs';
 import { SortableItem } from './SortableItem';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
@@ -10,19 +12,14 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorLeftSidebar: React.FC = () => {
-  const {
-    activeTab,
-    setActiveTab,
-    selectedSectionId,
-    setSelectedSectionId,
-    selectedPageId,
-    setSelectedPageId,
-    setAddSectionWidgetOpen,
-    activeSettingItem,
-    setActiveSettingItem
-  } = useEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, removePage, updatePageProps } = useSiteStore();
+  const { 
+    activePanel: activeTab, setActivePanel: setActiveTab, selectedSectionId, setSelectedSectionId, 
+    activeSettingItem, setActiveSettingItem,
+    setAddSectionWidgetOpen, selectedPageId, setSelectedPageId
+  } = useLandingEditorStore();
+  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
+  const groupedConfigs = getPageConfigsGrouped();
 
   // Cleanup duplicate locked sections that might have been added manually before restrictions
   React.useEffect(() => {
@@ -44,9 +41,10 @@ export const EditorLeftSidebar: React.FC = () => {
     }
   }, [activePage, updatePageProps]);
   const [sectionToDelete, setSectionToDelete] = React.useState<string | null>(null);
-  const [pageToDelete, setPageToDelete] = React.useState<string | null>(null);
+  
   const [headerAddOpen, setHeaderAddOpen] = React.useState(false);
   const [footerAddOpen, setFooterAddOpen] = React.useState(false);
+  const [collapsedCategories, setCollapsedCategories] = React.useState<Record<string, boolean>>({});
   
   const headerAddRef = React.useRef<HTMLDivElement>(null);
   const footerAddRef = React.useRef<HTMLDivElement>(null);
@@ -63,6 +61,17 @@ export const EditorLeftSidebar: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  React.useEffect(() => {
+    if (activeTab === 'pages') {
+      setTimeout(() => {
+        const activeElement = document.querySelector(`.${styles.activePageItem}`);
+        if (activeElement) {
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    }
+  }, [activeTab]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -127,14 +136,15 @@ export const EditorLeftSidebar: React.FC = () => {
     <aside className={styles.leftPanel}>
       {/* Primary Tabs */}
       <div className={styles.panelTabs}>
-        <button className={`${styles.panelTab} ${activeTab === 'landing' ? styles.activeTab : ''}`} onClick={() => setActiveTab('landing')}>
+        <button className={`${styles.panelTab} ${activeTab === 'editor' ? styles.activeTab : ''}`} onClick={() => setActiveTab('editor')}>
           <LayoutTemplate size={20} />
           Editor
         </button>
         <button className={`${styles.panelTab} ${activeTab === 'pages' ? styles.activeTab : ''}`} onClick={() => setActiveTab('pages')}>
-          <FileText size={20} />
+          <Files size={20} />
           Pages
         </button>
+
         <button className={`${styles.panelTab} ${activeTab === 'theme' ? styles.activeTab : ''}`} onClick={() => setActiveTab('theme')}>
           <Palette size={20} />
           Theme
@@ -145,8 +155,76 @@ export const EditorLeftSidebar: React.FC = () => {
         </button>
       </div>
 
-      <div className={styles.panelContent} style={activeTab === 'landing' ? { padding: 0 } : {}}>
-        {activeTab === 'settings' ? (
+      <div className={styles.panelContent} style={
+        activeTab === 'editor' ? { padding: 0, overflowY: 'hidden', display: 'flex', flexDirection: 'column' } :
+        activeTab === 'pages' ? { padding: 0, overflowY: 'hidden', display: 'flex', flexDirection: 'column' } : {}
+      }>
+        {activeTab === 'pages' ? (
+          <div className={styles.pagesSidebar} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className={styles.settingsList} style={{ padding: '0', flex: 1, overflowY: 'auto' }}>
+              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 16px', backgroundColor: 'var(--panel-bg)', zIndex: 10 }}>
+                <h3 className={styles.fw600} style={{ margin: '0 0 4px 0', fontSize: '15px' }}>Pages</h3>
+                <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your website pages</p>
+              </div>
+              <div style={{ padding: '0 12px 16px' }}>
+                {Object.entries(groupedConfigs).map(([category, configs]) => {
+                if (configs.length === 0) return null;
+                const isCollapsed = collapsedCategories[category];
+                return (
+                  <div key={category} className={styles.categoryGroup} style={{ marginBottom: '16px' }}>
+                    <div 
+                      className={styles.categoryTitle} 
+                      onClick={() => setCollapsedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
+                      style={{ 
+                        fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', 
+                        letterSpacing: '0.5px', marginBottom: isCollapsed ? '0' : '8px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        cursor: 'pointer', padding: '8px 8px'
+                      }}
+                    >
+                      {getCategoryDisplayName(category as any)}
+                      {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                    </div>
+                    {!isCollapsed && configs.map(config => {
+                      const pageId = `${config.type}-page`;
+                      const isSelected = pageId === selectedPageId;
+                      const Icon = config.icon || Settings;
+                      return (
+                        <div 
+                          key={pageId} 
+                          className={`${styles.pageItem} ${isSelected ? styles.activePageItem : ''}`}
+                          onClick={() => {
+                            setSelectedPageId(pageId);
+                            useLandingEditorStore.setState({ isRightSidebarOpen: true });
+                          }}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', padding: '10px 12px',
+                            marginBottom: '2px', width: '100%', boxSizing: 'border-box'
+                          }}
+                        >
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '6px',
+                            backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'var(--bg-muted)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: isSelected ? 'var(--primary)' : 'var(--text-muted)',
+                            flexShrink: 0
+                          }}>
+                            <Icon size={16} />
+                          </div>
+                          <div style={{ textAlign: 'left', flex: 1, overflow: 'hidden' }}>
+                            <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: isSelected ? 'var(--primary)' : 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{config.name}</h4>
+                            <p style={{ margin: 0, fontSize: '11px', color: isSelected ? 'var(--primary)' : 'var(--text-muted)', opacity: isSelected ? 0.8 : 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{config.path}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'settings' ? (
           <div className={styles.settingsSidebar}>
             <div className={styles.sectionHeaderCol}>
               <h3 className={styles.fw600}>Global Settings</h3>
@@ -317,56 +395,16 @@ export const EditorLeftSidebar: React.FC = () => {
 
             </div>
           </div>
-        ) : activeTab === 'pages' ? (
-          <>
-            <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '12px' }}>
-              <h3 className={styles.fw600}>All pages</h3>
-            </div>
-            <div className={styles.pageList}>
-              {pages.filter(p => p.path !== '/').map(p => (
-                <div
-                  key={p.id}
-                  className={`${styles.pageItem} ${selectedPageId === p.id ? styles.activePageItem : ''}`}
-                  onClick={() => setSelectedPageId(p.id)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className={styles.pageItemLeft}>
-                    <LayoutTemplate size={18} className={selectedPageId === p.id ? styles.pageIconActive : styles.pageIconDef} />
-                    <div className={styles.pageInfo}>
-                      <span className={styles.pageItemName}>{p.name}</span>
-                      <span className={styles.pageItemPath}>{p.path}</span>
-                    </div>
-                  </div>
-                  <div className={styles.pageItemRight}>
-                    {p.type === 'Custom' ? (
-                      <Trash2 
-                        size={14} 
-                        className={styles.moreIcon} 
-                        style={{ color: '#ef4444', cursor: 'pointer' }} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPageToDelete(p.id);
-                        }} 
-                      />
-                    ) : (
-                      <MoreVertical size={14} className={styles.moreIcon} />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
 
-          </>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className={styles.innerScroll}>
-              <div className={styles.sectionHeader}>
-                <h3 className={styles.fw600}>{activePage?.name || 'Home page'}</h3>
-                <ChevronDown size={16} />
+          <div className={styles.sectionsSidebar} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0' }} className={styles.innerScroll}>
+              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 16px', backgroundColor: 'var(--panel-bg)', zIndex: 10 }}>
+                <h3 className={styles.fw600} style={{ margin: '0 0 4px 0', fontSize: '15px' }}>{activePage?.name || 'Home page'}</h3>
+                <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your page structure</p>
               </div>
-
-              <div className={styles.sectionsList}>
-                {activePage && (
+              <div className={styles.sectionsList} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px 16px' }}>
+                  {activePage && (
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -447,7 +485,7 @@ export const EditorLeftSidebar: React.FC = () => {
                               onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
                               onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
                               onInsertClick={() => {
-                                useEditorStore.getState().setInsertIndex(index + 1);
+                                useLandingEditorStore.getState().setInsertIndex(index + 1);
                                 setAddSectionWidgetOpen(true);
                               }}
                             />
@@ -456,8 +494,8 @@ export const EditorLeftSidebar: React.FC = () => {
                         <button 
                           className={styles.groupAddBtn} 
                           onClick={() => {
-                            const lastBodyIndex = activePage.sections.findIndex(s => s.type === 'Footer');
-                            useEditorStore.getState().setInsertIndex(lastBodyIndex !== -1 ? lastBodyIndex : null);
+                            const firstFooterIndex = activePage.sections.findIndex(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type));
+                            useLandingEditorStore.getState().setInsertIndex(firstFooterIndex !== -1 ? firstFooterIndex : null);
                             setAddSectionWidgetOpen(true);
                           }}
                         >
@@ -524,13 +562,13 @@ export const EditorLeftSidebar: React.FC = () => {
                 )}
               </div>
             </div>
-
-            <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px', backgroundColor: 'var(--panel-bg)' }}>
+            
+            <div style={{ borderTop: '1px solid var(--border-color)', padding: '12px 16px', backgroundColor: 'var(--panel-bg)', flexShrink: 0, zIndex: 10 }}>
               <button 
                 className={styles.addSectionBtn} 
                 onClick={() => {
-                  const lastBodyIndex = activePage?.sections.findIndex(s => s.type === 'Footer') ?? -1;
-                  useEditorStore.getState().setInsertIndex(lastBodyIndex !== -1 ? lastBodyIndex : null);
+                  const firstFooterIndex = activePage?.sections.findIndex(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type)) ?? -1;
+                  useLandingEditorStore.getState().setInsertIndex(firstFooterIndex !== -1 ? firstFooterIndex : null);
                   setAddSectionWidgetOpen(true);
                 }} 
                 style={{ width: '100%', margin: 0, padding: '10px', fontSize: '13px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
@@ -567,35 +605,7 @@ export const EditorLeftSidebar: React.FC = () => {
         </div>,
         document.body
       )}
-      {pageToDelete && createPortal(
-        <div className={styles.fullscreenModalOverlay} style={{ zIndex: 99999 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', width: '320px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', fontFamily: '"Outfit", sans-serif' }}>Delete Page</h3>
-            <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--text-muted)' }}>Are you sure you want to delete this page? This action cannot be undone.</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setPageToDelete(null)}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  removePage(pageToDelete);
-                  if (selectedPageId === pageToDelete) {
-                    setSelectedPageId(pages[0].id);
-                  }
-                  setPageToDelete(null);
-                }}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)' }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+
     </aside>
   );
 };
