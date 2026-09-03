@@ -74,7 +74,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
           {layouts && layouts.length > 0 && <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }} />}
           
           <SectionWidthEditor
-            value={props.sectionWidth || 'full'}
+            value={props.sectionWidth || 'wide'}
             onChange={(v) => onPropChange('sectionWidth', v)}
           />
           <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>

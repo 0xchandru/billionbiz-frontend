@@ -976,22 +976,36 @@ export const SectionRenderer: React.FC<{ section: SectionData, overrideDevice?: 
 
   // Layout & Spacing
   const layoutMap = {
-    narrow: '640px',
-    standard: '1024px',
-    wide: '1280px',
+    narrow: '720px',
+    standard: '1100px',
+    wide: '1400px',
     full: '100%',
   };
   
-  const layoutWidth = section.props.layout?.width ? layoutMap[section.props.layout.width as keyof typeof layoutMap] || '100%' : '100%';
-  const paddingTop = section.props.spacing?.paddingTop ? `${section.props.spacing.paddingTop}px` : undefined;
-  const paddingBottom = section.props.spacing?.paddingBottom ? `${section.props.spacing.paddingBottom}px` : undefined;
+  const widthProp = section.props.sectionWidth || section.props.pageWidth || section.props.layout?.width;
+  const layoutWidth = widthProp ? layoutMap[widthProp as keyof typeof layoutMap] || layoutMap['wide'] : layoutMap['wide'];
+
+  const paddingStyle: React.CSSProperties = section.props._padding ? {
+    paddingTop: section.props._padding.top !== undefined ? `${section.props._padding.top}px` : undefined,
+    paddingBottom: section.props._padding.bottom !== undefined ? `${section.props._padding.bottom}px` : undefined,
+    paddingLeft: section.props._padding.left !== undefined ? `${section.props._padding.left}px` : undefined,
+    paddingRight: section.props._padding.right !== undefined ? `${section.props._padding.right}px` : undefined,
+  } : {
+    paddingTop: section.props.spacing?.paddingTop ? `${section.props.spacing.paddingTop}px` : undefined,
+    paddingBottom: section.props.spacing?.paddingBottom ? `${section.props.spacing.paddingBottom}px` : undefined,
+  };
+
+  const marginStyle: React.CSSProperties = section.props._margin ? {
+    marginTop: section.props._margin.top !== undefined ? `${section.props._margin.top}px` : undefined,
+    marginBottom: section.props._margin.bottom !== undefined ? `${section.props._margin.bottom}px` : undefined,
+  } : {};
 
   return (
     <div style={{
       maxWidth: layoutWidth,
       margin: '0 auto',
-      paddingTop,
-      paddingBottom,
+      ...paddingStyle,
+      ...marginStyle,
     }}>
       <Component props={{ ...section.props, device }} />
     </div>

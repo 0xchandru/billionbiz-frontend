@@ -181,13 +181,13 @@ interface SectionWidthEditorProps {
 }
 
 export const SectionWidthEditor: React.FC<SectionWidthEditorProps> = ({
-  value = 'full',
+  value = 'wide',
   onChange,
 }) => {
   const widthOptions = [
-    { id: 'narrow', label: 'Narrow', desc: '640px' },
-    { id: 'standard', label: 'Standard', desc: '1024px' },
-    { id: 'wide', label: 'Wide', desc: '1280px' },
+    { id: 'narrow', label: 'Narrow', desc: '720px' },
+    { id: 'standard', label: 'Standard', desc: '1100px' },
+    { id: 'wide', label: 'Wide', desc: '1400px' },
     { id: 'full', label: 'Full Width', desc: '100%' },
   ];
 
@@ -230,7 +230,10 @@ export const SectionWidthEditor: React.FC<SectionWidthEditorProps> = ({
                 transition: 'all 0.15s ease',
               }}
             >
-              {opt.label}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                <span>{opt.label}</span>
+                <span style={{ fontSize: '10px', opacity: 0.8, fontWeight: 400 }}>{opt.desc}</span>
+              </div>
             </button>
           );
         })}
