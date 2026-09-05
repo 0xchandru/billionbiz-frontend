@@ -7,10 +7,10 @@ import { Settings, Copy, Trash2, Plus, Home, Search, ShoppingCart, User as UserI
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }> = ({ page, overrideDevice }) => {
-  const { selectedSectionId, setSelectedSectionId } = useLandingEditorStore();
+  const { selectedSectionId, setSelectedSectionId, setAddSectionWidgetOpen, setInsertIndex } = useLandingEditorStore();
   const storeDevice = useLandingEditorStore(state => state.device);
   const device = overrideDevice || storeDevice;
-  const { addSection, theme } = useSiteStore();
+  const { theme } = useSiteStore();
   const settings = useSiteStore(state => state.settings);
 
   const themeStyles = `
@@ -107,7 +107,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
               <button 
                 className={`${styles.hoverAddBtn} ${styles.hoverAddBtnTop}`}
-                onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection', storeIndex); }}
+                onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex); setAddSectionWidgetOpen(true); }}
                 title="Add section above"
               >
                 <Plus size={14} />
@@ -130,7 +130,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
               <div className={styles.addSectionDivider}>
                 <button 
                   className={styles.addSectionFloating} 
-                  onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection'); }}
+                  onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex + 1); setAddSectionWidgetOpen(true); }}
                 >
                   <Plus size={14}/> Add section
                 </button>
@@ -140,7 +140,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
               <button 
                 className={`${styles.hoverAddBtn} ${styles.hoverAddBtnBottom}`}
-                onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection', storeIndex + 1); }}
+                onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex + 1); setAddSectionWidgetOpen(true); }}
                 title="Add section below"
               >
                 <Plus size={14} />
