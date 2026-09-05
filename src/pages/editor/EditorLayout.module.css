@@ -1374,7 +1374,7 @@
   border: 2px dashed var(--primary);
   opacity: 0.5;
   pointer-events: none;
-  z-index: 10;
+  z-index: 999;
 }
 
 .activeSectionBorder {
@@ -1391,7 +1391,7 @@
   bottom: 0;
   border: 2px solid var(--primary);
   pointer-events: none;
-  z-index: 15;
+  z-index: 999;
 }
 
 .sectionLabel {
@@ -2495,7 +2495,7 @@
   justify-content: center;
   border: 2px solid white;
   cursor: pointer;
-  z-index: 20;
+  z-index: 999;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
