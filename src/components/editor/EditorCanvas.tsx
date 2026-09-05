@@ -12,6 +12,7 @@ export const EditorCanvas: React.FC = () => {
    const { pages, theme, settings } = useSiteStore();
    const containerRef = useRef<HTMLDivElement>(null);
    const [containerSize, setContainerSize] = useState({ width: 1280, height: 800 });
+   const [isScrolled, setIsScrolled] = useState(false);
 
    useEffect(() => {
       const resizeObserver = new ResizeObserver((entries) => {
@@ -58,7 +59,11 @@ export const EditorCanvas: React.FC = () => {
                   height: `${domHeight}px`,
                }}>
                   <div 
-                     className={styles.canvasWrapper} 
+                     className={`${styles.canvasWrapper} ${isScrolled ? 'isScrolled' : ''}`}
+                     onScroll={(e) => {
+                        const target = e.target as HTMLDivElement;
+                        setIsScrolled(target.scrollTop > 10);
+                     }}
                      style={{ 
                         width: '100%',
                         height: '100%',

@@ -1360,7 +1360,11 @@
   cursor: pointer;
 }
 
-.previewSectionWrapper:hover {
+.canvasWrapper:not(:global(.isScrolled)) .previewSectionWrapper:hover {
+  z-index: 210;
+}
+
+.canvasWrapper:global(.isScrolled) .previewSectionWrapper:hover {
   z-index: 150;
 }
 
@@ -1377,7 +1381,12 @@
   z-index: 150;
 }
 
-.activeSectionBorder {
+.canvasWrapper:not(:global(.isScrolled)) .activeSectionBorder {
+  position: relative;
+  z-index: 210;
+}
+
+.canvasWrapper:global(.isScrolled) .activeSectionBorder {
   position: relative;
   z-index: 150;
 }
@@ -2508,11 +2517,11 @@
 }
 
 .hoverAddBtnTop {
-  top: 0;
+  top: -14px;
 }
 
 .hoverAddBtnBottom {
-  bottom: 0;
+  bottom: -14px;
 }
 
 .hoverAddBtn:hover {
