@@ -1370,7 +1370,7 @@
   border: 2px dashed var(--primary);
   opacity: 0.5;
   pointer-events: none;
-  z-index: 999;
+  z-index: 150;
 }
 
 .activeSectionBorder {
@@ -1386,7 +1386,7 @@
   bottom: 0;
   border: 2px solid var(--primary);
   pointer-events: none;
-  z-index: 999;
+  z-index: 150;
 }
 
 .sectionLabel {
