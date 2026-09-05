@@ -1383,12 +1383,12 @@
 
 .canvasWrapper:not(:global(.isScrolled)) .activeSectionBorder {
   position: relative;
-  z-index: 210;
+  z-index: 205;
 }
 
 .canvasWrapper:global(.isScrolled) .activeSectionBorder {
   position: relative;
-  z-index: 150;
+  z-index: 145;
 }
 
 .activeSectionBorder::after {
