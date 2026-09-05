@@ -5,12 +5,12 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'Visit Our Store';
-  const address = props.address || '123 Design Street, Creative District, San Francisco, CA 94102';
-  const embedUrl = props.embedUrl || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0977477265785!2d-122.41941528468156!3d37.77492977975903!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085809c6c8f4459%3A0xb10ed6d9b5050fa5!2sTwitter+HQ!5e0!3m2!1sen!2sus!4v1';
-  const phone = props.phone || '+1 (555) 123-4567';
-  const email = props.email || 'hello@billionbiz.com';
-  const hours = props.hours || 'Mon-Fri: 9am - 6pm | Sat: 10am - 4pm';
+  const heading = props.heading ?? 'Visit Our Store';
+  const address = props.address ?? '123 Design Street, Creative District, San Francisco, CA 94102';
+  const embedUrl = props.embedUrl ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.0977477265785!2d-122.41941528468156!3d37.77492977975903!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8085809c6c8f4459%3A0xb10ed6d9b5050fa5!2sTwitter+HQ!5e0!3m2!1sen!2sus!4v1';
+  const phone = props.phone ?? '+1 (555) 123-4567';
+  const email = props.email ?? 'hello@billionbiz.com';
+  const hours = props.hours ?? 'Mon-Fri: 9am - 6pm | Sat: 10am - 4pm';
 
   return (
     <section style={{ 
@@ -22,7 +22,7 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

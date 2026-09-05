@@ -4,10 +4,10 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'See it in Action';
-  const description = props.description || 'Watch how our products transform everyday spaces into extraordinary experiences.';
-  const videoUrl = props.videoUrl || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-  const bgColor = props.bgColor || 'var(--theme-background)';
+  const heading = props.heading ?? 'See it in Action';
+  const description = props.description ?? 'Watch how our products transform everyday spaces into extraordinary experiences.';
+  const videoUrl = props.videoUrl ?? 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+  const bgColor = props.bgColor ?? 'var(--theme-background)';
 
   // Convert youtube/vimeo URLs to embed URLs
   let embedUrl = videoUrl;
@@ -33,7 +33,7 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
         textAlign: 'center',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

@@ -4,7 +4,7 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'Trusted by Leading Brands';
+  const heading = props.heading ?? 'Trusted by Leading Brands';
   const logos = props.logos || [
     { name: 'Airbnb' },
     { name: 'Spotify' },
@@ -25,7 +25,7 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
       <div style={{
         padding: isMobile ? '40px 24px' : '60px 48px',
         textAlign: 'center',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

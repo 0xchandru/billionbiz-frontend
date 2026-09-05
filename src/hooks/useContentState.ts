@@ -79,6 +79,18 @@ function pickValues(
   return result;
 }
 
+function getEmptyValueForField(type?: string): any {
+  if (type === 'list' || type === 'object-list' || type === 'array') return [];
+  if (type === 'boolean' || type === 'switch') return false;
+  return "";
+}
+
+function isCommonField(key: string): boolean {
+  const commonKeys = ['heading', 'title', 'subheading', 'subtitle', 'badge', 'primarybtn', 'secondarybtn', 'buttontext', 'buttonlink', 'btn', 'label'];
+  const lowerKey = key.toLowerCase();
+  return commonKeys.some(k => lowerKey.includes(k));
+}
+
 // ---- Main Hook ----
 
 interface UseContentStateOptions {
@@ -184,9 +196,26 @@ export function useContentState({
           onPropChange(key, value);
         }
       } else if (stored?.status === 'cleared') {
-        // Keep content cleared
+        // Keep content cleared, except for common fields which keep defaults
+        const tabs = sectionConfig.getTabs(layout, props);
+        const defaults = extractDefaultValuesFromTabs(tabs, sectionConfig.defaultProps, fieldKeys);
+        
+        const contentTab = tabs.find((t) => t.id === 'content');
+        const fieldTypes: Record<string, string> = {};
+        if (contentTab) {
+          for (const group of contentTab.groups) {
+            for (const field of group.fields) {
+              fieldTypes[field.key] = field.type;
+            }
+          }
+        }
+
         for (const key of fieldKeys) {
-          onPropChange(key, undefined);
+          if (isCommonField(key)) {
+            onPropChange(key, defaults[key]);
+          } else {
+            onPropChange(key, getEmptyValueForField(fieldTypes[key]));
+          }
         }
       } else {
         // Default — load default values from config
@@ -257,11 +286,25 @@ export function useContentState({
     if (!sectionConfig) return;
     setContentCleared(sectionId, contentConfigKey);
 
+    const tabs = sectionConfig.getTabs(currentLayout, props);
+    const contentTab = tabs.find((t) => t.id === 'content');
+    
+    const fieldTypes: Record<string, string> = {};
+    if (contentTab) {
+      for (const group of contentTab.groups) {
+        for (const field of group.fields) {
+          fieldTypes[field.key] = field.type;
+        }
+      }
+    }
+
     // Clear content fields in the section props
     for (const key of contentFieldKeys) {
-      onPropChange(key, undefined);
+      if (!isCommonField(key)) {
+        onPropChange(key, getEmptyValueForField(fieldTypes[key]));
+      }
     }
-  }, [sectionConfig, sectionId, contentConfigKey, contentFieldKeys, setContentCleared, onPropChange]);
+  }, [sectionConfig, sectionId, contentConfigKey, contentFieldKeys, currentLayout, props, setContentCleared, onPropChange]);
 
   // ---- Mark as customized (called when user manually edits a content field) ----
   const markAsCustomized = useCallback(() => {

@@ -5,10 +5,10 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'Featured Collection';
-  const linkText = props.linkText || 'View all';
-  const columns = props.columns || 4;
-  const layout = props.selectedLayout || props.layout || 'grid';
+  const heading = props.heading ?? 'Featured Collection';
+  const linkText = props.linkText ?? 'View all';
+  const columns = props.columns ?? 4;
+  const layout = props.selectedLayout ?? props.layout ?? 'grid';
   
   const displayColumns = isMobile ? 1 : (isTablet ? Math.min(2, columns) : columns);
 
@@ -53,7 +53,7 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

@@ -4,10 +4,10 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'Get in Touch';
-  const description = props.description || 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.';
-  const buttonText = props.buttonText || 'Send Message';
-  const bgColor = props.bgColor || 'var(--theme-background)';
+  const heading = props.heading ?? 'Get in Touch';
+  const description = props.description ?? 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.';
+  const buttonText = props.buttonText ?? 'Send Message';
+  const bgColor = props.bgColor ?? 'var(--theme-background)';
 
   return (
     <section style={{
@@ -19,7 +19,7 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

@@ -4,11 +4,11 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'Stay in the Loop';
-  const description = props.description || 'Subscribe to our newsletter and get 10% off your first order, plus exclusive access to new arrivals and special deals.';
-  const buttonText = props.buttonText || 'Subscribe';
-  const bgColor = props.bgColor || '#0f172a';
-  const textColor = props.textColor || '#ffffff';
+  const heading = props.heading ?? 'Stay in the Loop';
+  const description = props.description ?? 'Subscribe to our newsletter and get 10% off your first order, plus exclusive access to new arrivals and special deals.';
+  const buttonText = props.buttonText ?? 'Subscribe';
+  const bgColor = props.bgColor ?? '#0f172a';
+  const textColor = props.textColor ?? '#ffffff';
 
   return (
     <section style={{
@@ -21,7 +21,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
         textAlign: 'center',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

@@ -4,7 +4,7 @@ const BlogPostsSection: React.FC<{ props: Record<string, any> }> = ({ props }) =
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'Latest from Our Blog';
+  const heading = props.heading ?? 'Latest from Our Blog';
   const posts = props.posts || [
     { title: '10 Tips for Styling Your Living Room', excerpt: 'Discover our expert interior design tips to transform your living room into a cozy and stylish retreat.', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=400&fit=crop', date: 'Dec 15, 2025' },
     { title: 'The Art of Sustainable Living', excerpt: 'Learn how to make eco-friendly choices without compromising on style or quality in your home.', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop', date: 'Dec 10, 2025' },
@@ -21,7 +21,7 @@ const BlogPostsSection: React.FC<{ props: Record<string, any> }> = ({ props }) =
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

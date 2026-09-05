@@ -5,14 +5,14 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const layout = props.selectedLayout || props.layout || 'left';
-  const bgColor = props.bgColor || 'var(--theme-background)';
-  const badge = props.badge || 'New Arrival';
-  const heading = props.heading || 'Elevate Your Creative Workflow';
-  const description = props.description || 'Discover the tools that empower professionals to build stunning digital experiences with ease.';
-  const primaryBtn = props.primaryBtn || 'Start Building Now';
-  const secondaryBtn = props.secondaryBtn || 'Explore Templates';
-  const image = props.image || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop';
+  const layout = props.selectedLayout ?? props.layout ?? 'left';
+  const bgColor = props.bgColor ?? 'var(--theme-background)';
+  const badge = props.badge ?? 'New Arrival';
+  const heading = props.heading ?? 'Elevate Your Creative Workflow';
+  const description = props.description ?? 'Discover the tools that empower professionals to build stunning digital experiences with ease.';
+  const primaryBtn = props.primaryBtn ?? 'Start Building Now';
+  const secondaryBtn = props.secondaryBtn ?? 'Explore Templates';
+  const image = props.image ?? 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop';
 
   const isCenter = layout === 'center';
 
@@ -49,7 +49,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           : (isMobile ? '60px 24px' : '80px 48px'),
         gap: isMobile ? '32px' : '48px',
         textAlign: isCenter ? 'center' : (isMobile || isTablet ? 'center' : 'left'),
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

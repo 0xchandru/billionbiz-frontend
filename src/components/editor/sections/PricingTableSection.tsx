@@ -6,7 +6,7 @@ const PricingTableSection: React.FC<{ props: Record<string, any> }> = ({ props }
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'Simple, Transparent Pricing';
+  const heading = props.heading ?? 'Simple, Transparent Pricing';
   const plans = props.plans || [
     {
       name: 'Starter',
@@ -44,7 +44,7 @@ const PricingTableSection: React.FC<{ props: Record<string, any> }> = ({ props }
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

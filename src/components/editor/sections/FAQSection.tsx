@@ -5,7 +5,7 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const { device } = props;
   const isMobile = device === 'mobile';
 
-  const heading = props.heading || 'Frequently Asked Questions';
+  const heading = props.heading ?? 'Frequently Asked Questions';
   const items = props.items || [
     { question: 'What is your return policy?', answer: 'We offer a 30-day hassle-free return policy. If you\'re not completely satisfied with your purchase, simply reach out to our support team and we\'ll arrange a return or exchange.' },
     { question: 'How long does shipping take?', answer: 'Standard shipping takes 5-7 business days. Express shipping is available for 2-3 business day delivery. All orders over $99 qualify for free standard shipping.' },
@@ -26,7 +26,7 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

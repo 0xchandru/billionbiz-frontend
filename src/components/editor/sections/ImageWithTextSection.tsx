@@ -5,13 +5,13 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'Crafted with Purpose';
-  const body = props.body || 'Every piece in our collection is thoughtfully designed and ethically made. We work directly with artisans around the world to bring you unique, high-quality products that tell a story.';
-  const image = props.image || 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=700&h=700&fit=crop';
-  const imagePosition = props.imagePosition || 'left';
-  const buttonText = props.buttonText || 'Learn More';
-  const buttonLink = props.buttonLink || '#';
-  const bgColor = props.bgColor || 'var(--theme-background)';
+  const heading = props.heading ?? 'Crafted with Purpose';
+  const body = props.body ?? 'Every piece in our collection is thoughtfully designed and ethically made. We work directly with artisans around the world to bring you unique, high-quality products that tell a story.';
+  const image = props.image ?? 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=700&h=700&fit=crop';
+  const imagePosition = props.imagePosition ?? 'left';
+  const buttonText = props.buttonText ?? 'Learn More';
+  const buttonLink = props.buttonLink ?? '#';
+  const bgColor = props.bgColor ?? 'var(--theme-background)';
 
   const isRight = imagePosition === 'right';
 
@@ -30,7 +30,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
         padding: isMobile ? '40px 24px' : '80px 48px',
         gap: isMobile ? '32px' : '64px',
         textAlign: isMobile || isTablet ? 'center' : 'left',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

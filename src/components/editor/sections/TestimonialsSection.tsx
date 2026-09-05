@@ -5,7 +5,7 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'What Our Customers Say';
+  const heading = props.heading ?? 'What Our Customers Say';
   const testimonials = props.testimonials || [
     { name: 'Sarah Johnson', role: 'Interior Designer', quote: 'The quality of these products is outstanding. Every piece feels like a work of art that elevates any space.', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face', rating: 5 },
     { name: 'Michael Chen', role: 'Architect', quote: 'I\'ve been a loyal customer for 3 years. The attention to detail and customer service is unmatched.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', rating: 5 },
@@ -22,7 +22,7 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>

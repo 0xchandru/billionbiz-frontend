@@ -5,8 +5,8 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const heading = props.heading || 'Gallery';
-  const columns = props.columns || 3;
+  const heading = props.heading ?? 'Gallery';
+  const columns = props.columns ?? 3;
   const images = props.images || [
     { src: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&h=600&fit=crop', alt: 'Gallery 1' },
     { src: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop', alt: 'Gallery 2' },
@@ -26,7 +26,7 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
-        maxWidth: props._layoutWidth || '100%',
+        maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
         ...(props._paddingStyle || {}),
       }}>
