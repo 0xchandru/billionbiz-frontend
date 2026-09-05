@@ -116,7 +116,7 @@ interface UseContentStateReturn {
   /** Handle layout change — saves old content, loads new content */
   handleLayoutChange: (newLayout: string) => void;
   /** Mark the current content config as customized (called on manual edit) */
-  markAsCustomized: () => void;
+  markAsCustomized: (updates?: Record<string, any>) => void;
 }
 
 export function useContentState({
@@ -307,9 +307,9 @@ export function useContentState({
   }, [sectionConfig, sectionId, contentConfigKey, contentFieldKeys, currentLayout, props, setContentCleared, onPropChange]);
 
   // ---- Mark as customized (called when user manually edits a content field) ----
-  const markAsCustomized = useCallback(() => {
+  const markAsCustomized = useCallback((updates?: Record<string, any>) => {
     if (!sectionId || contentFieldKeys.length === 0) return;
-    const currentValues = pickValues(props, contentFieldKeys);
+    const currentValues = { ...pickValues(props, contentFieldKeys), ...(updates || {}) };
     setContentCustomized(sectionId, contentConfigKey, currentValues);
   }, [sectionId, contentConfigKey, contentFieldKeys, props, setContentCustomized]);
 

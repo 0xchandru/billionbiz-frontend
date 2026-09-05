@@ -57,8 +57,9 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
         contentState.contentStatus === 'default' &&
         contentState.contentFieldKeys.includes(key)
       ) {
-        // Use setTimeout to ensure the prop update has been applied first
-        setTimeout(() => contentState.markAsCustomized(), 0);
+        // Pass the updated value immediately instead of using a timeout
+        // which might capture a stale closure of props
+        contentState.markAsCustomized({ [key]: value });
       }
     },
     [onPropChange, sectionId, sectionType, contentState]
@@ -90,7 +91,8 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
   const isContentTab = validTabId === 'content';
 
   // Only show Clear button when content is in default (untouched) state
-  const showClearButton = isContentTab && sectionId && sectionType && contentState.contentStatus === 'default';
+  const isHeaderOrFooter = sectionType ? ['Header', 'Footer', 'AnnouncementBar', 'UtilityBar', 'FooterMenu', 'FooterText'].includes(sectionType) : false;
+  const showClearButton = isContentTab && sectionId && sectionType && !isHeaderOrFooter && contentState.contentStatus === 'default';
 
   const scrollTabs = (direction: 'left' | 'right') => {
     if (tabsRef.current) {
