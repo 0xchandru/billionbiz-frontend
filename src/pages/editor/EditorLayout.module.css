@@ -1360,10 +1360,6 @@
   cursor: pointer;
 }
 
-.previewSectionWrapper:hover {
-  z-index: 105;
-}
-
 .previewSectionWrapper:hover:not(.activeSectionBorder)::after {
   content: '';
   position: absolute;
@@ -1379,7 +1375,6 @@
 
 .activeSectionBorder {
   position: relative;
-  z-index: 105;
 }
 
 .activeSectionBorder::after {

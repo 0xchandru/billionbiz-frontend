@@ -126,16 +126,6 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             
             <SectionRenderer section={section} overrideDevice={overrideDevice} />
             
-            {isEditable && selectedSectionId === section.id && (
-              <div className={styles.addSectionDivider}>
-                <button 
-                  className={styles.addSectionFloating} 
-                  onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex + 1); setAddSectionWidgetOpen(true); }}
-                >
-                  <Plus size={14}/> Add section
-                </button>
-              </div>
-            )}
             
             {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
               <button 
