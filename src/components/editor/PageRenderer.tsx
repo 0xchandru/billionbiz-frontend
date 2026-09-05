@@ -93,6 +93,8 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
         if (isSectionHidden(section)) return null;
 
         const isEditable = page.id === 'landing-page';
+        const storeIndex = page.sections.findIndex(s => s.id === section.id);
+        const isHeaderOrFooter = ['Header', 'Footer', 'AnnouncementBar', 'UtilityBar', 'FooterMenu', 'FooterText'].includes(section.type);
 
         return (
           <div 
@@ -102,6 +104,15 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             onClick={() => isEditable && setSelectedSectionId(section.id)}
             style={section.type === 'Header' && section.props?.sticky !== false ? { position: 'sticky', top: 0, zIndex: 100 } : {}}
           >
+            {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
+              <button 
+                className={`${styles.hoverAddBtn} ${styles.hoverAddBtnTop}`}
+                onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection', storeIndex); }}
+                title="Add section above"
+              >
+                <Plus size={14} />
+              </button>
+            )}
             {isEditable && selectedSectionId === section.id && (
               <div className={styles.sectionLabel}>
                 <span>{section.name}</span>
@@ -124,6 +135,16 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
                   <Plus size={14}/> Add section
                 </button>
               </div>
+            )}
+            
+            {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
+              <button 
+                className={`${styles.hoverAddBtn} ${styles.hoverAddBtnBottom}`}
+                onClick={(e) => { e.stopPropagation(); addSection(page.id, 'FeaturedCollection', storeIndex + 1); }}
+                title="Add section below"
+              >
+                <Plus size={14} />
+              </button>
             )}
           </div>
         );

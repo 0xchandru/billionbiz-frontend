@@ -2476,3 +2476,40 @@
 .dangerText:hover {
   background-color: #fef2f2 !important;
 }
+.hoverAddBtn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  cursor: pointer;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: var(--shadow-md);
+}
+
+.previewSectionWrapper:hover .hoverAddBtn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hoverAddBtnTop {
+  top: -14px;
+}
+
+.hoverAddBtnBottom {
+  bottom: -14px;
+}
+
+.hoverAddBtn:hover {
+  transform: translateX(-50%) scale(1.1);
+}
