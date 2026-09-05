@@ -102,9 +102,9 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
             ref={(el) => { sectionRefs.current[section.id] = el; }}
             className={`${isEditable ? styles.previewSectionWrapper : ''} ${isEditable && selectedSectionId === section.id ? styles.activeSectionBorder : ''}`}
             onClick={() => isEditable && setSelectedSectionId(section.id)}
-            style={section.type === 'Header' && section.props?.sticky !== false ? { position: 'sticky', top: 0, zIndex: 100 } : {}}
+            style={section.type === 'Header' && section.props?.sticky !== false ? { position: 'sticky', top: 0, zIndex: 200 } : {}}
           >
-            {isEditable && storeIndex !== -1 && (
+            {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
               <button 
                 className={`${styles.hoverAddBtn} ${styles.hoverAddBtnTop}`}
                 onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex); setAddSectionWidgetOpen(true); }}
@@ -137,7 +137,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
               </div>
             )}
             
-            {isEditable && storeIndex !== -1 && (
+            {isEditable && storeIndex !== -1 && !isHeaderOrFooter && (
               <button 
                 className={`${styles.hoverAddBtn} ${styles.hoverAddBtnBottom}`}
                 onClick={(e) => { e.stopPropagation(); setInsertIndex(storeIndex + 1); setAddSectionWidgetOpen(true); }}
