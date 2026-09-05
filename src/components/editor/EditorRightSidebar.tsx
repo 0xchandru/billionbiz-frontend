@@ -722,6 +722,8 @@ export const EditorRightSidebar: React.FC = () => {
             props={activeSection.props || {}}
             onPropChange={handlePropChange}
             sectionName={activeSection.name}
+            sectionId={activeSection.id}
+            sectionType={activeSection.type}
           />
 
           {activeSection.isHidden && (

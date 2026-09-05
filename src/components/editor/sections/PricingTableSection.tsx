@@ -35,7 +35,19 @@ const PricingTableSection: React.FC<{ props: Record<string, any> }> = ({ props }
   ];
 
   return (
-    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
+    <section style={{ 
+      width: '100%', 
+      backgroundColor: 'var(--theme-background)',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
+    }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>
         <h2 style={{
           fontSize: isMobile ? '32px' : '40px',
@@ -115,6 +127,7 @@ const PricingTableSection: React.FC<{ props: Record<string, any> }> = ({ props }
             </button>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

@@ -11,13 +11,22 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
 
   return (
     <section style={{
-      padding: isMobile ? '40px 24px' : '80px 48px',
+      width: '100%',
       backgroundColor: bgColor,
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
       <div style={{
-        maxWidth: '600px',
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        maxWidth: props._layoutWidth || '100%',
         margin: '0 auto',
+        ...(props._paddingStyle || {}),
       }}>
+        <div style={{
+          maxWidth: '600px',
+          margin: '0 auto',
+        }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h2 style={{
             fontSize: isMobile ? '32px' : '40px',
@@ -124,6 +133,7 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
             {buttonText}
           </button>
         </form>
+        </div>
       </div>
     </section>
   );

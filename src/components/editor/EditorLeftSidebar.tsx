@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Wand2, Smartphone, Files, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Wand2, Smartphone, Files, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
@@ -16,7 +16,8 @@ export const EditorLeftSidebar: React.FC = () => {
   const { 
     activePanel: activeTab, setActivePanel: setActiveTab, selectedSectionId, setSelectedSectionId, 
     activeSettingItem, setActiveSettingItem,
-    setAddSectionWidgetOpen, selectedPageId, setSelectedPageId
+    setAddSectionWidgetOpen, selectedPageId, setSelectedPageId,
+    isLeftSidebarCollapsed, setLeftSidebarCollapsed
   } = useLandingEditorStore();
   const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
@@ -45,6 +46,9 @@ export const EditorLeftSidebar: React.FC = () => {
   const [headerAddOpen, setHeaderAddOpen] = React.useState(false);
   const [footerAddOpen, setFooterAddOpen] = React.useState(false);
   const [collapsedCategories, setCollapsedCategories] = React.useState<Record<string, boolean>>({});
+  const [isHovered, setIsHovered] = React.useState(false);
+  
+
   
   const headerAddRef = React.useRef<HTMLDivElement>(null);
   const footerAddRef = React.useRef<HTMLDivElement>(null);
@@ -64,19 +68,14 @@ export const EditorLeftSidebar: React.FC = () => {
 
   React.useEffect(() => {
     if (activeTab === 'pages') {
-      const firstNonLandingPage = useSiteStore.getState().pages.find(p => p.id !== 'landing-page');
-      if (firstNonLandingPage) {
-        useLandingEditorStore.getState().setSelectedPageId(firstNonLandingPage.id);
-      }
-
-      // Ensure right sidebar is open when switching to pages tab
-      useLandingEditorStore.setState({ isRightSidebarOpen: true });
+      
+      // Instantly ensure the active item is visible at the center without a jarring animation
       setTimeout(() => {
         const activeElement = document.querySelector(`.${styles.activePageItem}`);
         if (activeElement) {
-          activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
         }
-      }, 50);
+      }, 10);
     }
   }, [activeTab]);
 
@@ -139,8 +138,8 @@ export const EditorLeftSidebar: React.FC = () => {
     setFooterAddOpen(false);
   };
 
-  return (
-    <aside className={styles.leftPanel}>
+  const sidebarContent = (
+    <>
       {/* Primary Tabs */}
       <div className={styles.panelTabs}>
         <button className={`${styles.panelTab} ${activeTab === 'editor' ? styles.activeTab : ''}`} onClick={() => setActiveTab('editor')}>
@@ -162,15 +161,22 @@ export const EditorLeftSidebar: React.FC = () => {
         </button>
       </div>
 
-      <div className={styles.panelContent} style={
-        activeTab === 'editor' ? { padding: 0, overflowY: 'hidden', display: 'flex', flexDirection: 'column' } :
-        activeTab === 'pages' ? { padding: 0, overflowY: 'hidden', display: 'flex', flexDirection: 'column' } : {}
-      }>
+      <div className={styles.panelContent} style={{ padding: 0, overflowY: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {activeTab === 'pages' ? (
           <div className={styles.pagesSidebar} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <div className={styles.settingsList} style={{ padding: '0', flex: 1, overflowY: 'auto' }}>
-              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 16px', backgroundColor: 'var(--panel-bg)', zIndex: 10 }}>
-                <h3 className={styles.fw600} style={{ margin: '0 0 4px 0', fontSize: '15px' }}>Pages</h3>
+              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
+                  <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px' }}>Pages</h3>
+                  <button onClick={() => setLeftSidebarCollapsed(!isLeftSidebarCollapsed)} style={{ 
+                    background: isLeftSidebarCollapsed ? 'var(--primary-light)' : 'transparent', 
+                    border: 'none', cursor: 'pointer', 
+                    color: isLeftSidebarCollapsed ? 'var(--primary)' : 'var(--text-muted)', 
+                    display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' 
+                  }}>
+                    {isLeftSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                  </button>
+                </div>
                 <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your website pages</p>
               </div>
               <div style={{ padding: '0 12px 16px' }}>
@@ -241,12 +247,12 @@ export const EditorLeftSidebar: React.FC = () => {
             </div>
           </div>
         ) : activeTab === 'settings' ? (
-          <div className={styles.settingsSidebar}>
-            <div className={styles.sectionHeaderCol}>
-              <h3 className={styles.fw600}>Global Settings</h3>
-              <p className={styles.labelSm}>Manage your site configuration</p>
+          <div className={styles.settingsSidebar} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 16px' }}>
+              <h3 className={styles.fw600} style={{ margin: 0, marginBottom: '4px' }}>Global Settings</h3>
+              <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your site configuration</p>
             </div>
-            <div className={styles.settingsList}>
+            <div className={styles.settingsList} style={{ padding: '0 16px 16px' }}>
               {[
                 { id: 'General', icon: LayoutTemplate, title: 'General', desc: 'Site info, logo, & contact' },
                 { id: 'SEO & Geo', icon: Search, title: 'SEO & Geo', desc: 'SEO, structured data, sitemap & OG image' },
@@ -271,10 +277,22 @@ export const EditorLeftSidebar: React.FC = () => {
             </div>
           </div>
         ) : activeTab === 'theme' ? (
-          <div className={styles.themeSidebar}>
-            <div className={styles.sectionHeaderCol}>
-              <h3 className={styles.fw600}>Theme styles</h3>
+          <div className={styles.themeSidebar} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <h3 className={styles.fw600} style={{ margin: 0 }}>Theme styles</h3>
+                <button onClick={() => setLeftSidebarCollapsed(!isLeftSidebarCollapsed)} style={{ 
+                  background: isLeftSidebarCollapsed ? 'var(--primary-light)' : 'transparent', 
+                  border: 'none', cursor: 'pointer', 
+                  color: isLeftSidebarCollapsed ? 'var(--primary)' : 'var(--text-muted)', 
+                  display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' 
+                }}>
+                  {isLeftSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                </button>
+              </div>
             </div>
+
+            <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
             <div className={styles.inheritThemeBlock}>
               <Wand2 size={20} className={styles.itIcon} />
@@ -410,13 +428,24 @@ export const EditorLeftSidebar: React.FC = () => {
               </div>
 
             </div>
+            </div>
           </div>
 
         ) : (
           <div className={styles.sectionsSidebar} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0' }} className={styles.innerScroll}>
-              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 16px', backgroundColor: 'var(--panel-bg)', zIndex: 10 }}>
-                <h3 className={styles.fw600} style={{ margin: '0 0 4px 0', fontSize: '15px' }}>{activePage?.name || 'Home page'}</h3>
+              <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
+                  <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px' }}>{activePage?.name || 'Home page'}</h3>
+                  <button onClick={() => setLeftSidebarCollapsed(!isLeftSidebarCollapsed)} style={{ 
+                    background: isLeftSidebarCollapsed ? 'var(--primary-light)' : 'transparent', 
+                    border: 'none', cursor: 'pointer', 
+                    color: isLeftSidebarCollapsed ? 'var(--primary)' : 'var(--text-muted)', 
+                    display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' 
+                  }}>
+                    {isLeftSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                  </button>
+                </div>
                 <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your page structure</p>
               </div>
               <div className={styles.sectionsList} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px 16px' }}>
@@ -621,7 +650,51 @@ export const EditorLeftSidebar: React.FC = () => {
         </div>,
         document.body
       )}
+    </>
+  );
 
+  if (isLeftSidebarCollapsed) {
+    return (
+      <div 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{ 
+          width: '24px', 
+          position: 'relative', 
+          flexShrink: 0, 
+          borderRight: '1px solid var(--border-color)', 
+          backgroundColor: 'var(--panel-bg)', 
+          cursor: 'pointer',
+          zIndex: 40
+        }}
+      >
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-muted)' }}>
+          <ChevronRight size={16} />
+        </div>
+        
+        <aside 
+          className={styles.leftPanel}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: '280px',
+            zIndex: 100,
+            transform: isHovered ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: isHovered ? 'var(--shadow-lg)' : 'none',
+          }}
+        >
+          {sidebarContent}
+        </aside>
+      </div>
+    );
+  }
+
+  return (
+    <aside className={styles.leftPanel} style={{ position: 'relative', width: '280px', transition: 'width 0.3s' }}>
+      {sidebarContent}
     </aside>
   );
 };

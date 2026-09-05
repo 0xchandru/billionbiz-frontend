@@ -24,10 +24,19 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
 
   return (
     <section style={{
-      padding: isMobile ? '40px 24px' : '80px 48px',
+      width: '100%',
       backgroundColor: bgColor,
-      textAlign: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        textAlign: 'center',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', marginBottom: '40px' }}>
         <h2 style={{
           fontSize: isMobile ? '32px' : '40px',
@@ -64,6 +73,7 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+      </div>
       </div>
     </section>
   );

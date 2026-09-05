@@ -13,7 +13,19 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
   ];
 
   return (
-    <section style={{ padding: isMobile ? '40px 24px' : '80px 48px', backgroundColor: 'var(--theme-background)' }}>
+    <section style={{ 
+      width: '100%', 
+      backgroundColor: 'var(--theme-background)',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
+    }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <h2 style={{
         fontSize: isMobile ? '32px' : '40px',
         fontWeight: 700,
@@ -70,6 +82,7 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
             </div>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

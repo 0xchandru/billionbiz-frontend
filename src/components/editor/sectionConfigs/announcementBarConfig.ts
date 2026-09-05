@@ -150,6 +150,21 @@ export const announcementBarConfig: SectionConfig = {
       },
     ];
   },
+  getContentConfigKey: (layout) => {
+    // 'single' and 'marquee' share the same content fields (text + link)
+    if (layout === 'single' || layout === 'marquee') return 'single-message';
+    // 'with-cta' adds button fields to single message
+    if (layout === 'with-cta') return 'single-message-cta';
+    // 'carousel' uses a completely different content model (messages list)
+    if (layout === 'carousel') return 'carousel';
+    return layout;
+  },
+  getContentFieldKeys: (configKey) => {
+    if (configKey === 'single-message') return ['text', 'link'];
+    if (configKey === 'single-message-cta') return ['text', 'buttonText', 'buttonLink'];
+    if (configKey === 'carousel') return ['messages'];
+    return ['text'];
+  },
   defaultProps: {
     selectedLayout: 'single',
     text: 'Free shipping on all orders over $50!',

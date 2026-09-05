@@ -34,18 +34,25 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
 
   return (
     <section style={{
-      display: 'flex',
-      flexDirection: isCenter ? 'column' : (isMobile || isTablet ? 'column' : 'row'),
-      alignItems: 'center',
-      padding: isCenter 
-        ? (isMobile ? '60px 24px' : '100px 40px')
-        : (isMobile ? '60px 24px' : '80px 48px'),
+      width: '100%',
       backgroundColor: bgColor,
-      gap: isMobile ? '32px' : '48px',
-      textAlign: isCenter ? 'center' : (isMobile || isTablet ? 'center' : 'left'),
       position: 'relative',
       overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: isCenter ? 'column' : (isMobile || isTablet ? 'column' : 'row'),
+        alignItems: 'center',
+        padding: isCenter 
+          ? (isMobile ? '60px 24px' : '100px 40px')
+          : (isMobile ? '60px 24px' : '80px 48px'),
+        gap: isMobile ? '32px' : '48px',
+        textAlign: isCenter ? 'center' : (isMobile || isTablet ? 'center' : 'left'),
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       {layout === 'right' && !isMobile && !isTablet && imageBlock}
       <div style={{
         flex: 1,
@@ -134,6 +141,7 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           }} />
         </div>
       )}
+      </div>
     </section>
   );
 };

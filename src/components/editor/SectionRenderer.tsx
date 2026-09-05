@@ -18,6 +18,18 @@ import GallerySection from './sections/GallerySection';
 import MapSection from './sections/MapSection';
 import PricingTableSection from './sections/PricingTableSection';
 
+// --- Generic Helpers ---
+export const getDefaultPadding = (sectionType: string): any => {
+  const edgeToEdgeSections = ['Gallery', 'AnnouncementBar', 'UtilityBar', 'Footer', 'Video', 'Map'];
+  const isEdgeToEdge = edgeToEdgeSections.includes(sectionType);
+
+  return {
+    desktop: { top: 80, bottom: 80, left: isEdgeToEdge ? 0 : 48, right: isEdgeToEdge ? 0 : 48 },
+    tablet: { top: 60, bottom: 60, left: isEdgeToEdge ? 0 : 32, right: isEdgeToEdge ? 0 : 32 },
+    mobile: { top: 40, bottom: 40, left: isEdgeToEdge ? 0 : 24, right: isEdgeToEdge ? 0 : 24 },
+  };
+};
+
 // --- Generic Placeholder Section ---
 const PlaceholderSection: React.FC<{ props: any }> = ({ props }) => {
   return (
@@ -985,14 +997,13 @@ export const SectionRenderer: React.FC<{ section: SectionData, overrideDevice?: 
   const widthProp = section.props.sectionWidth || section.props.pageWidth || section.props.layout?.width;
   const layoutWidth = widthProp ? layoutMap[widthProp as keyof typeof layoutMap] || layoutMap['wide'] : layoutMap['wide'];
 
-  const paddingStyle: React.CSSProperties = section.props._padding ? {
-    paddingTop: section.props._padding.top !== undefined ? `${section.props._padding.top}px` : undefined,
-    paddingBottom: section.props._padding.bottom !== undefined ? `${section.props._padding.bottom}px` : undefined,
-    paddingLeft: section.props._padding.left !== undefined ? `${section.props._padding.left}px` : undefined,
-    paddingRight: section.props._padding.right !== undefined ? `${section.props._padding.right}px` : undefined,
-  } : {
-    paddingTop: section.props.spacing?.paddingTop ? `${section.props.spacing.paddingTop}px` : undefined,
-    paddingBottom: section.props.spacing?.paddingBottom ? `${section.props.spacing.paddingBottom}px` : undefined,
+  const devicePadding = section.props._padding?.[device] || getDefaultPadding(section.type)[device];
+
+  const paddingStyle: React.CSSProperties = {
+    paddingTop: devicePadding.top !== undefined ? `${devicePadding.top}px` : undefined,
+    paddingBottom: devicePadding.bottom !== undefined ? `${devicePadding.bottom}px` : undefined,
+    paddingLeft: devicePadding.left !== undefined ? `${devicePadding.left}px` : undefined,
+    paddingRight: devicePadding.right !== undefined ? `${devicePadding.right}px` : undefined,
   };
 
   const marginStyle: React.CSSProperties = section.props._margin ? {
@@ -1001,13 +1012,12 @@ export const SectionRenderer: React.FC<{ section: SectionData, overrideDevice?: 
   } : {};
 
   return (
-    <div style={{
-      maxWidth: layoutWidth,
-      margin: '0 auto',
-      ...paddingStyle,
-      ...marginStyle,
-    }}>
-      <Component props={{ ...section.props, device }} />
-    </div>
+    <Component props={{ 
+      ...section.props, 
+      device,
+      _layoutWidth: layoutWidth,
+      _paddingStyle: paddingStyle,
+      _marginStyle: marginStyle
+    }} />
   );
 };

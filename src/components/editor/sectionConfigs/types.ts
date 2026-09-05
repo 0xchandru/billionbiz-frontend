@@ -196,6 +196,20 @@ export interface SectionConfig {
    */
   getTabs: (selectedLayout?: string, props?: Record<string, any>) => SectionTabConfig[];
 
+  /**
+   * Maps a variant/layout to its content configuration key.
+   * Multiple layouts can share the same key → shared content state.
+   * If not provided, each layout gets its own isolated content config (key = layoutId).
+   */
+  getContentConfigKey?: (selectedLayout: string) => string;
+
+  /**
+   * Returns the list of content field keys for a given content config key.
+   * These are the fields managed by the content state system (save/restore/clear).
+   * If not provided, the system auto-extracts content field keys from the 'content' tab.
+   */
+  getContentFieldKeys?: (contentConfigKey: string) => string[];
+
   /** Default props for a newly created section of this type */
   defaultProps: Record<string, any>;
 

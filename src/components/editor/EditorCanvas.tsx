@@ -31,7 +31,7 @@ export const EditorCanvas: React.FC = () => {
    }, []);
 
    const renderPreviewContent = (deviceType: 'desktop' | 'tablet' | 'mobile', availableWidth: number, availableHeight: number) => {
-      const targetWidth = deviceType === 'mobile' ? 375 : deviceType === 'tablet' ? 768 : 1280;
+      const targetWidth = deviceType === 'mobile' ? 375 : deviceType === 'tablet' ? 768 : Math.max(1280, availableWidth);
       // Allow it to be smaller, but never zoom in (scale > 1)
       const scale = Math.min(1, availableWidth / targetWidth);
       

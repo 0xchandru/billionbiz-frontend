@@ -16,10 +16,19 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
 
   return (
     <section style={{
-      padding: isMobile ? '40px 24px' : '60px 48px',
+      width: '100%',
       backgroundColor: '#f8fafc',
-      textAlign: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '60px 48px',
+        textAlign: 'center',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       {heading && (
         <p style={{
           fontSize: '14px',
@@ -56,6 +65,7 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
             )}
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

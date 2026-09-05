@@ -11,10 +11,19 @@ const RichTextSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
 
   return (
     <section style={{
-      padding: isMobile ? '40px 24px' : '80px 48px',
+      width: '100%',
       backgroundColor: bgColor,
-      textAlign: alignment as any,
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        textAlign: alignment as any,
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <div style={{ maxWidth: '800px', margin: alignment === 'center' ? '0 auto' : '0' }}>
         <h2 style={{
           fontSize: isMobile ? '32px' : '40px',
@@ -35,6 +44,7 @@ const RichTextSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
         }}>
           {body}
         </p>
+      </div>
       </div>
     </section>
   );

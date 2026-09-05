@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import type { SectionTabConfig, SectionLayoutOption } from '../sectionConfigs/types';
 import { FieldRenderer, isConditionMet } from './FieldRenderer';
 import { CollapsibleGroup } from './CollapsibleGroup';
@@ -7,6 +7,8 @@ import { LayoutSelector } from './LayoutSelector';
 import { SpacingEditor, SectionWidthEditor } from './SpacingEditor';
 import { VisibilityEditor } from './VisibilityEditor';
 import { AdvancedEditor } from './AdvancedEditor';
+import { getDefaultPadding } from '../SectionRenderer';
+import { useContentState } from '../../../hooks/useContentState';
 import styles from '../../../pages/editor/EditorLayout.module.css';
 
 interface TabRendererProps {
@@ -20,6 +22,10 @@ interface TabRendererProps {
   onPropChange: (key: string, value: any) => void;
   /** Section name for display */
   sectionName: string;
+  /** Section instance ID (for content state tracking) */
+  sectionId?: string;
+  /** Section type key (for content state tracking) */
+  sectionType?: string;
 }
 
 export const TabRenderer: React.FC<TabRendererProps> = ({
@@ -28,7 +34,36 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
   props,
   onPropChange,
   sectionName: _sectionName,
+  sectionId,
+  sectionType,
 }) => {
+  // ---- Content State Hook ----
+  const contentState = useContentState({
+    sectionId: sectionId || '',
+    sectionType: sectionType || '',
+    props,
+    onPropChange,
+  });
+
+  // Wrap onPropChange to auto-detect manual edits to content fields
+  const wrappedOnPropChange = useCallback(
+    (key: string, value: any) => {
+      onPropChange(key, value);
+      // If the edited field is a content field and status is still 'default',
+      // mark the content config as customized so the Clear button disappears
+      if (
+        sectionId &&
+        sectionType &&
+        contentState.contentStatus === 'default' &&
+        contentState.contentFieldKeys.includes(key)
+      ) {
+        // Use setTimeout to ensure the prop update has been applied first
+        setTimeout(() => contentState.markAsCustomized(), 0);
+      }
+    },
+    [onPropChange, sectionId, sectionType, contentState]
+  );
+
   // Build the full list of available tabs
   const allTabs: { id: string; label: string }[] = [];
 
@@ -51,9 +86,25 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
   // Ensure active tab is valid
   const validTabId = allTabs.find((t) => t.id === activeTabId) ? activeTabId : allTabs[0]?.id;
 
+  // Check if the current tab is a "content" tab (for showing the Clear button)
+  const isContentTab = validTabId === 'content';
+
+  // Only show Clear button when content is in default (untouched) state
+  const showClearButton = isContentTab && sectionId && sectionType && contentState.contentStatus === 'default';
+
   const scrollTabs = (direction: 'left' | 'right') => {
     if (tabsRef.current) {
       tabsRef.current.scrollBy({ left: direction === 'left' ? -150 : 150, behavior: 'smooth' });
+    }
+  };
+
+  // Handle layout change through the content state system
+  const handleLayoutChange = (layoutId: string) => {
+    if (sectionId && sectionType) {
+      contentState.handleLayoutChange(layoutId);
+    } else {
+      // Fallback for sections without content state tracking
+      onPropChange('selectedLayout', layoutId);
     }
   };
 
@@ -67,7 +118,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
             <LayoutSelector
               layouts={layouts}
               value={props.selectedLayout || layouts[0]?.id || ''}
-              onChange={(layoutId) => onPropChange('selectedLayout', layoutId)}
+              onChange={handleLayoutChange}
             />
           )}
 
@@ -80,7 +131,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
           <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
             <SpacingEditor
               label="Padding"
-              value={props._padding || {}}
+              value={props._padding || getDefaultPadding(sectionType || '')}
               onChange={(v) => onPropChange('_padding', v)}
             />
           </div>
@@ -142,7 +193,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
                   key={field.key}
                   field={field}
                   value={props[field.key]}
-                  onChange={onPropChange}
+                  onChange={wrappedOnPropChange}
                   allProps={props}
                 />
               ))}
@@ -218,6 +269,41 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
       }}>
         {renderTabContent()}
       </div>
+
+      {/* Clear Default Content button — only visible when content is in default (untouched) state */}
+      {showClearButton && (
+        <div style={{
+          position: 'sticky',
+          bottom: 0,
+          padding: '12px 16px',
+          borderTop: '1px solid var(--border-color)',
+          backgroundColor: '#fafbfc',
+          zIndex: 5,
+        }}>
+          <button
+            onClick={contentState.clearContent}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              backgroundColor: '#fff',
+              color: '#dc2626',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Trash2 size={14} />
+            Clear Default Content
+          </button>
+        </div>
+      )}
     </>
   );
 };

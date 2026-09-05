@@ -12,6 +12,7 @@ interface LandingEditorState {
 
   // Sidebar
   isRightSidebarOpen: boolean;
+  isLeftSidebarCollapsed: boolean;
 
   // Widgets
   isColorWidgetOpen: boolean;
@@ -25,7 +26,7 @@ interface LandingEditorState {
 
   // Left sidebar active panel
   activePanel: 'editor' | 'pages' | 'theme' | 'settings';
-  
+
   // Selected page
   selectedPageId: string;
 
@@ -44,6 +45,7 @@ interface LandingEditorState {
   setActiveSectionTab: (tab: string | null) => void;
   setDevice: (device: DeviceType) => void;
   setRightSidebarOpen: (open: boolean) => void;
+  setLeftSidebarCollapsed: (collapsed: boolean) => void;
   closeRightSidebar: () => void;
   setColorWidgetOpen: (isOpen: boolean) => void;
   setTypographyWidgetOpen: (isOpen: boolean) => void;
@@ -60,6 +62,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   activeSectionTab: null,
   device: 'desktop',
   isRightSidebarOpen: false,
+  isLeftSidebarCollapsed: false,
   isColorWidgetOpen: false,
   isTypographyWidgetOpen: false,
   isAddSectionWidgetOpen: false,
@@ -78,6 +81,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   setActiveSectionTab: (tab) => set({ activeSectionTab: tab }),
   setDevice: (device) => set({ device }),
   setRightSidebarOpen: (open) => set({ isRightSidebarOpen: open }),
+  setLeftSidebarCollapsed: (collapsed) => set({ isLeftSidebarCollapsed: collapsed }),
   closeRightSidebar: () => set({
     isRightSidebarOpen: false,
     selectedSectionId: null,
@@ -105,12 +109,12 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
       selectedSectionId: state.selectedSectionId,
       isRightSidebarOpen: state.isRightSidebarOpen,
     } : state.lastEditorMemory;
-  
+
     const lastPagesMemory = state.activePanel === 'pages' ? {
       selectedPageId: state.selectedPageId,
       isRightSidebarOpen: state.isRightSidebarOpen,
     } : state.lastPagesMemory;
-  
+
     if (panel === 'editor') {
       return {
         activePanel: panel,

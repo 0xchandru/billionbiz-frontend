@@ -12,10 +12,19 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
 
   return (
     <section style={{
-      padding: isMobile ? '40px 24px' : '80px 48px',
+      width: '100%',
       backgroundColor: bgColor,
-      textAlign: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        textAlign: 'center',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <div style={{ maxWidth: '640px', margin: '0 auto' }}>
         <h2 style={{
           fontSize: isMobile ? '28px' : '36px',
@@ -72,6 +81,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
             {buttonText}
           </button>
         </div>
+      </div>
       </div>
     </section>
   );

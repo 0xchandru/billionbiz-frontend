@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { defaultPropsMap, sectionNameMap } from '../components/editor/SectionRenderer';
 import { getAllPageConfigs } from '../components/editor/pageConfigs';
 import type { PageCategory } from '../components/editor/pageConfigs/types';
+import { useContentStateStore } from './contentStateStore';
 
 export interface SectionData {
   id: string;
@@ -264,6 +265,9 @@ export const useSiteStore = create<SiteState>()(
   }),
 
   removeSection: (pageId, sectionId) => set((state) => {
+    // Clean up content states for the deleted section
+    useContentStateStore.getState().deleteSectionStates(sectionId);
+    
     const pages = state.pages.map(page => {
       if (page.id !== pageId) return page;
       return {

@@ -17,14 +17,23 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
 
   return (
     <section style={{
-      display: 'flex',
-      flexDirection: isMobile || isTablet ? 'column' : (isRight ? 'row' : 'row-reverse'),
-      alignItems: 'center',
-      padding: isMobile ? '40px 24px' : '80px 48px',
-      gap: isMobile ? '32px' : '64px',
+      width: '100%',
       backgroundColor: bgColor,
-      textAlign: isMobile || isTablet ? 'center' : 'left',
+      position: 'relative',
+      overflow: 'hidden',
+      ...(props._marginStyle || {}),
     }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile || isTablet ? 'column' : (isRight ? 'row' : 'row-reverse'),
+        alignItems: 'center',
+        padding: isMobile ? '40px 24px' : '80px 48px',
+        gap: isMobile ? '32px' : '64px',
+        textAlign: isMobile || isTablet ? 'center' : 'left',
+        maxWidth: props._layoutWidth || '100%',
+        margin: '0 auto',
+        ...(props._paddingStyle || {}),
+      }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', alignItems: isMobile || isTablet ? 'center' : 'flex-start' }}>
         <h2 style={{
           fontSize: isMobile ? '32px' : '40px',
@@ -69,6 +78,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
         }}>
           <img src={image} alt={heading} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
+      </div>
       </div>
     </section>
   );
