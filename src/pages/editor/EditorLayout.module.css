@@ -1360,6 +1360,10 @@
   cursor: pointer;
 }
 
+.previewSectionWrapper:hover {
+  z-index: 150;
+}
+
 .previewSectionWrapper:hover:not(.activeSectionBorder)::after {
   content: '';
   position: absolute;
@@ -1375,6 +1379,7 @@
 
 .activeSectionBorder {
   position: relative;
+  z-index: 150;
 }
 
 .activeSectionBorder::after {
@@ -2503,11 +2508,11 @@
 }
 
 .hoverAddBtnTop {
-  top: -14px;
+  top: 0;
 }
 
 .hoverAddBtnBottom {
-  bottom: -14px;
+  bottom: 0;
 }
 
 .hoverAddBtn:hover {
