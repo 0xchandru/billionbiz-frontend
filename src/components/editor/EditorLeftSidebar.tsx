@@ -66,18 +66,31 @@ export const EditorLeftSidebar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const hasScrolledPagesRef = React.useRef(false);
+
   React.useEffect(() => {
     if (activeTab === 'pages') {
+      if (!selectedPageId && pages.length > 0) {
+        const firstNonLandingPage = pages.find(p => p.id !== 'landing-page');
+        if (firstNonLandingPage) {
+          setSelectedPageId(firstNonLandingPage.id);
+        }
+      }
       
       // Instantly ensure the active item is visible at the center without a jarring animation
-      setTimeout(() => {
-        const activeElement = document.querySelector(`.${styles.activePageItem}`);
-        if (activeElement) {
-          activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-        }
-      }, 10);
+      if (!hasScrolledPagesRef.current) {
+        setTimeout(() => {
+          const activeElement = document.querySelector(`.${styles.activePageItem}`);
+          if (activeElement) {
+            activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+            hasScrolledPagesRef.current = true;
+          }
+        }, 10);
+      }
+    } else {
+      hasScrolledPagesRef.current = false;
     }
-  }, [activeTab]);
+  }, [activeTab, selectedPageId, pages, setSelectedPageId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

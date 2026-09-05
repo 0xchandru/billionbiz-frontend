@@ -7,7 +7,7 @@ import { Settings, Copy, Trash2, Plus, Home, Search, ShoppingCart, User as UserI
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }> = ({ page, overrideDevice }) => {
-  const { selectedSectionId, setSelectedSectionId, setAddSectionWidgetOpen, setInsertIndex } = useLandingEditorStore();
+  const { selectedSectionId, setSelectedSectionId, setAddSectionWidgetOpen, setInsertIndex, activePanel } = useLandingEditorStore();
   const storeDevice = useLandingEditorStore(state => state.device);
   const device = overrideDevice || storeDevice;
   const { theme } = useSiteStore();
@@ -92,7 +92,7 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
       ].map(section => {
         if (isSectionHidden(section)) return null;
 
-        const isEditable = page.id === 'landing-page';
+        const isEditable = page.id === 'landing-page' && activePanel === 'editor';
         const storeIndex = page.sections.findIndex(s => s.id === section.id);
         const isHeaderOrFooter = ['Header', 'Footer', 'AnnouncementBar', 'UtilityBar', 'FooterMenu', 'FooterText'].includes(section.type);
 

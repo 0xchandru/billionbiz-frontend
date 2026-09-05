@@ -72,7 +72,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   activePanel: 'editor',
   selectedPageId: 'landing-page',
   lastEditorMemory: { selectedSectionId: null, isRightSidebarOpen: false },
-  lastPagesMemory: { selectedPageId: 'storefront-page', isRightSidebarOpen: true },
+  lastPagesMemory: { selectedPageId: '', isRightSidebarOpen: false },
 
   setSelectedSectionId: (id) => set({
     selectedSectionId: id,
@@ -140,6 +140,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
     } else {
       return {
         activePanel: panel,
+        selectedPageId: 'landing-page',
         isRightSidebarOpen: false,
         lastEditorMemory,
         lastPagesMemory,
@@ -161,10 +162,10 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         selectedPageId: id,
         activePanel: state.activePanel === 'editor' ? 'pages' : state.activePanel,
         selectedSectionId: null,
-        isRightSidebarOpen: true,
+        isRightSidebarOpen: state.isRightSidebarOpen,
         lastPagesMemory: {
           selectedPageId: id,
-          isRightSidebarOpen: true,
+          isRightSidebarOpen: state.isRightSidebarOpen,
         }
       };
     }
