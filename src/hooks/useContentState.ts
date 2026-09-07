@@ -241,10 +241,10 @@ export function useContentState({
       const oldLayout = currentLayout;
       const oldConfigKey = sectionConfig.getContentConfigKey
         ? sectionConfig.getContentConfigKey(oldLayout)
-        : 'default';
+        : oldLayout;
       const newConfigKey = sectionConfig.getContentConfigKey
         ? sectionConfig.getContentConfigKey(newLayout)
-        : 'default';
+        : newLayout;
 
       // Get field keys for the old config to save
       let oldFieldKeys: string[];

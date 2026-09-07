@@ -1,6 +1,7 @@
 import React from 'react';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import { useSiteStore } from '../../../store/siteStore';
+import { getDefaultTheme } from '../theme/themePresets';
 import type { ThemeOverrideMode } from '../theme/themeResolver';
 
 interface ThemeOverrideControlProps {
@@ -19,37 +20,38 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   fieldKey = '',
 }) => {
   const { theme } = useSiteStore();
-  const palette = theme.palette;
+  const defaultPalette = getDefaultTheme().palette;
+  const palette = theme?.palette || defaultPalette;
 
   // Determine current active global token for this field
   const getGlobalTokenInfo = (): { name: string; color: string } => {
     const key = fieldKey.toLowerCase();
     if (key.includes('bg') || key.includes('background')) {
       if (key.includes('container')) {
-        return { name: 'Container Background', color: palette.background.containerBg };
+        return { name: 'Container Background', color: palette?.background?.containerBg || defaultPalette.background.containerBg };
       }
-      return { name: 'Section Background', color: palette.background.sectionBg || palette.background.background };
+      return { name: 'Section Background', color: palette?.background?.sectionBg || palette?.background?.background || defaultPalette.background.sectionBg };
     }
     if (key.includes('heading')) {
-      return { name: 'Heading Text', color: palette.text.heading };
+      return { name: 'Heading Text', color: palette?.text?.heading || defaultPalette.text.heading };
     }
     if (key.includes('subheading')) {
-      return { name: 'Subheading Text', color: palette.text.subheading };
+      return { name: 'Subheading Text', color: palette?.text?.subheading || defaultPalette.text.subheading };
     }
     if (key.includes('muted')) {
-      return { name: 'Muted Text', color: palette.text.muted };
+      return { name: 'Muted Text', color: palette?.text?.muted || defaultPalette.text.muted };
     }
     if (key.includes('border') || key.includes('divider')) {
-      return { name: 'Border', color: palette.border.border };
+      return { name: 'Border', color: palette?.border?.border || defaultPalette.border.border };
     }
     if (key.includes('btn') || key.includes('button')) {
       if (key.includes('text') || key.includes('color')) {
-        return { name: 'Button Text', color: palette.brand.primary };
+        return { name: 'Button Text', color: palette?.brand?.primary || defaultPalette.brand.primary };
       }
-      return { name: 'Primary Button', color: palette.brand.primary };
+      return { name: 'Primary Button', color: palette?.brand?.primary || defaultPalette.brand.primary };
     }
     // Default to body text or primary
-    return { name: 'Body Text', color: palette.text.body };
+    return { name: 'Body Text', color: palette?.text?.body || defaultPalette.text.body };
   };
 
   const tokenInfo = getGlobalTokenInfo();
@@ -59,8 +61,8 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   let currentColor = tokenInfo.color;
   let currentGradient = {
     type: 'linear' as 'linear' | 'radial',
-    color1: palette.brand.primary,
-    color2: palette.brand.secondary,
+    color1: palette?.brand?.primary || defaultPalette.brand.primary,
+    color2: palette?.brand?.secondary || defaultPalette.brand.secondary,
     angle: '135deg',
   };
   let currentImage = {

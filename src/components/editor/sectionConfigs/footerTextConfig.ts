@@ -55,6 +55,24 @@ export const footerTextConfig: SectionConfig = {
               },
             ],
           },
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Background Color',
+                type: 'color',
+                defaultValue: '#0f172a',
+              },
+              {
+                key: 'textColor',
+                label: 'Text Color',
+                type: 'color',
+                defaultValue: '#ffffff',
+              },
+            ],
+          },
         ],
       },
     ];
@@ -64,5 +82,7 @@ export const footerTextConfig: SectionConfig = {
     title: 'About Our Store',
     text: 'We sell the best products in the world. Enjoy your shopping experience!',
     alignment: 'left',
+    bgColor: '#0f172a',
+    textColor: '#ffffff',
   },
 };

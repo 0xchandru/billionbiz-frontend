@@ -543,10 +543,12 @@ const FooterMenu: React.FC<{ props: any }> = ({ props }) => {
   const title = props.title || 'Quick Links';
   const links = props.links || ['Home', 'Shop', 'About Us', 'Contact'];
   const alignment = props.alignment || 'left';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, #0f172a)';
+  const textColor = props.textColor || 'var(--theme-text-inverse, #ffffff)';
   
   return (
-    <div style={{ padding: '24px 48px', backgroundColor: '#0f172a', color: 'white', textAlign: alignment as any }}>
-      <h4 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>{title}</h4>
+    <div style={{ padding: '24px 48px', backgroundColor: bgColor, color: textColor, textAlign: alignment as any }}>
+      <h4 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>{title}</h4>
       <ul style={{ 
         listStyle: 'none', 
         padding: 0, 
@@ -559,7 +561,7 @@ const FooterMenu: React.FC<{ props: any }> = ({ props }) => {
       }}>
         {links.map((link: string, j: number) => (
           <li key={j}>
-            <a href="#" style={{ color: 'white', textDecoration: 'none', opacity: 0.6, fontSize: '14px', transition: 'opacity 0.2s' }}>{link}</a>
+            <a href="#" style={{ color: textColor, textDecoration: 'none', opacity: 0.8, fontSize: '14px', transition: 'opacity 0.2s' }}>{link}</a>
           </li>
         ))}
       </ul>
@@ -571,11 +573,13 @@ const FooterText: React.FC<{ props: any }> = ({ props }) => {
   const title = props.title || 'About Our Store';
   const text = props.text || 'We sell the best products in the world. Enjoy your shopping experience!';
   const alignment = props.alignment || 'left';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, #0f172a)';
+  const textColor = props.textColor || 'var(--theme-text-inverse, #ffffff)';
   
   return (
-    <div style={{ padding: '24px 48px', backgroundColor: '#0f172a', color: 'white', textAlign: alignment as any }}>
-      <h4 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5 }}>{title}</h4>
-      <p style={{ fontSize: '14px', lineHeight: 1.7, opacity: 0.6 }}>{text}</p>
+    <div style={{ padding: '24px 48px', backgroundColor: bgColor, color: textColor, textAlign: alignment as any }}>
+      <h4 style={{ fontWeight: 700, marginBottom: '20px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>{title}</h4>
+      <p style={{ fontSize: '14px', lineHeight: 1.7, opacity: 0.8 }}>{text}</p>
     </div>
   );
 };

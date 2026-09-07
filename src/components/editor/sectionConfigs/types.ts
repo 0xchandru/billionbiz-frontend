@@ -49,10 +49,12 @@ export interface FieldOption {
 export interface ListItemField {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'url' | 'image' | 'icon' | 'color' | 'select' | 'toggle' | 'number';
+  type: 'text' | 'textarea' | 'url' | 'image' | 'icon' | 'color' | 'select' | 'toggle' | 'number' | 'list';
   placeholder?: string;
   options?: FieldOption[];
   defaultValue?: any;
+  isStringList?: boolean;
+  addLabel?: string;
 }
 
 /** Complete field definition */

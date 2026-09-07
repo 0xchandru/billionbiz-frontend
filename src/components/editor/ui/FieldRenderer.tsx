@@ -337,6 +337,16 @@ function renderListItemField(field: ListItemField, value: any, onChange: (v: any
           ))}
         </select>
       );
+    case 'list':
+      return (
+        <ListEditorNew
+          items={Array.isArray(value) ? value : []}
+          onChange={onChange}
+          listFields={[]}
+          isStringList={field.isStringList ?? true}
+          addLabel={field.addLabel || 'Add Item'}
+        />
+      );
     default: // text
       return (
         <input
@@ -605,7 +615,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           <ListEditorNew
             items={Array.isArray(value) ? value : []}
             onChange={(items) => handleChange(items)}
-            listFields={field.listFields || []}
+            listFields={field.listFields || (field as any).fields || []}
             maxItems={field.maxItems}
             addLabel={field.addLabel}
             isStringList={field.isStringList}

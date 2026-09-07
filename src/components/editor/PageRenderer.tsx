@@ -7,6 +7,10 @@ import { Settings, Copy, Trash2, Plus, Home, Search, ShoppingCart, User as UserI
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }> = ({ page, overrideDevice }) => {
+  if (!page || !page.sections) {
+    return null;
+  }
+
   const { selectedSectionId, setSelectedSectionId, setAddSectionWidgetOpen, setInsertIndex, activePanel } = useLandingEditorStore();
   const storeDevice = useLandingEditorStore(state => state.device);
   const device = overrideDevice || storeDevice;
@@ -197,9 +201,38 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
               <div className={styles.sectionLabel}>
                 <span>{section.name}</span>
                 <div className={styles.sectionQuickActions}>
-                  <Settings size={12} />
-                  <Copy size={12} />
-                  <Trash2 size={12} />
+                  <button 
+                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      useLandingEditorStore.getState().setRightSidebarOpen(true);
+                    }}
+                    title="Section Settings"
+                  >
+                    <Settings size={12} />
+                  </button>
+                  <button 
+                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      useSiteStore.getState().duplicateSection(page.id, section.id);
+                    }}
+                    title="Duplicate Section"
+                  >
+                    <Copy size={12} />
+                  </button>
+                  {!['Header', 'Footer'].includes(section.type) && (
+                    <button 
+                      style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        useSiteStore.getState().removeSection(page.id, section.id);
+                      }}
+                      title="Delete Section"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
               </div>
             )}

@@ -79,7 +79,7 @@ export const footerConfig: SectionConfig = {
                   title: 'New Column',
                   links: ['Link 1', 'Link 2'],
                 },
-                fields: [
+                listFields: [
                   {
                     key: 'title',
                     label: 'Column Title',
