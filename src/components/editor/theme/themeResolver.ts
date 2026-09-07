@@ -69,13 +69,13 @@ export function getSectionDefaultToken(
   const key = fieldKey.toLowerCase();
   const type = sectionType || '';
 
-  // 1. ANNOUNCEMENT BAR SPECIALIZATION (Accent Background + Inverse Text)
+  // 1. ANNOUNCEMENT BAR SPECIALIZATION (Secondary Color + Inverse Text)
   if (type === 'AnnouncementBar') {
     if (key.includes('bg') || key.includes('background')) {
       return {
-        tokenVar: 'var(--theme-brand-accent)',
-        label: 'Accent Background',
-        palettePath: 'brand.accent',
+        tokenVar: 'var(--theme-brand-secondary)',
+        label: 'Secondary Color',
+        palettePath: 'brand.secondary',
         isBackground: true,
       };
     }
