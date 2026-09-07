@@ -1,8 +1,9 @@
-import React from 'react';
-import { RotateCcw, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { RotateCcw, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { useSiteStore } from '../../../store/siteStore';
 import { getDefaultTheme } from '../theme/themePresets';
-import type { ThemeOverrideMode } from '../theme/themeResolver';
+import { getSectionDefaultToken, type ThemeOverrideMode } from '../theme/themeResolver';
+import { ColorPickerPopover } from './ColorPickerPopover';
 
 interface ThemeOverrideControlProps {
   label: string;
@@ -10,7 +11,18 @@ interface ThemeOverrideControlProps {
   onChange: (newValue: any) => void;
   isBackground?: boolean;
   fieldKey?: string;
+  sectionType?: string;
 }
+
+const GRADIENT_PRESETS = [
+  { name: 'Sunset', css: 'linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)', color1: '#ff7e5f', color2: '#feb47b', angle: '135deg' },
+  { name: 'Ocean', css: 'linear-gradient(135deg, #2b5876 0%, #4e4376 100%)', color1: '#2b5876', color2: '#4e4376', angle: '135deg' },
+  { name: 'Berry', css: 'linear-gradient(135deg, #8a2387 0%, #e94057 50%, #f27121 100%)', color1: '#8a2387', color2: '#f27121', angle: '135deg' },
+  { name: 'Emerald', css: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', color1: '#11998e', color2: '#38ef7d', angle: '135deg' },
+  { name: 'Violet', css: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color1: '#667eea', color2: '#764ba2', angle: '135deg' },
+  { name: 'Amber', css: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color1: '#f59e0b', color2: '#d97706', angle: '135deg' },
+  { name: 'Midnight', css: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color1: '#0f172a', color2: '#1e293b', angle: '135deg' },
+];
 
 export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   label,
@@ -18,43 +30,32 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   onChange,
   isBackground = false,
   fieldKey = '',
+  sectionType,
 }) => {
   const { theme } = useSiteStore();
   const defaultPalette = getDefaultTheme().palette;
   const palette = theme?.palette || defaultPalette;
 
-  // Determine current active global token for this field
-  const getGlobalTokenInfo = (): { name: string; color: string } => {
-    const key = fieldKey.toLowerCase();
-    if (key.includes('bg') || key.includes('background')) {
-      if (key.includes('container')) {
-        return { name: 'Container Background', color: palette?.background?.containerBg || defaultPalette.background.containerBg };
-      }
-      return { name: 'Section Background', color: palette?.background?.sectionBg || palette?.background?.background || defaultPalette.background.sectionBg };
+  // Resolve active section-specific default token
+  const defaultToken = getSectionDefaultToken(sectionType, fieldKey);
+
+  // Determine actual color for the token path
+  const getTokenColor = (palettePath: string): string => {
+    const parts = palettePath.split('.');
+    let current: any = palette;
+    let fallback: any = defaultPalette;
+    for (const part of parts) {
+      current = current?.[part];
+      fallback = fallback?.[part];
     }
-    if (key.includes('heading')) {
-      return { name: 'Heading Text', color: palette?.text?.heading || defaultPalette.text.heading };
-    }
-    if (key.includes('subheading')) {
-      return { name: 'Subheading Text', color: palette?.text?.subheading || defaultPalette.text.subheading };
-    }
-    if (key.includes('muted')) {
-      return { name: 'Muted Text', color: palette?.text?.muted || defaultPalette.text.muted };
-    }
-    if (key.includes('border') || key.includes('divider')) {
-      return { name: 'Border', color: palette?.border?.border || defaultPalette.border.border };
-    }
-    if (key.includes('btn') || key.includes('button')) {
-      if (key.includes('text') || key.includes('color')) {
-        return { name: 'Button Text', color: palette?.brand?.primary || defaultPalette.brand.primary };
-      }
-      return { name: 'Primary Button', color: palette?.brand?.primary || defaultPalette.brand.primary };
-    }
-    // Default to body text or primary
-    return { name: 'Body Text', color: palette?.text?.body || defaultPalette.text.body };
+    return current || fallback || '#2563eb';
   };
 
-  const tokenInfo = getGlobalTokenInfo();
+  const tokenInfo = {
+    name: defaultToken.label,
+    color: getTokenColor(defaultToken.palettePath),
+    tokenVar: defaultToken.tokenVar,
+  };
 
   // Normalize current mode and values
   let currentMode: ThemeOverrideMode = 'inherit';
@@ -64,6 +65,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
     color1: palette?.brand?.primary || defaultPalette.brand.primary,
     color2: palette?.brand?.secondary || defaultPalette.brand.secondary,
     angle: '135deg',
+    customCss: '',
   };
   let currentImage = {
     url: '',
@@ -77,12 +79,14 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
     currentMode = value.mode;
     if (value.color) currentColor = value.color;
     if (value.gradient) currentGradient = { ...currentGradient, ...value.gradient };
+    if (value.gradientCss) currentGradient.customCss = value.gradientCss;
     if (value.image) currentImage = { ...currentImage, ...value.image };
   } else if (typeof value === 'string') {
     if (value.startsWith('var(--theme') || value === 'inherit') {
       currentMode = 'inherit';
     } else if (value.includes('gradient')) {
       currentMode = 'gradient';
+      currentGradient.customCss = value;
     } else if (value.startsWith('url(')) {
       currentMode = 'image';
     } else if (value.startsWith('#') || value.startsWith('rgb')) {
@@ -91,13 +95,21 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
     }
   }
 
+  const [angleValue, setAngleValue] = useState<number>(
+    parseInt(currentGradient.angle?.replace(/[^0-9]/g, '') || '135', 10) || 135
+  );
+
   const handleModeChange = (newMode: ThemeOverrideMode) => {
     if (newMode === 'inherit') {
       onChange({ mode: 'inherit' });
     } else if (newMode === 'color') {
       onChange({ mode: 'color', color: currentColor });
     } else if (newMode === 'gradient') {
-      onChange({ mode: 'gradient', gradient: currentGradient });
+      onChange({ 
+        mode: 'gradient', 
+        gradient: currentGradient,
+        gradientCss: currentGradient.customCss || undefined
+      });
     } else if (newMode === 'image') {
       onChange({ mode: 'image', image: currentImage });
     }
@@ -111,10 +123,30 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   };
 
   const handleGradientChange = (partial: Partial<typeof currentGradient>) => {
+    const updated = { ...currentGradient, ...partial };
+    // Clear customCss if editing individual colors or angle to stay in sync
+    if (partial.color1 || partial.color2 || partial.angle || partial.type) {
+      updated.customCss = '';
+    }
     onChange({
       mode: 'gradient',
-      gradient: { ...currentGradient, ...partial },
+      gradient: updated,
+      gradientCss: updated.customCss || undefined,
     });
+  };
+
+  const handleCustomGradientCssChange = (cssString: string) => {
+    const updated = { ...currentGradient, customCss: cssString };
+    onChange({
+      mode: 'gradient',
+      gradient: updated,
+      gradientCss: cssString,
+    });
+  };
+
+  const handleAngleChange = (newAngle: number) => {
+    setAngleValue(newAngle);
+    handleGradientChange({ angle: `${newAngle}deg` });
   };
 
   const handleImageChange = (partial: Partial<typeof currentImage>) => {
@@ -130,11 +162,18 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
 
   const isOverridden = currentMode !== 'inherit';
 
+  // Compute live rendered gradient CSS for preview
+  const renderedGradient = currentGradient.customCss || (
+    currentGradient.type === 'radial'
+      ? `radial-gradient(circle, ${currentGradient.color1}, ${currentGradient.color2})`
+      : `linear-gradient(${currentGradient.angle || '135deg'}, ${currentGradient.color1}, ${currentGradient.color2})`
+  );
+
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      gap: '8px',
+      gap: '10px',
       padding: '10px 12px',
       backgroundColor: isOverridden ? '#fffbeb' : '#fafbfc',
       border: isOverridden ? '1px solid #fef3c7' : '1px solid #e2e8f0',
@@ -143,9 +182,20 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
     }}>
       {/* Header with Label and Source Dropdown */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
-          {label}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+            {label}
+          </span>
+          {isOverridden ? (
+            <span style={{ fontSize: '10px', fontWeight: 600, color: '#d97706', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              ● Custom ({currentMode})
+            </span>
+          ) : (
+            <span style={{ fontSize: '10px', color: '#2563eb', display: 'flex', alignItems: 'center', gap: '3px' }}>
+              ● Inherited
+            </span>
+          )}
+        </div>
 
         {/* Source Dropdown */}
         <select
@@ -153,20 +203,21 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
           onChange={(e) => handleModeChange(e.target.value as ThemeOverrideMode)}
           style={{
             padding: '4px 8px',
-            fontSize: '12px',
-            fontWeight: 500,
+            fontSize: '11px',
+            fontWeight: 600,
             borderRadius: '6px',
             border: '1px solid #cbd5e1',
             backgroundColor: '#ffffff',
             color: currentMode === 'inherit' ? '#2563eb' : '#b45309',
             cursor: 'pointer',
             outline: 'none',
+            maxWidth: '160px',
           }}
         >
-          <option value="inherit">Inherit</option>
-          <option value="color">Color</option>
-          {isBackground && <option value="gradient">Gradient</option>}
-          {isBackground && <option value="image">Image</option>}
+          <option value="inherit">Inherit ({tokenInfo.name})</option>
+          <option value="color">Custom Color</option>
+          {isBackground && <option value="gradient">Custom Gradient</option>}
+          {isBackground && <option value="image">Custom Image</option>}
         </select>
       </div>
 
@@ -176,23 +227,23 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '6px 8px',
+          padding: '6px 10px',
           backgroundColor: '#eff6ff',
           borderRadius: '6px',
           border: '1px dashed #bfdbfe',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Sparkles size={13} style={{ color: '#2563eb' }} />
-            <span style={{ fontSize: '11px', color: '#1e40af' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+            <Sparkles size={13} style={{ color: '#2563eb', flexShrink: 0 }} />
+            <span style={{ fontSize: '11px', color: '#1e40af', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Following <strong>{tokenInfo.name}</strong>
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#64748b' }}>
               {tokenInfo.color}
             </span>
             <div
-              title={tokenInfo.color}
+              title={`${tokenInfo.name}: ${tokenInfo.color}`}
               style={{
                 width: '16px',
                 height: '16px',
@@ -210,44 +261,21 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
       {currentMode === 'color' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 500 }}>
-              Local Override
-            </span>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
-              <div 
-                title="Click to choose color"
-                style={{
-                  position: 'relative',
-                  width: '26px',
-                  height: '26px',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  border: '1px solid #cbd5e1',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  backgroundColor: currentColor || '#2563eb',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <input
-                  type="color"
-                  value={currentColor && currentColor.startsWith('#') ? currentColor : '#2563eb'}
-                  onChange={(e) => handleColorChange(e.target.value)}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                    cursor: 'pointer',
-                  }}
-                />
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+              <span style={{ fontSize: '11px', color: '#b45309', fontWeight: 600 }}>
+                Custom Color
+              </span>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                Default: {tokenInfo.name} ({tokenInfo.color})
+              </span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ColorPickerPopover
+                value={currentColor}
+                onChange={handleColorChange}
+                size="md"
+              />
               <input
                 type="text"
                 value={currentColor || ''}
@@ -255,11 +283,12 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
                 placeholder="#000000"
                 style={{
                   width: '78px',
-                  padding: '4px 6px',
+                  padding: '5px 6px',
                   fontSize: '12px',
                   fontFamily: 'monospace',
+                  fontWeight: 600,
                   border: '1px solid #cbd5e1',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   backgroundColor: '#ffffff',
                   textAlign: 'center',
                 }}
@@ -268,6 +297,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
           </div>
 
           <button
+            type="button"
             onClick={handleResetToInherit}
             title="Reset this property to inherit from global theme"
             style={{
@@ -296,117 +326,156 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit
+            Reset to Inherit ({tokenInfo.name})
           </button>
         </div>
       )}
 
       {/* 3. GRADIENT OVERRIDE VIEW */}
       {currentMode === 'gradient' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Gradient preview swatch */}
-          <div style={{
-            height: '24px',
-            borderRadius: '4px',
-            background: currentGradient.type === 'radial'
-              ? `radial-gradient(circle, ${currentGradient.color1}, ${currentGradient.color2})`
-              : `linear-gradient(${currentGradient.angle}, ${currentGradient.color1}, ${currentGradient.color2})`,
-            border: '1px solid #cbd5e1',
-          }} />
+          <div 
+            title={renderedGradient}
+            style={{
+              height: '30px',
+              borderRadius: '6px',
+              background: renderedGradient,
+              border: '1px solid #cbd5e1',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.08)',
+            }} 
+          />
+
+          {/* Preset Chips */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <span style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+              Gradient Presets
+            </span>
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {GRADIENT_PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  onClick={() => {
+                    handleGradientChange({ color1: p.color1, color2: p.color2, angle: p.angle, customCss: p.css });
+                  }}
+                  style={{
+                    padding: '2px 6px',
+                    fontSize: '10px',
+                    borderRadius: '4px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.css, display: 'inline-block' }} />
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Type & Angle */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <select
               value={currentGradient.type}
               onChange={(e) => handleGradientChange({ type: e.target.value as any })}
-              style={{ flex: 1, padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              style={{ flex: 1, padding: '4px 6px', fontSize: '11px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
             >
               <option value="linear">Linear</option>
               <option value="radial">Radial</option>
             </select>
 
             {currentGradient.type === 'linear' && (
-              <select
-                value={currentGradient.angle}
-                onChange={(e) => handleGradientChange({ angle: e.target.value })}
-                style={{ flex: 1, padding: '4px 6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-              >
-                <option value="90deg">Horizontal (90°)</option>
-                <option value="180deg">Vertical (180°)</option>
-                <option value="135deg">Diagonal (135°)</option>
-                <option value="45deg">Diagonal (45°)</option>
-              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: 1 }}>
+                <SlidersHorizontal size={12} color="#64748b" />
+                <input
+                  type="number"
+                  min={0}
+                  max={360}
+                  value={angleValue}
+                  onChange={(e) => handleAngleChange(Number(e.target.value))}
+                  style={{ width: '46px', padding: '4px 4px', fontSize: '11px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                />
+                <span style={{ fontSize: '11px', color: '#64748b' }}>deg</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={360}
+                  value={angleValue}
+                  onChange={(e) => handleAngleChange(Number(e.target.value))}
+                  style={{ flex: 1, accentColor: '#2563eb' }}
+                />
+              </div>
             )}
           </div>
 
-          {/* Color 1 & Color 2 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div 
-                title="Click to choose color"
-                style={{
-                  position: 'relative',
-                  width: '22px',
-                  height: '22px',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentGradient.color1 || '#2563eb',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <input
-                  type="color"
-                  value={currentGradient.color1.startsWith('#') ? currentGradient.color1 : '#2563eb'}
-                  onChange={(e) => handleGradientChange({ color1: e.target.value })}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+          {/* Color 1 & Color 2 with ColorPickerPopover and direct inputs */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ColorPickerPopover
+                  value={currentGradient.color1}
+                  onChange={(c) => handleGradientChange({ color1: c })}
+                  size="sm"
                 />
+                <span style={{ fontSize: '11px', color: '#475569', fontWeight: 500 }}>Color 1</span>
               </div>
-              <span style={{ fontSize: '11px', color: '#475569' }}>Color 1</span>
+              <input
+                type="text"
+                value={currentGradient.color1}
+                onChange={(e) => handleGradientChange({ color1: e.target.value })}
+                style={{ width: '74px', padding: '3px 5px', fontSize: '11px', fontFamily: 'monospace', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }}
+              />
             </div>
-            <input
-              type="text"
-              value={currentGradient.color1}
-              onChange={(e) => handleGradientChange({ color1: e.target.value })}
-              style={{ width: '68px', padding: '3px 5px', fontSize: '11px', fontFamily: 'monospace', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }}
-            />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ColorPickerPopover
+                  value={currentGradient.color2}
+                  onChange={(c) => handleGradientChange({ color2: c })}
+                  size="sm"
+                />
+                <span style={{ fontSize: '11px', color: '#475569', fontWeight: 500 }}>Color 2</span>
+              </div>
+              <input
+                type="text"
+                value={currentGradient.color2}
+                onChange={(e) => handleGradientChange({ color2: e.target.value })}
+                style={{ width: '74px', padding: '3px 5px', fontSize: '11px', fontFamily: 'monospace', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }}
+              />
+            </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div 
-                title="Click to choose color"
-                style={{
-                  position: 'relative',
-                  width: '22px',
-                  height: '22px',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: currentGradient.color2 || '#4f46e5',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                <input
-                  type="color"
-                  value={currentGradient.color2.startsWith('#') ? currentGradient.color2 : '#4f46e5'}
-                  onChange={(e) => handleGradientChange({ color2: e.target.value })}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                />
-              </div>
-              <span style={{ fontSize: '11px', color: '#475569' }}>Color 2</span>
-            </div>
+          {/* Direct Raw CSS Gradient Input */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '10px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+              Direct CSS Gradient Input
+            </label>
             <input
               type="text"
-              value={currentGradient.color2}
-              onChange={(e) => handleGradientChange({ color2: e.target.value })}
-              style={{ width: '68px', padding: '3px 5px', fontSize: '11px', fontFamily: 'monospace', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center' }}
+              value={currentGradient.customCss || renderedGradient}
+              onChange={(e) => handleCustomGradientCssChange(e.target.value)}
+              placeholder="linear-gradient(135deg, #2563eb, #4f46e5)"
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '5px 8px',
+                fontSize: '11px',
+                fontFamily: 'monospace',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+              }}
             />
           </div>
 
           <button
+            type="button"
             onClick={handleResetToInherit}
             title="Reset this property to inherit from global theme"
             style={{
@@ -426,7 +495,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit
+            Reset to Inherit ({tokenInfo.name})
           </button>
         </div>
       )}
@@ -452,22 +521,6 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             />
           </div>
 
-          {/* Quick placeholder buttons */}
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => handleImageChange({ url: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=800&fit=crop' })}
-              style={{ padding: '3px 6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', cursor: 'pointer' }}
-            >
-              Gradient Texture
-            </button>
-            <button
-              onClick={() => handleImageChange({ url: 'https://images.unsplash.com/photo-1518655048521-f130df041f66?w=1200&h=800&fit=crop' })}
-              style={{ padding: '3px 6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9', cursor: 'pointer' }}
-            >
-              Minimal Desk
-            </button>
-          </div>
-
           {/* Position & Size */}
           <div style={{ display: 'flex', gap: '8px' }}>
             <select
@@ -490,6 +543,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
           </div>
 
           <button
+            type="button"
             onClick={handleResetToInherit}
             title="Reset this property to inherit from global theme"
             style={{
@@ -509,7 +563,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit
+            Reset to Inherit ({tokenInfo.name})
           </button>
         </div>
       )}

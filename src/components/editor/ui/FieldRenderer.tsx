@@ -5,6 +5,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import type { SectionFieldConfig, ListItemField, FieldOption } from '../sectionConfigs/types';
 import { ThemeOverrideControl } from './ThemeOverrideControl';
+import { ColorPickerPopover } from './ColorPickerPopover';
 import styles from '../../../pages/editor/EditorLayout.module.css';
 
 // ------------------------------------------------------------------
@@ -268,11 +269,10 @@ function renderListItemField(field: ListItemField, value: any, onChange: (v: any
     case 'color':
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="color"
+          <ColorPickerPopover
             value={value || '#000000'}
-            onChange={(e) => onChange(e.target.value)}
-            style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            onChange={onChange}
+            size="md"
           />
           <input
             type="text"
@@ -414,6 +414,7 @@ interface FieldRendererProps {
   value: any;
   onChange: (key: string, value: any) => void;
   allProps: Record<string, any>;
+  sectionType?: string;
 }
 
 export const FieldRenderer: React.FC<FieldRendererProps> = ({
@@ -421,6 +422,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   value,
   onChange,
   allProps,
+  sectionType,
 }) => {
   // Check condition
   if (field.showWhen && !isConditionMet(field.showWhen, allProps)) {
@@ -504,6 +506,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
             onChange={handleChange}
             isBackground={isBg}
             fieldKey={field.key}
+            sectionType={sectionType}
           />
         );
       }

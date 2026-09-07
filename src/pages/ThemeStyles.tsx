@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useSiteStore } from '../store/siteStore';
 import { useThemeHistoryStore } from '../store/themeHistoryStore';
+import { ColorPickerPopover } from '../components/editor/ui/ColorPickerPopover';
 import styles from './ThemeStyles.module.css';
 
 const tabs = ['Presets', 'Colors', 'Typography', 'UI Elements', 'Layout'];
@@ -235,11 +236,9 @@ const ThemeStyles = () => {
                   {Object.entries(theme.colors).map(([key, value]) => (
                     <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', backgroundColor: 'var(--color-bg-card)' }}>
                       <span style={{ fontSize: '14px', textTransform: 'capitalize', fontWeight: 600 }}>{key}</span>
-                      <input 
-                        type="color" 
+                      <ColorPickerPopover 
                         value={value} 
-                        onChange={(e) => updateTheme({ colors: { ...theme.colors, [key]: e.target.value } })}
-                        style={{ width: '48px', height: '48px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                        onChange={(newVal) => updateTheme({ colors: { ...theme.colors, [key]: newVal } })}
                       />
                     </div>
                   ))}

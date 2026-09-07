@@ -47,7 +47,7 @@ export const richTextConfig: SectionConfig = {
                 key: 'bgColor',
                 label: 'Background Color',
                 type: 'color',
-                defaultValue: 'var(--theme-background)',
+                defaultValue: 'inherit',
               },
             ],
           },
@@ -59,6 +59,6 @@ export const richTextConfig: SectionConfig = {
     selectedLayout: 'standard',
     heading: 'Our Mission',
     body: 'We believe in creating products that are both beautiful and functional.',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
   },
 };

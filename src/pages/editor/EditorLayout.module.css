@@ -34,32 +34,33 @@
 }
 
 /* ---------------- Top Bar ---------------- */
+/* ---------------- Top Bar (Compact) ---------------- */
 .topBar {
-  height: 60px;
-  background-color: rgba(255, 255, 255, 0.85);
+  height: 46px;
+  background-color: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 14px;
   z-index: 50;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .topLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .backNavBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   color: var(--text-muted);
   background: transparent;
   border: none;
@@ -73,27 +74,27 @@
 }
 
 .logoBox {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   background: #ff6b00;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
+  border-radius: 6px;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  font-size: 18px;
-  box-shadow: 0 4px 10px rgba(255, 107, 0, 0.2);
+  font-size: 15px;
+  box-shadow: 0 2px 6px rgba(255, 107, 0, 0.2);
 }
 
 .siteSelector {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  border-radius: 6px;
   transition: var(--transition);
 }
 
@@ -104,26 +105,26 @@
 .siteName {
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .liveStatus {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
+  gap: 5px;
+  padding: 2px 8px;
   background-color: #ecfdf5;
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--success);
-  margin-left: 8px;
+  margin-left: 4px;
   border: 1px solid #d1fae5;
 }
 
 .liveDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background-color: var(--success);
   border-radius: 50%;
   animation: pulse 2s infinite;
@@ -148,20 +149,20 @@
 
 .deviceToggles {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   background-color: #f1f5f9;
-  padding: 4px;
-  border-radius: var(--radius-md);
+  padding: 2px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
 }
 
 .deviceBtn {
-  width: 40px;
-  height: 32px;
+  width: 32px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
   color: var(--text-muted);
   transition: var(--transition);
   border: none;
@@ -172,28 +173,28 @@
 .activeDevice {
   background-color: white;
   color: var(--primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .topRight {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
 }
 
 .historyBtns {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .iconBtn {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
+  border-radius: 6px;
   color: var(--text-muted);
   transition: var(--transition);
   border: none;
@@ -216,14 +217,14 @@
 
 .actionBtns {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .btnOutline {
-  padding: 8px 16px;
+  padding: 5px 12px;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
   background: white;
   color: var(--text-main);
@@ -238,25 +239,25 @@
 }
 
 .btnPrimary {
-  padding: 8px 20px;
+  padding: 5px 14px;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
   background: var(--primary);
   color: white;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 4px 10px rgba(25, 135, 84, 0.2);
+  box-shadow: 0 2px 6px rgba(25, 135, 84, 0.2);
 }
 
 .btnPrimary:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(25, 135, 84, 0.3);
+  box-shadow: 0 4px 10px rgba(25, 135, 84, 0.25);
 }
 
 /* ---------------- Main Area ---------------- */

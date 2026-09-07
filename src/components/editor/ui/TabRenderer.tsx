@@ -197,6 +197,7 @@ export const TabRenderer: React.FC<TabRendererProps> = ({
                   value={props[field.key]}
                   onChange={wrappedOnPropChange}
                   allProps={props}
+                  sectionType={sectionType}
                 />
               ))}
             </CollapsibleGroup>

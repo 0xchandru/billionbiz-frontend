@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useSiteStore } from '../../../../store/siteStore';
 import type { ThemeColorPalette } from '../themePresets';
+import { ColorPickerPopover } from '../../ui/ColorPickerPopover';
 
 interface ColorItemProps {
   label: string;
@@ -21,36 +22,11 @@ const ColorItem: React.FC<ColorItemProps> = ({ label, value, onChange, descripti
       borderBottom: '1px solid #f1f5f9',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div 
-          title="Click to choose color"
-          style={{
-            position: 'relative',
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            overflow: 'hidden',
-            border: '1px solid #cbd5e1',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-            backgroundColor: value || '#ffffff',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          <input
-            type="color"
-            value={value && value.startsWith('#') ? value : '#2563eb'}
-            onChange={(e) => onChange(e.target.value)}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              opacity: 0,
-              cursor: 'pointer',
-            }}
-          />
-        </div>
+        <ColorPickerPopover
+          value={value}
+          onChange={onChange}
+          size="md"
+        />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '13px', fontWeight: 500, color: '#1e293b' }}>{label}</span>
           {description && (

@@ -18,6 +18,7 @@ import { EffectsPanel } from './theme/panels/EffectsPanel';
 import type { ThemeCategoryType } from '../../store/landingEditorStore';
 import { ThemeResetButton } from './theme/ui/ThemeResetButton';
 import { isCategoryDefault } from './theme/themeDefaultChecker';
+import { ColorPickerPopover } from './ui/ColorPickerPopover';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 // --- Editor field config types ---
@@ -184,11 +185,10 @@ const FieldTextarea: React.FC<{ value: string; onChange: (v: string) => void; pl
 
 const FieldColor: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-    <input
-      type="color"
-      value={value || '#000000'}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'transparent' }}
+    <ColorPickerPopover
+      value={value}
+      onChange={onChange}
+      size="md"
     />
     <input
       type="text"
@@ -880,11 +880,10 @@ export const EditorRightSidebar: React.FC = () => {
               {['primary', 'secondary', 'background', 'text'].map(key => (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input 
-                      type="color" 
+                    <ColorPickerPopover 
                       value={theme.colors?.[key as keyof typeof theme.colors] || '#000000'} 
-                      onChange={(e) => updateTheme({ presetName: 'Custom', colors: { ...theme.colors, [key]: e.target.value } as any })}
-                      style={{ width: '24px', height: '24px', padding: '0', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                      onChange={(val) => updateTheme({ presetName: 'Custom', colors: { ...theme.colors, [key]: val } as any })}
+                      size="sm"
                     />
                     <span style={{ fontSize: '13px', fontWeight: 500, textTransform: 'capitalize' }}>{key}</span>
                   </div>

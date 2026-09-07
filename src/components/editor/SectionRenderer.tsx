@@ -63,8 +63,8 @@ const AnnouncementBar: React.FC<{ props: any }> = ({ props }) => {
   const isMobile = props.device === 'mobile';
   const layout = props.selectedLayout || 'single';
   
-  const bgColor = props.bgColor || 'var(--theme-secondary)';
-  const textColor = props.textColor || '#ffffff';
+  const bgColor = props.bgColor || 'var(--theme-brand-accent)';
+  const textColor = props.textColor || 'var(--theme-text-inverse)';
   const fontSize = props.fontSize || (isMobile ? '12px' : '14px');
   const textAlign = props.textAlign || 'center';
   

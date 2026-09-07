@@ -79,12 +79,12 @@ export const EditorTopBar: React.FC = () => {
     <header className={styles.topBar}>
       <div className={styles.topLeft}>
         <button className={styles.backNavBtn} onClick={() => navigate('/pages')}>
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
         </button>
         <div className={styles.logoBox}>B</div>
         <div className={styles.siteSelector}>
           <span className={styles.siteName}>BillionBiz</span>
-          <ChevronDown size={14} />
+          <ChevronDown size={13} />
         </div>
         <div className={styles.liveStatus}>
           <div className={styles.liveDot}></div>
@@ -98,37 +98,37 @@ export const EditorTopBar: React.FC = () => {
             className={`${styles.deviceBtn} ${device === 'desktop' ? styles.activeDevice : ''}`} 
             onClick={() => setDevice('desktop')}
           >
-            <Monitor size={18} />
+            <Monitor size={15} />
           </button>
           <button 
             className={`${styles.deviceBtn} ${device === 'tablet' ? styles.activeDevice : ''}`} 
             onClick={() => setDevice('tablet')}
           >
-            <Tablet size={18} />
+            <Tablet size={15} />
           </button>
           <button 
             className={`${styles.deviceBtn} ${device === 'mobile' ? styles.activeDevice : ''}`} 
             onClick={() => setDevice('mobile')}
           >
-            <Smartphone size={18} />
+            <Smartphone size={15} />
           </button>
-          <div style={{ width: '1px', height: '24px', backgroundColor: '#e2e8f0', margin: '0 8px' }} />
+          <div style={{ width: '1px', height: '18px', backgroundColor: '#e2e8f0', margin: '0 4px' }} />
           <button 
             className={`${styles.deviceBtn} ${device === 'all' ? styles.activeDevice : ''}`} 
             onClick={() => setDevice('all')}
             title="All Devices View"
           >
-            <Columns size={18} />
+            <Columns size={15} />
           </button>
         </div>
       ) : (
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '6px 14px',
+          gap: '6px',
+          padding: '4px 12px',
           backgroundColor: '#f1f5f9',
-          borderRadius: '8px',
+          borderRadius: '6px',
           border: '1px solid #e2e8f0',
         }}>
           <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', letterSpacing: '0.2px' }}>
@@ -147,7 +147,7 @@ export const EditorTopBar: React.FC = () => {
               title={isTheme ? (canUndo ? 'Undo theme change (Ctrl+Z)' : 'Undo') : 'Undo'}
               aria-label="Undo"
             >
-              <Undo size={18} />
+              <Undo size={15} />
             </button>
             <button 
               className={styles.iconBtn}
@@ -156,7 +156,7 @@ export const EditorTopBar: React.FC = () => {
               title={isTheme ? (canRedo ? 'Redo theme change (Ctrl+Y / Cmd+Shift+Z)' : 'Redo') : 'Redo'}
               aria-label="Redo"
             >
-              <Redo size={18} />
+              <Redo size={15} />
             </button>
           </div>
         )}
@@ -165,7 +165,7 @@ export const EditorTopBar: React.FC = () => {
           {showPreview && <button className={styles.btnOutline}>Preview</button>}
           <button className={styles.btnPrimary}>
             <span>Publish</span>
-            <ChevronDown size={14} />
+            <ChevronDown size={13} />
           </button>
         </div>
       </div>

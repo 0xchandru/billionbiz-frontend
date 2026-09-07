@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useSiteStore } from '../../../../store/siteStore';
 import type { ThemeButtons } from '../themePresets';
+import { ColorPickerPopover } from '../../ui/ColorPickerPopover';
 
 export const ButtonsPanel: React.FC = () => {
   const { theme, updateTheme } = useSiteStore();
@@ -224,28 +225,11 @@ export const ButtonsPanel: React.FC = () => {
             {/* Background */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  title="Click to choose color"
-                  style={{
-                    position: 'relative',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    backgroundColor: buttons.primary.bg || '#2563eb',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={buttons.primary.bg.startsWith('#') ? buttons.primary.bg : '#2563eb'}
-                    onChange={(e) => updatePrimary('bg', e.target.value)}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                </div>
+                <ColorPickerPopover
+                  value={buttons.primary.bg}
+                  onChange={(v) => updatePrimary('bg', v)}
+                  size="sm"
+                />
                 <span style={{ fontSize: '13px', color: '#334155' }}>Background</span>
               </div>
               <input
@@ -259,28 +243,11 @@ export const ButtonsPanel: React.FC = () => {
             {/* Text Color */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  title="Click to choose color"
-                  style={{
-                    position: 'relative',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    backgroundColor: buttons.primary.text || '#ffffff',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={buttons.primary.text.startsWith('#') ? buttons.primary.text : '#ffffff'}
-                    onChange={(e) => updatePrimary('text', e.target.value)}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                </div>
+                <ColorPickerPopover
+                  value={buttons.primary.text}
+                  onChange={(v) => updatePrimary('text', v)}
+                  size="sm"
+                />
                 <span style={{ fontSize: '13px', color: '#334155' }}>Text Color</span>
               </div>
               <input
@@ -355,28 +322,11 @@ export const ButtonsPanel: React.FC = () => {
             {/* Background */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  title="Click to choose color"
-                  style={{
-                    position: 'relative',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    backgroundColor: buttons.secondary.bg || '#f1f5f9',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={buttons.secondary.bg.startsWith('#') ? buttons.secondary.bg : '#f1f5f9'}
-                    onChange={(e) => updateSecondary('bg', e.target.value)}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                </div>
+                <ColorPickerPopover
+                  value={buttons.secondary.bg}
+                  onChange={(v) => updateSecondary('bg', v)}
+                  size="sm"
+                />
                 <span style={{ fontSize: '13px', color: '#334155' }}>Background</span>
               </div>
               <input
@@ -390,28 +340,11 @@ export const ButtonsPanel: React.FC = () => {
             {/* Text Color */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  title="Click to choose color"
-                  style={{
-                    position: 'relative',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    backgroundColor: buttons.secondary.text || '#0f172a',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={buttons.secondary.text.startsWith('#') ? buttons.secondary.text : '#0f172a'}
-                    onChange={(e) => updateSecondary('text', e.target.value)}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                </div>
+                <ColorPickerPopover
+                  value={buttons.secondary.text}
+                  onChange={(v) => updateSecondary('text', v)}
+                  size="sm"
+                />
                 <span style={{ fontSize: '13px', color: '#334155' }}>Text Color</span>
               </div>
               <input
@@ -482,28 +415,11 @@ export const ButtonsPanel: React.FC = () => {
             {/* Focus Ring Color */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  title="Click to choose color"
-                  style={{
-                    position: 'relative',
-                    width: '26px',
-                    height: '26px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                    backgroundColor: buttons.states.focusRingColor || '#93c5fd',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  <input
-                    type="color"
-                    value={buttons.states.focusRingColor.startsWith('#') ? buttons.states.focusRingColor : '#93c5fd'}
-                    onChange={(e) => updateStates('focusRingColor', e.target.value)}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
-                  />
-                </div>
+                <ColorPickerPopover
+                  value={buttons.states.focusRingColor}
+                  onChange={(v) => updateStates('focusRingColor', v)}
+                  size="sm"
+                />
                 <span style={{ fontSize: '13px', color: '#334155' }}>Focus Ring</span>
               </div>
               <input

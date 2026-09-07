@@ -94,7 +94,7 @@ export const heroBannerConfig: SectionConfig = {
                 key: 'bgColor',
                 label: 'Background Color',
                 type: 'color',
-                defaultValue: 'var(--theme-background)',
+                defaultValue: 'inherit',
               },
             ],
           },
@@ -110,6 +110,6 @@ export const heroBannerConfig: SectionConfig = {
     primaryBtn: 'Start Building Now',
     secondaryBtn: 'Explore Templates',
     image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
   },
 };
