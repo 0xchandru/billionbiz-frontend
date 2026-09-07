@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Undo, Redo, Monitor, Tablet, Smartphone, Columns, 
-  Search, Sparkles, Save, Eye, UploadCloud, ChevronDown,
+  Search, Sparkles, Save, ExternalLink, UploadCloud, ChevronDown,
   CheckCircle2, Compass
 } from 'lucide-react';
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { useThemeHistoryStore } from '../../store/themeHistoryStore';
 import { PageSelectorDropdown } from './topbar/PageSelectorDropdown';
-import { HealthScorePopovers } from './topbar/HealthScorePopovers';
 import { CommandPaletteModal } from './topbar/CommandPaletteModal';
 import { AiAssistantDrawer } from './topbar/AiAssistantDrawer';
 import { GuidedSetupModal } from './topbar/GuidedSetupModal';
@@ -109,7 +108,9 @@ export const EditorTopBar: React.FC = () => {
   };
 
   const handlePreview = () => {
-    showToast('Previewing in full responsiveness mode');
+    const previewPath = activePage?.path || '/';
+    window.open(previewPath, '_blank');
+    showToast('Opening preview in new tab...');
   };
 
   const togglePageStatus = () => {
@@ -138,9 +139,6 @@ export const EditorTopBar: React.FC = () => {
           >
             <ArrowLeft size={16} />
           </button>
-
-          {/* Logo Badge */}
-          <div className={styles.logoBadge}>B</div>
 
           {/* 2. Landing Page / Contextual Page Selector */}
           <PageSelectorDropdown />
@@ -189,7 +187,7 @@ export const EditorTopBar: React.FC = () => {
         </div>
 
         {/* ============================================================
-            ZONE CENTER: Search Bar, Health Scores, Viewport Modes
+            ZONE CENTER: Search Bar, Viewport Modes
            ============================================================ */}
         <div className={styles.zoneCenter}>
           {/* 4. Search Bar (Command Palette Trigger) */}
@@ -202,9 +200,6 @@ export const EditorTopBar: React.FC = () => {
             <span className={styles.searchPlaceholder}>Search features & sections...</span>
             <span className={styles.shortcutKey}>⌘K</span>
           </button>
-
-          {/* 4b. Health & SEO Value Labels (0 to 100) */}
-          <HealthScorePopovers />
 
           {/* 5. Preview Mode Change (Desktop, Tablet, Mobile, All) */}
           {!isSettings && (
@@ -282,9 +277,9 @@ export const EditorTopBar: React.FC = () => {
             <button 
               className={styles.btnPreview}
               onClick={handlePreview}
-              title="Preview storefront"
+              title="Preview storefront in new tab"
             >
-              <Eye size={14} />
+              <ExternalLink size={14} />
               <span>Preview</span>
             </button>
           )}
