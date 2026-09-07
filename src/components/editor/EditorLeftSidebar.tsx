@@ -162,6 +162,7 @@ export const EditorLeftSidebar: React.FC = () => {
           className={`${styles.panelTab} ${activeTab === 'editor' ? styles.activeTab : ''}`} 
           onClick={() => {
             setActiveTab('editor');
+            setSelectedPageId('landing-page');
             navigate('/editor', { replace: true });
           }}
         >

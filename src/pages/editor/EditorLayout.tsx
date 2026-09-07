@@ -85,8 +85,9 @@ const EditorLayout: React.FC = () => {
       setActivePanel('theme');
     } else if (tabParam === 'settings') {
       setActivePanel('settings');
-    } else if (tabParam === 'editor') {
+    } else {
       setActivePanel('editor');
+      setSelectedPageId('landing-page');
     }
   }, [tabParam, pageIdParam, pages, setActivePanel, setSelectedPageId]);
 

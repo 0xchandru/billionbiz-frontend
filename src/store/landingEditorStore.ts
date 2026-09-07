@@ -36,6 +36,7 @@ interface LandingEditorState {
 
   // Tab Memory
   lastEditorMemory: {
+    selectedPageId: string;
     selectedSectionId: string | null;
     isRightSidebarOpen: boolean;
   };
@@ -81,7 +82,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   activePanel: 'editor',
   selectedPageId: 'landing-page',
   selectedThemeCategory: 'themes',
-  lastEditorMemory: { selectedSectionId: null, isRightSidebarOpen: false },
+  lastEditorMemory: { selectedPageId: 'landing-page', selectedSectionId: null, isRightSidebarOpen: false },
   lastPagesMemory: { selectedPageId: '', isRightSidebarOpen: false },
   lastThemeMemory: { selectedThemeCategory: 'themes', isRightSidebarOpen: true },
 
@@ -125,6 +126,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   }),
   setActivePanel: (panel) => set((state) => {
     const lastEditorMemory = state.activePanel === 'editor' ? {
+      selectedPageId: state.selectedPageId || 'landing-page',
       selectedSectionId: state.selectedSectionId,
       isRightSidebarOpen: state.isRightSidebarOpen,
     } : state.lastEditorMemory;
@@ -140,9 +142,10 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
     } : state.lastThemeMemory;
 
     if (panel === 'editor') {
+      const pageToSelect = lastEditorMemory.selectedPageId || 'landing-page';
       return {
         activePanel: panel,
-        selectedPageId: state.selectedPageId || 'landing-page',
+        selectedPageId: pageToSelect,
         selectedSectionId: lastEditorMemory.selectedSectionId,
         isRightSidebarOpen: lastEditorMemory.isRightSidebarOpen,
         lastEditorMemory,
@@ -201,9 +204,13 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   setSelectedPageId: (id) => set((state) => ({
     selectedPageId: id,
     selectedSectionId: null,
-    lastPagesMemory: {
+    lastEditorMemory: state.activePanel === 'editor' ? {
+      ...state.lastEditorMemory,
+      selectedPageId: id,
+    } : state.lastEditorMemory,
+    lastPagesMemory: state.activePanel === 'pages' ? {
       selectedPageId: id,
       isRightSidebarOpen: state.isRightSidebarOpen,
-    }
+    } : state.lastPagesMemory,
   })),
 }));
