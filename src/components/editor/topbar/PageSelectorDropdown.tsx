@@ -9,7 +9,7 @@ export const PageSelectorDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  
+
   const { pages } = useSiteStore();
   const { selectedPageId, setSelectedPageId, activePanel, setActivePanel } = useLandingEditorStore();
 
@@ -17,8 +17,9 @@ export const PageSelectorDropdown: React.FC = () => {
 
   // Dynamic title based on active page
   const getContextTitle = () => {
-    if (!activePage) return 'Landing Page';
-    if (activePage.id === 'landing-page') return 'Landing Page';
+    if (activePanel === 'editor' || selectedPageId === 'landing-page' || !activePage) {
+      return 'Landing Page';
+    }
     return activePage.name;
   };
 
@@ -35,26 +36,33 @@ export const PageSelectorDropdown: React.FC = () => {
   }, [isOpen]);
 
   const handleSelectPage = (pageId: string) => {
-    setSelectedPageId(pageId);
-    if (activePanel !== 'editor') {
+    if (pageId === 'landing-page') {
+      setSelectedPageId('landing-page');
       setActivePanel('editor');
+      navigate('/editor', { replace: true });
+    } else {
+      setSelectedPageId(pageId);
+      setActivePanel('pages');
+      useLandingEditorStore.setState({ isRightSidebarOpen: true });
+      navigate(`/editor/pages?pageId=${pageId}`, { replace: true });
     }
-    navigate(pageId === 'landing-page' ? '/editor' : `/editor?pageId=${pageId}`, { replace: true });
     setIsOpen(false);
   };
 
+  const currentlyActiveId = activePanel === 'editor' ? 'landing-page' : selectedPageId;
+
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
-      <button 
+      <button
         className={styles.pageSelectorTrigger}
         onClick={() => setIsOpen(!isOpen)}
         title={getContextTitle()}
         aria-expanded={isOpen}
       >
         <span className={styles.pageTitleText}>{getContextTitle()}</span>
-        <ChevronDown 
-          size={13} 
-          className={styles.chevronIcon} 
+        <ChevronDown
+          size={13}
+          className={styles.chevronIcon}
           style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
         />
       </button>
@@ -69,7 +77,7 @@ export const PageSelectorDropdown: React.FC = () => {
 
           <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
             {pages.map((p) => {
-              const isSelected = p.id === (activePage?.id || selectedPageId);
+              const isSelected = p.id === currentlyActiveId;
               const displayName = p.id === 'landing-page' ? 'Landing Page' : p.name;
               return (
                 <button
