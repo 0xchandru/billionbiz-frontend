@@ -172,11 +172,10 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
   };
 
   useEffect(() => {
-    if (overrideDevice && overrideDevice !== 'desktop') return;
     if (selectedSectionId && sectionRefs.current[selectedSectionId]) {
       sectionRefs.current[selectedSectionId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [selectedSectionId, overrideDevice]);
+  }, [selectedSectionId, overrideDevice, device]);
 
   const headerSection = (page.sections || []).find(s => s && s.type === 'Header');
   const hasHeader = !!headerSection;

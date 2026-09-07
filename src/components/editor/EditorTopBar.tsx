@@ -13,20 +13,21 @@ import { CommandPaletteModal } from './topbar/CommandPaletteModal';
 import { AiAssistantDrawer } from './topbar/AiAssistantDrawer';
 import { GuidedSetupModal } from './topbar/GuidedSetupModal';
 import { MoreOptionsMenu } from './topbar/MoreOptionsMenu';
+import { PublishModal } from './topbar/PublishModal';
 import styles from './topbar/topbar.module.css';
 
 export const EditorTopBar: React.FC = () => {
   const navigate = useNavigate();
   const { device, setDevice, activePanel, selectedPageId } = useLandingEditorStore();
-  const { pages, undoTheme, redoTheme, publishPage, updatePageProps } = useSiteStore();
+  const { pages, undoTheme, redoTheme, updatePageProps, hasUnsavedChanges, markSaved } = useSiteStore();
   const { canUndo, canRedo } = useThemeHistoryStore();
 
   // Dialog & Drawer States
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const activePage = pages.find((p) => p.id === selectedPageId) || pages[0];
   const isSettings = activePanel === 'settings';
@@ -70,6 +71,16 @@ export const EditorTopBar: React.FC = () => {
       }
 
       if (modifier) {
+        // Ctrl/Cmd + S: Save
+        if (e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          if (hasUnsavedChanges) {
+            markSaved();
+            showToast('All edits saved successfully');
+          }
+          return;
+        }
+
         if ((e.key.toLowerCase() === 'y' && !e.shiftKey) || (e.key.toLowerCase() === 'z' && e.shiftKey)) {
           e.preventDefault();
           if (isTheme && canRedo) {
@@ -92,19 +103,16 @@ export const EditorTopBar: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isTheme, canUndo, canRedo, undoTheme, redoTheme]);
+  }, [isTheme, canUndo, canRedo, undoTheme, redoTheme, hasUnsavedChanges, markSaved]);
 
   const handleSave = () => {
-    setHasUnsavedChanges(false);
-    showToast('All changes saved successfully');
+    if (!hasUnsavedChanges) return;
+    markSaved();
+    showToast('All edits saved successfully');
   };
 
   const handlePublish = () => {
-    if (activePage) {
-      publishPage(activePage.id);
-      setHasUnsavedChanges(false);
-      showToast(`Published "${activePage.name}" to live storefront!`);
-    }
+    setIsPublishModalOpen(true);
   };
 
   const handlePreview = () => {
@@ -278,13 +286,13 @@ export const EditorTopBar: React.FC = () => {
               <ExternalLink size={13} />
               <span>Preview</span>
             </button>
-          )}
-
-          {/* 9. Save Icon + "Save" Button */}
+          )}          {/* 9. Save Icon + "Save" Button */}
           <button 
             className={styles.btnGhost}
             onClick={handleSave}
-            title="Save changes"
+            disabled={!hasUnsavedChanges}
+            style={!hasUnsavedChanges ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+            title={hasUnsavedChanges ? "Save edits (Ctrl+S)" : "All edits saved"}
           >
             <Save size={13} />
             <span>Save</span>
@@ -294,7 +302,7 @@ export const EditorTopBar: React.FC = () => {
           <button 
             className={styles.btnPrimary}
             onClick={handlePublish}
-            title="Publish page to live store"
+            title="Review & publish changes to live storefront"
           >
             <UploadCloud size={13} />
             <span>Publish</span>
@@ -315,6 +323,15 @@ export const EditorTopBar: React.FC = () => {
         onSave={handleSave}
         onPublish={handlePublish}
         onPreview={handlePreview}
+      />
+
+      {/* ============================================================
+          PUBLISH CONFIRMATION MODAL
+         ============================================================ */}
+      <PublishModal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        onSuccess={showToast}
       />
 
       {/* ============================================================

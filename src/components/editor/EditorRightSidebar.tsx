@@ -1,11 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MoreVertical, Check, UploadCloud, Plus, Trash2, Calendar, Edit2, Monitor, EyeOff, GripVertical, RotateCcw } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp, MoreVertical, Check, UploadCloud, Plus, Trash2, Calendar, Edit2, Monitor, Eye, EyeOff, GripVertical, RotateCcw, Copy, X } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useLandingEditorStore } from '../../store/landingEditorStore';
-import { useSiteStore } from '../../store/siteStore';
+import { useSiteStore, type SectionData } from '../../store/siteStore';
+import { defaultPropsMap } from './SectionRenderer';
 import { getSectionConfig } from './sectionConfigs';
 import { TabRenderer } from './ui/TabRenderer';
 import { PageTabRenderer } from './ui/PageTabRenderer';
@@ -463,6 +464,122 @@ export const ListEditor: React.FC<ListEditorProps> = ({ items, onChange, listFie
       >
         <Plus size={14} /> Add Item
       </button>
+    </div>
+  );
+};
+
+const SectionActionMenu: React.FC<{
+  section: SectionData;
+  pageId: string;
+  onCloseSidebar: () => void;
+}> = ({ section, pageId, onCloseSidebar }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { duplicateSection, toggleSectionVisibility, removeSection, updateSectionProps } = useSiteStore();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div ref={menuRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '2px' }}>
+      <button 
+        className={styles.iconBtn} 
+        onClick={() => setIsOpen(!isOpen)}
+        title="Section Options"
+        style={{ width: '28px', height: '28px' }}
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      <button 
+        className={styles.iconBtn} 
+        onClick={onCloseSidebar}
+        title="Close Inspector"
+        style={{ width: '28px', height: '28px' }}
+      >
+        <X size={16} />
+      </button>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 4px)',
+          right: 0,
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.12), 0 4px 10px rgba(0,0,0,0.05)',
+          border: '1px solid #e2e8f0',
+          padding: '4px',
+          width: '180px',
+          zIndex: 99999,
+        }}>
+          <button
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', fontSize: '12px', color: '#334155', background: 'none', border: 'none', borderRadius: '5px', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            onClick={() => {
+              duplicateSection(pageId, section.id);
+              setIsOpen(false);
+            }}
+          >
+            <Copy size={13} color="#64748b" />
+            <span>Duplicate Section</span>
+          </button>
+
+          <button
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', fontSize: '12px', color: '#334155', background: 'none', border: 'none', borderRadius: '5px', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            onClick={() => {
+              toggleSectionVisibility(pageId, section.id);
+              setIsOpen(false);
+            }}
+          >
+            {section.isHidden ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#64748b" />}
+            <span>{section.isHidden ? 'Show Section' : 'Hide Section'}</span>
+          </button>
+
+          <button
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', fontSize: '12px', color: '#334155', background: 'none', border: 'none', borderRadius: '5px', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            onClick={() => {
+              const def = defaultPropsMap[section.type];
+              if (def) {
+                updateSectionProps(pageId, section.id, { ...def });
+              }
+              setIsOpen(false);
+            }}
+          >
+            <RotateCcw size={13} color="#64748b" />
+            <span>Reset Defaults</span>
+          </button>
+
+          <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '4px 0' }} />
+
+          <button
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '7px 10px', fontSize: '12px', color: '#dc2626', background: 'none', border: 'none', borderRadius: '5px', cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            onClick={() => {
+              removeSection(pageId, section.id);
+              onCloseSidebar();
+            }}
+          >
+            <Trash2 size={13} color="#dc2626" />
+            <span>Delete Section</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -951,7 +1068,7 @@ export const EditorRightSidebar: React.FC = () => {
               </button>
               <h3 className={styles.fw600}>{activeSection.name}</h3>
             </div>
-            <MoreVertical size={20} className={styles.moreIcon} />
+            <SectionActionMenu section={activeSection} pageId={activePage.id} onCloseSidebar={closeRightSidebar} />
           </div>
 
           <TabRenderer
@@ -984,7 +1101,7 @@ export const EditorRightSidebar: React.FC = () => {
               </button>
               <h3 className={styles.fw600}>{activeSection.name}</h3>
             </div>
-            <MoreVertical size={20} className={styles.moreIcon} />
+            <SectionActionMenu section={activeSection} pageId={activePage.id} onCloseSidebar={closeRightSidebar} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-color)', background: '#f8fafc' }}>

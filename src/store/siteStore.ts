@@ -45,6 +45,10 @@ export interface SiteState {
   theme: ThemeData;
   settings: Record<string, any>;
   isLoading: boolean;
+  hasUnsavedChanges: boolean;
+  lastPublishedSnapshots: Record<string, { sections: SectionData[]; pageProps: Record<string, any> }>;
+  markSaved: () => void;
+  markUnsaved: () => void;
   
   updateSectionProps: (pageId: string, sectionId: string, newProps: Record<string, any>) => void;
   reorderSections: (pageId: string, startIndex: number, endIndex: number) => void;
@@ -144,8 +148,18 @@ export const useSiteStore = create<SiteState>()(
   persist<SiteState>(
     (set, get) => ({
       pages: initialPages,
-  theme: getDefaultTheme(),
-  settings: {
+      theme: getDefaultTheme(),
+      hasUnsavedChanges: false,
+      lastPublishedSnapshots: initialPages.reduce((acc, p) => {
+        acc[p.id] = {
+          sections: JSON.parse(JSON.stringify(p.sections)),
+          pageProps: JSON.parse(JSON.stringify(p.pageProps || {})),
+        };
+        return acc;
+      }, {} as Record<string, { sections: SectionData[]; pageProps: Record<string, any> }>),
+      markSaved: () => set({ hasUnsavedChanges: false }),
+      markUnsaved: () => set({ hasUnsavedChanges: true }),
+      settings: {
     siteName: 'BillionBiz',
     tagline: 'Build, Launch & Grow Your Business',
     description: 'Build stunning websites, launch your store, and grow your business with BillionBiz.',
@@ -172,7 +186,7 @@ export const useSiteStore = create<SiteState>()(
         )
       };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   reorderSections: (pageId, startIndex, endIndex) => set((state) => {
@@ -183,7 +197,7 @@ export const useSiteStore = create<SiteState>()(
       sections.splice(endIndex, 0, removed);
       return { ...page, sections };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   toggleSectionVisibility: (pageId, sectionId) => set((state) => {
@@ -196,7 +210,7 @@ export const useSiteStore = create<SiteState>()(
         )
       };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   addSection: (pageId, sectionType, insertIndex) => set((state) => {
@@ -219,7 +233,7 @@ export const useSiteStore = create<SiteState>()(
       
       return { ...page, sections };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   removeSection: (pageId, sectionId) => set((state) => {
@@ -233,7 +247,7 @@ export const useSiteStore = create<SiteState>()(
         sections: page.sections.filter(sec => sec.id !== sectionId)
       };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   duplicateSection: (pageId, sectionId) => set((state) => {
@@ -252,14 +266,14 @@ export const useSiteStore = create<SiteState>()(
       sections.splice(sectionIndex + 1, 0, duplicate);
       return { ...page, sections };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   updatePageProps: (pageId, newProps) => set((state) => {
     const pages = state.pages.map(page => 
       page.id === pageId ? { ...page, ...newProps } : page
     );
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
 
   addPage: (name, path) => set((state) => {
@@ -427,7 +441,8 @@ export const useSiteStore = create<SiteState>()(
   },
 
   updateSettings: (newSettings) => set((state) => ({
-    settings: { ...state.settings, ...newSettings }
+    settings: { ...state.settings, ...newSettings },
+    hasUnsavedChanges: true,
   })),
 
   // --- Pages Editor Methods ---
@@ -436,7 +451,7 @@ export const useSiteStore = create<SiteState>()(
     const pages = state.pages.map(page => 
       page.id === pageId ? { ...page, pageProps: { ...page.pageProps, ...settings } } : page
     );
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
   
   resetPageToDefault: (pageId) => set((state) => {
@@ -451,14 +466,22 @@ export const useSiteStore = create<SiteState>()(
         pageProps: { ...config.defaultProps }
       };
     });
-    return { pages };
+    return { pages, hasUnsavedChanges: true };
   }),
   
   publishPage: (pageId) => set((state) => {
+    const targetPage = state.pages.find(page => page.id === pageId);
     const pages = state.pages.map(page => 
       page.id === pageId ? { ...page, status: 'published' as const } : page
     );
-    return { pages };
+    const updatedSnapshots = {
+      ...state.lastPublishedSnapshots,
+      [pageId]: {
+        sections: targetPage ? JSON.parse(JSON.stringify(targetPage.sections)) : [],
+        pageProps: targetPage ? JSON.parse(JSON.stringify(targetPage.pageProps || {})) : {},
+      }
+    };
+    return { pages, hasUnsavedChanges: false, lastPublishedSnapshots: updatedSnapshots };
   }),
   
   unpublishPage: (pageId) => set((state) => {
