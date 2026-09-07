@@ -13,9 +13,12 @@ interface ColorPickerPopoverProps {
 }
 
 const COMMON_PRESET_COLORS = [
-  '#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#94a3b8', '#475569', '#1e293b', '#0f172a', '#000000',
-  '#ef4444', '#f97316', '#f59e0b', '#eab308', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6',
-  '#ec4899', '#f43f5e', '#14b8a6', '#84cc16', '#a855f7', '#64748b'
+  // High-utility core neutrals (clean, distinct)
+  '#000000', '#1e293b', '#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0', '#ffffff',
+  // Warm & vibrant spectrum
+  '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#10b981', '#14b8a6',
+  // Cool, rich & deep spectrum
+  '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#78350f'
 ];
 
 export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
@@ -41,8 +44,8 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   const defaultPalette = getDefaultTheme().palette;
   const palette = theme?.palette || defaultPalette;
 
-  // Key theme swatches to offer
-  const themeSwatches = [
+  // 1. Collect all active theme colors
+  const rawThemeTokens = [
     { label: 'Primary', color: palette.brand?.primary || '#2563eb' },
     { label: 'Secondary', color: palette.brand?.secondary || '#4f46e5' },
     { label: 'Accent', color: palette.brand?.accent || '#f59e0b' },
@@ -52,6 +55,37 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     { label: 'Body Text', color: palette.text?.body || '#475569' },
     { label: 'Border', color: palette.border?.border || '#e2e8f0' },
   ];
+
+  // 2. Deduplicate Theme Colors by normalized hex so NO duplicate colors appear
+  const uniqueThemeSwatches: { label: string; color: string; aliases: string[] }[] = [];
+  const themeHexSet = new Set<string>();
+
+  for (const token of rawThemeTokens) {
+    if (!token.color) continue;
+    const hex = token.color.toLowerCase().trim();
+    const existing = uniqueThemeSwatches.find(s => s.color === hex);
+    if (existing) {
+      if (!existing.aliases.includes(token.label)) {
+        existing.aliases.push(token.label);
+        // Combine names like "Surface / Section" or "Heading / Body"
+        if (existing.aliases.length === 2) {
+          existing.label = `${existing.aliases[0]} / ${existing.aliases[1]}`;
+        }
+      }
+    } else {
+      themeHexSet.add(hex);
+      uniqueThemeSwatches.push({
+        label: token.label,
+        color: hex,
+        aliases: [token.label],
+      });
+    }
+  }
+
+  // 3. Filter Preset Swatches so they NEVER duplicate any color already in Theme Colors
+  const uniquePresetColors = COMMON_PRESET_COLORS.filter(
+    (hex) => !themeHexSet.has(hex.toLowerCase().trim())
+  );
 
   // Calculate safe and aligned position inside the viewport
   const updatePosition = () => {
@@ -334,19 +368,19 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
               Theme Colors
             </span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
-              {themeSwatches.map((item) => {
+              {uniqueThemeSwatches.map((item) => {
                 const isSelected = value?.toLowerCase() === item.color.toLowerCase();
                 return (
                   <button
-                    key={item.label}
+                    key={item.color}
                     type="button"
                     onClick={() => onChange(item.color)}
-                    title={`${item.label}: ${item.color}`}
+                    title={`${item.aliases.join(' & ')}: ${item.color}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '5px 8px',
+                      gap: '8px',
+                      padding: '6px 10px',
                       backgroundColor: isSelected ? '#eff6ff' : '#f8fafc',
                       border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                       borderRadius: '6px',
@@ -356,28 +390,23 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                       minWidth: 0,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
-                      <div style={{
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        backgroundColor: item.color,
-                        border: '1px solid rgba(0,0,0,0.15)',
-                        flexShrink: 0,
-                      }} />
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: 500,
-                        color: '#334155',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}>
-                        {item.label}
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#94a3b8', flexShrink: 0, marginLeft: '4px' }}>
-                      {item.color}
+                    <div style={{
+                      width: '14px',
+                      height: '14px',
+                      borderRadius: '50%',
+                      backgroundColor: item.color,
+                      border: '1px solid rgba(0,0,0,0.15)',
+                      flexShrink: 0,
+                    }} />
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      color: '#334155',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {item.label}
                     </span>
                   </button>
                 );
@@ -385,42 +414,44 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             </div>
           </div>
 
-          {/* Standard Color Palette Swatches */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-              Preset Swatches
-            </span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '6px' }}>
-              {COMMON_PRESET_COLORS.map((hex) => {
-                const isSelected = value?.toLowerCase() === hex.toLowerCase();
-                return (
-                  <div
-                    key={hex}
-                    onClick={() => onChange(hex)}
-                    title={hex}
-                    style={{
-                      height: '24px',
-                      borderRadius: '5px',
-                      backgroundColor: hex,
-                      border: isSelected ? '2px solid #2563eb' : '1px solid rgba(0,0,0,0.12)',
-                      boxShadow: isSelected ? '0 0 0 1px #2563eb' : 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'transform 0.1s ease, box-shadow 0.1s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                  >
-                    {isSelected && (
-                      <Check size={12} color={['#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fef08a'].includes(hex) ? '#0f172a' : '#ffffff'} />
-                    )}
-                  </div>
-                );
-              })}
+          {/* Standard Color Palette Swatches (Unique & Non-colliding) */}
+          {uniquePresetColors.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                Preset Swatches
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '6px' }}>
+                {uniquePresetColors.map((hex) => {
+                  const isSelected = value?.toLowerCase() === hex.toLowerCase();
+                  return (
+                    <div
+                      key={hex}
+                      onClick={() => onChange(hex)}
+                      title={hex}
+                      style={{
+                        height: '24px',
+                        borderRadius: '5px',
+                        backgroundColor: hex,
+                        border: isSelected ? '2px solid #2563eb' : '1px solid rgba(0,0,0,0.12)',
+                        boxShadow: isSelected ? '0 0 0 1px #2563eb' : 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.15)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    >
+                      {isSelected && (
+                        <Check size={12} color={['#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fef08a'].includes(hex) ? '#0f172a' : '#ffffff'} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>,
         document.body
       )}
