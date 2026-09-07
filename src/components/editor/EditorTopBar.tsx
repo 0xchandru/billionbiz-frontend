@@ -128,7 +128,7 @@ export const EditorTopBar: React.FC = () => {
     <>
       <header className={styles.topBarContainer}>
         {/* ============================================================
-            ZONE LEFT: Navigation, Brand, Page Context, Status, History
+            ZONE LEFT: Navigation, Page Context, Status, History
            ============================================================ */}
         <div className={styles.zoneLeft}>
           {/* 1. Back Icon */}
@@ -137,8 +137,10 @@ export const EditorTopBar: React.FC = () => {
             onClick={() => navigate('/pages')}
             title="Back to Pages"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
           </button>
+
+          <div className={styles.divider} />
 
           {/* 2. Landing Page / Contextual Page Selector */}
           <PageSelectorDropdown />
@@ -152,6 +154,8 @@ export const EditorTopBar: React.FC = () => {
             <span className={styles.statusDot} />
             <span>{isLive ? 'Live' : 'Draft'}</span>
           </button>
+
+          <div className={styles.divider} />
 
           {/* 3. Undo and Redo Buttons */}
           <div className={styles.historyGroup}>
@@ -194,10 +198,10 @@ export const EditorTopBar: React.FC = () => {
           <button 
             className={styles.searchTriggerBar}
             onClick={() => setIsCommandPaletteOpen(true)}
-            title="Search accessible features, tools, and sections (Ctrl+K)"
+            title="Search tools, features, and sections (Ctrl+K)"
           >
-            <Search size={14} color="#94a3b8" />
-            <span className={styles.searchPlaceholder}>Search features & sections...</span>
+            <Search size={13} color="#94a3b8" />
+            <span className={styles.searchPlaceholder}>Search or jump to...</span>
             <span className={styles.shortcutKey}>⌘K</span>
           </button>
 
@@ -209,90 +213,92 @@ export const EditorTopBar: React.FC = () => {
                 onClick={() => setDevice('desktop')}
                 title="Desktop View"
               >
-                <Monitor size={14} />
+                <Monitor size={13} />
               </button>
               <button 
                 className={`${styles.deviceBtn} ${device === 'tablet' ? styles.activeDevice : ''}`} 
                 onClick={() => setDevice('tablet')}
                 title="Tablet View"
               >
-                <Tablet size={14} />
+                <Tablet size={13} />
               </button>
               <button 
                 className={`${styles.deviceBtn} ${device === 'mobile' ? styles.activeDevice : ''}`} 
                 onClick={() => setDevice('mobile')}
                 title="Mobile View"
               >
-                <Smartphone size={14} />
+                <Smartphone size={13} />
               </button>
-              <div style={{ width: '1px', height: '16px', backgroundColor: '#e2e8f0', margin: '0 2px' }} />
+              <div style={{ width: '1px', height: '14px', backgroundColor: '#e2e8f0', margin: '0 1px' }} />
               <button 
                 className={`${styles.deviceBtn} ${device === 'all' ? styles.activeDevice : ''}`} 
                 onClick={() => setDevice('all')}
-                title="All Devices Responsive View"
+                title="All Devices View"
               >
-                <Columns size={14} />
+                <Columns size={13} />
               </button>
             </div>
           )}
         </div>
 
         {/* ============================================================
-            ZONE RIGHT: Guided Setup, AI, Save, Preview, Publish, 3-Dot
+            ZONE RIGHT: Setup, AI, Preview, Save, Publish, More
            ============================================================ */}
         <div className={styles.zoneRight}>
           {/* 7. Guided Setup Button */}
           <button 
-            className={styles.btnGuidedSetup}
+            className={styles.btnSecondary}
             onClick={() => setIsSetupModalOpen(true)}
             title="Store Launch Guided Setup"
           >
-            <Compass size={14} color="#0284c7" />
-            <span>Guided Setup</span>
+            <Compass size={13} color="#0284c7" />
+            <span>Setup</span>
             <span className={styles.setupProgressBadge}>3/5</span>
           </button>
 
-          {/* 6. AI Assistant Button (Opens Full Height Right Drawer) */}
+          {/* 6. AI Assistant Button */}
           <button 
-            className={styles.btnAiAssistant}
+            className={styles.btnAi}
             onClick={() => setIsAiDrawerOpen(true)}
             title="Open BillionBiz AI Assistant"
           >
-            <Sparkles size={14} />
-            <span>AI Studio</span>
+            <Sparkles size={13} />
+            <span>AI</span>
           </button>
 
-          {/* 9. Save Icon + "Save" Button */}
-          <button 
-            className={styles.btnSave}
-            onClick={handleSave}
-            title="Save changes"
-          >
-            <Save size={14} />
-            <span>Save</span>
-          </button>
+          <div className={styles.divider} />
 
           {/* 10. Preview Icon + "Preview" Button */}
           {!isSettings && (
             <button 
-              className={styles.btnPreview}
+              className={styles.btnGhost}
               onClick={handlePreview}
               title="Preview storefront in new tab"
             >
-              <ExternalLink size={14} />
+              <ExternalLink size={13} />
               <span>Preview</span>
             </button>
           )}
 
+          {/* 9. Save Icon + "Save" Button */}
+          <button 
+            className={styles.btnGhost}
+            onClick={handleSave}
+            title="Save changes"
+          >
+            <Save size={13} />
+            <span>Save</span>
+          </button>
+
           {/* 11. Publish Icon + "Publish" Button */}
           <button 
-            className={styles.btnPublish}
+            className={styles.btnPrimary}
             onClick={handlePublish}
             title="Publish page to live store"
           >
-            <UploadCloud size={14} />
+            <UploadCloud size={13} />
             <span>Publish</span>
-            <ChevronDown size={12} style={{ opacity: 0.8 }} />
+            <ChevronDown size={11} style={{ opacity: 0.8 }} />
           </button>
 
           {/* 8. Three-Dot Button & Options Menu */}

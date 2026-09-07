@@ -23,12 +23,6 @@ export const PageSelectorDropdown: React.FC = () => {
     return activePage.name;
   };
 
-  const getContextSubtitle = () => {
-    if (activePanel === 'pages') return 'Manager';
-    if (activePanel === 'theme') return 'Global';
-    if (activePanel === 'settings') return 'Configuration';
-    return 'Storefront';
-  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -58,10 +52,7 @@ export const PageSelectorDropdown: React.FC = () => {
         title="Switch page context"
         aria-expanded={isOpen}
       >
-        <div className={styles.pageTitleGroup}>
-          <span className={styles.pageSubtitle}>{getContextSubtitle()}</span>
-          <span className={styles.pageTitleText}>{getContextTitle()}</span>
-        </div>
+        <span className={styles.pageTitleText}>{getContextTitle()}</span>
         <ChevronDown 
           size={13} 
           className={styles.chevronIcon} 
