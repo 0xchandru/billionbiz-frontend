@@ -77,7 +77,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
   const isInputValid = confirmText.trim().toLowerCase() === 'publish';
 
   const handleConfirmPublish = () => {
-    if (!isInputValid && hasChanges) return;
+    if (!isInputValid) return;
     publishPage(activePage.id);
     onClose();
     onSuccess(`Published "${activePage.name}" to live storefront!`);
@@ -90,13 +90,12 @@ export const PublishModal: React.FC<PublishModalProps> = ({
         <div className={styles.publishHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <UploadCloud size={18} color="#15803d" />
-            <span className={styles.publishTitle}>
-              {hasChanges ? 'Publish Changes to Storefront' : 'Storefront Up to Date'}
-            </span>
+            <span className={styles.publishTitle}>Publish Changes to Storefront</span>
           </div>
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+            title="Close dialog"
           >
             <X size={16} />
           </button>
@@ -104,31 +103,12 @@ export const PublishModal: React.FC<PublishModalProps> = ({
 
         {/* Body */}
         <div className={styles.publishBody}>
-          {!hasChanges ? (
-            /* Condition: No changes detected */
-            <div style={{ textAlign: 'center', padding: '16px 8px 8px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#f0fdf4', marginBottom: '16px' }}>
-                <CheckCircle2 size={32} color="#15803d" />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a', marginBottom: '8px' }}>
-                All Sections Match Live Storefront
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, margin: '0 auto 20px', maxWidth: '360px' }}>
-                There are no pending additions, removals, or edits on <strong>{activePage.name}</strong>. Your storefront is currently showing the latest version.
-              </p>
-              <div className={styles.publishFooter} style={{ justifyContent: 'center' }}>
-                <button className={styles.btnCancel} onClick={onClose} style={{ minWidth: '100px' }}>
-                  Got it
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* Condition: Changes detected */
-            <>
-              <p style={{ fontSize: '13px', color: '#475569', marginBottom: '14px', lineHeight: 1.4 }}>
-                Review the changes made to <strong>{activePage.name}</strong> before publishing to the live storefront:
-              </p>
+          <p style={{ fontSize: '13px', color: '#475569', marginBottom: '14px', lineHeight: 1.4 }}>
+            Review sections for <strong>{activePage.name}</strong> before publishing to the live storefront:
+          </p>
 
+          {hasChanges ? (
+            <>
               {/* Summary Pills */}
               <div className={styles.publishDiffSummary}>
                 {addedSections.length > 0 && (
@@ -180,38 +160,48 @@ export const PublishModal: React.FC<PublishModalProps> = ({
                   </div>
                 ))}
               </div>
-
-              {/* Confirmation Input */}
-              <div className={styles.confirmInputSection}>
-                <label className={styles.confirmInputLabel}>
-                  Type <strong style={{ color: '#0f172a' }}>publish</strong> to confirm publishing changes:
-                </label>
-                <input
-                  type="text"
-                  className={styles.confirmInput}
-                  placeholder="Type 'publish' to confirm"
-                  value={confirmText}
-                  onChange={(e) => setConfirmText(e.target.value)}
-                  autoFocus
-                />
-              </div>
-
-              {/* Footer Buttons */}
-              <div className={styles.publishFooter}>
-                <button className={styles.btnCancel} onClick={onClose}>
-                  Cancel
-                </button>
-                <button
-                  className={styles.btnConfirmPublish}
-                  disabled={!isInputValid}
-                  onClick={handleConfirmPublish}
-                >
-                  <ShieldCheck size={14} />
-                  <span>Confirm & Publish</span>
-                </button>
-              </div>
             </>
+          ) : (
+            <div className={styles.noChangesBox}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontWeight: 600, fontSize: '13px', marginBottom: '4px' }}>
+                <CheckCircle2 size={16} color="#15803d" />
+                <span>No Section Changes Detected</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b', lineHeight: 1.4 }}>
+                All sections on <strong>{activePage.name}</strong> currently match the live storefront. You can still confirm below to re-publish if desired.
+              </p>
+            </div>
           )}
+
+          {/* Confirmation Input */}
+          <div className={styles.confirmInputSection}>
+            <label className={styles.confirmInputLabel}>
+              Type <strong style={{ color: '#0f172a' }}>publish</strong> to confirm publishing:
+            </label>
+            <input
+              type="text"
+              className={styles.confirmInput}
+              placeholder="Type 'publish' to confirm"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          {/* Footer Buttons */}
+          <div className={styles.publishFooter}>
+            <button className={styles.btnCancel} onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              className={styles.btnConfirmPublish}
+              disabled={!isInputValid}
+              onClick={handleConfirmPublish}
+            >
+              <ShieldCheck size={14} />
+              <span>Confirm & Publish</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Check, FileText } from 'lucide-react';
 import { useSiteStore } from '../../../store/siteStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
@@ -7,22 +8,19 @@ import styles from './topbar.module.css';
 export const PageSelectorDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   const { pages } = useSiteStore();
-  const { selectedPageId, setSelectedPageId, activePanel, setActivePanel } = useLandingEditorStore();
+  const { selectedPageId, setSelectedPageId, activePanel } = useLandingEditorStore();
 
   const activePage = pages.find((p) => p.id === selectedPageId) || pages[0];
 
-  // Dynamic title based on active panel & page
+  // Dynamic title based on active page
   const getContextTitle = () => {
-    if (activePanel === 'pages') return 'Site Pages';
-    if (activePanel === 'theme') return 'Theme & Styles';
-    if (activePanel === 'settings') return 'Site Settings';
     if (!activePage) return 'Landing Page';
     if (activePage.id === 'landing-page') return 'Landing Page';
     return activePage.name;
   };
-
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -38,8 +36,14 @@ export const PageSelectorDropdown: React.FC = () => {
 
   const handleSelectPage = (pageId: string) => {
     setSelectedPageId(pageId);
-    if (activePanel !== 'editor') {
-      setActivePanel('editor');
+    if (activePanel === 'pages') {
+      navigate(`/editor/pages?pageId=${pageId}`, { replace: true });
+    } else if (activePanel === 'theme') {
+      navigate(`/editor/theme?pageId=${pageId}`, { replace: true });
+    } else if (activePanel === 'settings') {
+      navigate(`/editor/settings?pageId=${pageId}`, { replace: true });
+    } else {
+      navigate(pageId === 'landing-page' ? '/editor' : `/editor?pageId=${pageId}`, { replace: true });
     }
     setIsOpen(false);
   };
@@ -49,7 +53,7 @@ export const PageSelectorDropdown: React.FC = () => {
       <button 
         className={styles.pageSelectorTrigger}
         onClick={() => setIsOpen(!isOpen)}
-        title="Switch page context"
+        title="Switch page"
         aria-expanded={isOpen}
       >
         <span className={styles.pageTitleText}>{getContextTitle()}</span>
@@ -69,7 +73,7 @@ export const PageSelectorDropdown: React.FC = () => {
           </div>
           <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
             {pages.map((p) => {
-              const isSelected = p.id === (activePanel === 'editor' ? selectedPageId : null);
+              const isSelected = p.id === (activePage?.id || selectedPageId);
               const displayName = p.id === 'landing-page' ? 'Landing Page' : p.name;
               return (
                 <button
@@ -77,11 +81,13 @@ export const PageSelectorDropdown: React.FC = () => {
                   className={`${styles.pageItem} ${isSelected ? styles.activePageItem : ''}`}
                   onClick={() => handleSelectPage(p.id)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FileText size={13} style={{ opacity: isSelected ? 1 : 0.6 }} />
-                    <span style={{ fontWeight: isSelected ? 600 : 500 }}>{displayName}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                    <FileText size={13} style={{ opacity: isSelected ? 1 : 0.6, flexShrink: 0 }} />
+                    <span style={{ fontWeight: isSelected ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {displayName}
+                    </span>
                   </div>
-                  {isSelected && <Check size={14} color="#059669" />}
+                  {isSelected && <Check size={14} color="#059669" style={{ flexShrink: 0 }} />}
                 </button>
               );
             })}

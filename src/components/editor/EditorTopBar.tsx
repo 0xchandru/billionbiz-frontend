@@ -260,7 +260,7 @@ export const EditorTopBar: React.FC = () => {
             title="Store Launch Guided Setup"
           >
             <Compass size={13} color="#0284c7" />
-            <span>Setup</span>
+            <span className={styles.btnLabel}>Setup</span>
             <span className={styles.setupProgressBadge}>3/5</span>
           </button>
 
@@ -271,7 +271,7 @@ export const EditorTopBar: React.FC = () => {
             title="Open BillionBiz AI Assistant"
           >
             <Sparkles size={13} />
-            <span>AI</span>
+            <span className={styles.btnLabel}>AI</span>
           </button>
 
           <div className={styles.divider} />
@@ -284,9 +284,11 @@ export const EditorTopBar: React.FC = () => {
               title="Preview storefront in new tab"
             >
               <ExternalLink size={13} />
-              <span>Preview</span>
+              <span className={styles.btnLabel}>Preview</span>
             </button>
-          )}          {/* 9. Save Icon + "Save" Button */}
+          )}
+
+          {/* 9. Save Icon + "Save" Button */}
           <button 
             className={styles.btnGhost}
             onClick={handleSave}
@@ -295,7 +297,7 @@ export const EditorTopBar: React.FC = () => {
             title={hasUnsavedChanges ? "Save edits (Ctrl+S)" : "All edits saved"}
           >
             <Save size={13} />
-            <span>Save</span>
+            <span className={styles.btnLabel}>Save</span>
           </button>
 
           {/* 11. Publish Icon + "Publish" Button */}

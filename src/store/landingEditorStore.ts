@@ -142,7 +142,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
     if (panel === 'editor') {
       return {
         activePanel: panel,
-        selectedPageId: 'landing-page',
+        selectedPageId: state.selectedPageId || 'landing-page',
         selectedSectionId: lastEditorMemory.selectedSectionId,
         isRightSidebarOpen: lastEditorMemory.isRightSidebarOpen,
         lastEditorMemory,
@@ -152,11 +152,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isTypographyWidgetOpen: false,
       };
     } else if (panel === 'pages') {
-      const pageToSelect = (lastPagesMemory.selectedPageId && lastPagesMemory.selectedPageId !== 'landing-page')
-        ? lastPagesMemory.selectedPageId
-        : (state.selectedPageId && state.selectedPageId !== 'landing-page')
-          ? state.selectedPageId
-          : 'shop-page';
+      const pageToSelect = state.selectedPageId || lastPagesMemory.selectedPageId || 'shop-page';
       return {
         activePanel: panel,
         selectedPageId: pageToSelect,
@@ -175,7 +171,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
       const categoryToSelect = lastThemeMemory.selectedThemeCategory || 'themes';
       return {
         activePanel: panel,
-        selectedPageId: 'landing-page',
+        selectedPageId: state.selectedPageId || 'landing-page',
         selectedThemeCategory: categoryToSelect,
         isRightSidebarOpen: true,
         lastEditorMemory,
@@ -187,10 +183,11 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isColorWidgetOpen: false,
         isTypographyWidgetOpen: false,
       };
-    } else {
+    } else if (panel === 'settings') {
       return {
         activePanel: panel,
-        selectedPageId: 'landing-page',
+        selectedPageId: state.selectedPageId || 'landing-page',
+        selectedSectionId: null,
         isRightSidebarOpen: false,
         lastEditorMemory,
         lastPagesMemory,
@@ -199,26 +196,14 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isTypographyWidgetOpen: false,
       };
     }
+    return {};
   }),
-  setSelectedPageId: (id) => set((state) => {
-    if (id === 'landing-page') {
-      return {
-        selectedPageId: id,
-        activePanel: 'editor',
-        selectedSectionId: state.lastEditorMemory.selectedSectionId,
-        isRightSidebarOpen: state.lastEditorMemory.isRightSidebarOpen,
-      };
-    } else {
-      return {
-        selectedPageId: id,
-        activePanel: 'pages',
-        selectedSectionId: null,
-        isRightSidebarOpen: true,
-        lastPagesMemory: {
-          selectedPageId: id,
-          isRightSidebarOpen: true,
-        }
-      };
+  setSelectedPageId: (id) => set((state) => ({
+    selectedPageId: id,
+    selectedSectionId: null,
+    lastPagesMemory: {
+      selectedPageId: id,
+      isRightSidebarOpen: state.isRightSidebarOpen,
     }
-  }),
+  })),
 }));

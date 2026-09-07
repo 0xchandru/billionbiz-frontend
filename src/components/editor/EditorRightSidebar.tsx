@@ -606,10 +606,10 @@ export const EditorRightSidebar: React.FC = () => {
   const activeSection = activePage?.sections.find(s => s.id === selectedSectionId);
 
   React.useEffect(() => {
-    if (isRightSidebarOpen && activePanel === 'editor' && selectedPageId === 'landing-page' && !activeSection && !isColorWidgetOpen && !isTypographyWidgetOpen) {
+    if (isRightSidebarOpen && activePanel === 'editor' && !activeSection && !isColorWidgetOpen && !isTypographyWidgetOpen) {
       useLandingEditorStore.setState({ isRightSidebarOpen: false });
     }
-  }, [isRightSidebarOpen, activePanel, selectedPageId, activeSection, isColorWidgetOpen, isTypographyWidgetOpen]);
+  }, [isRightSidebarOpen, activePanel, activeSection, isColorWidgetOpen, isTypographyWidgetOpen]);
 
   // If in 'theme' tab, render theme category editing panel in the right sidebar
   if (activePanel === 'theme') {

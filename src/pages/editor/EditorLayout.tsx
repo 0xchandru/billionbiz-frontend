@@ -63,13 +63,16 @@ const EditorLayout: React.FC = () => {
     if (pageIdParam) {
       const resolved = resolvePageId(pageIdParam, pages);
       if (resolved) {
-        if (resolved === 'landing-page') {
-          setActivePanel('editor');
-          setSelectedPageId('landing-page');
-        } else {
+        setSelectedPageId(resolved);
+        if (tabParam === 'pages') {
           setActivePanel('pages');
-          setSelectedPageId(resolved);
           useLandingEditorStore.setState({ isRightSidebarOpen: true });
+        } else if (tabParam === 'theme') {
+          setActivePanel('theme');
+        } else if (tabParam === 'settings') {
+          setActivePanel('settings');
+        } else {
+          setActivePanel('editor');
         }
         return;
       }
