@@ -214,7 +214,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             maxWidth: '160px',
           }}
         >
-          <option value="inherit">Inherit ({tokenInfo.name})</option>
+          <option value="inherit">Inherit</option>
           <option value="color">Custom Color</option>
           {isBackground && <option value="gradient">Custom Gradient</option>}
           {isBackground && <option value="image">Custom Image</option>}
@@ -326,7 +326,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit ({tokenInfo.name})
+            Reset to Inherit
           </button>
         </div>
       )}
@@ -495,7 +495,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit ({tokenInfo.name})
+            Reset to Inherit
           </button>
         </div>
       )}
@@ -563,7 +563,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
             }}
           >
             <RotateCcw size={11} />
-            Reset to Inherit ({tokenInfo.name})
+            Reset to Inherit
           </button>
         </div>
       )}
