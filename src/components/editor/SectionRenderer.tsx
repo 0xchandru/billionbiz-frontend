@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import type { SectionData } from '../../store/siteStore';
+import { resolveSectionProps } from './theme/themeResolver';
 
 // Import all section components
 import HeroBannerSection from './sections/HeroBannerSection';
@@ -69,6 +70,7 @@ const AnnouncementBar: React.FC<{ props: any }> = ({ props }) => {
   
   const baseStyle: React.CSSProperties = {
     backgroundColor: bgColor,
+    background: bgColor,
     color: textColor,
     textAlign: textAlign as any,
     padding: isMobile ? '8px 16px' : '12px',
@@ -602,6 +604,7 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
   return (
     <footer style={{
       backgroundColor: bgColor,
+      background: bgColor,
       color: textColor,
       padding: isMobile ? '48px 24px 32px' : '80px 48px 32px',
       textAlign: layout === 'centered' ? 'center' : 'left',
@@ -1011,9 +1014,11 @@ export const SectionRenderer: React.FC<{ section: SectionData, overrideDevice?: 
     marginBottom: section.props._margin.bottom !== undefined ? `${section.props._margin.bottom}px` : undefined,
   } : {};
 
+  const resolvedProps = resolveSectionProps(section.props, section.type);
+
   return (
     <Component props={{ 
-      ...section.props, 
+      ...resolvedProps, 
       device,
       _layoutWidth: layoutWidth,
       _paddingStyle: paddingStyle,

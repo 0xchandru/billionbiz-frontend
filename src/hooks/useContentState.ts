@@ -309,7 +309,7 @@ export function useContentState({
   // ---- Mark as customized (called when user manually edits a content field) ----
   const markAsCustomized = useCallback((updates?: Record<string, any>) => {
     if (!sectionId || contentFieldKeys.length === 0) return;
-    const currentValues = { ...pickValues(props, contentFieldKeys), ...(updates || {}) };
+    const currentValues = { ...pickValues(props, contentFieldKeys), ...updates };
     setContentCustomized(sectionId, contentConfigKey, currentValues);
   }, [sectionId, contentConfigKey, contentFieldKeys, props, setContentCustomized]);
 

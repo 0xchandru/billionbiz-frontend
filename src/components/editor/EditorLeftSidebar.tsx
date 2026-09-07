@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Wand2, Smartphone, Files, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Search, Plus, Settings, LayoutTemplate, Palette, Share, Globe, Smartphone, Files, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
@@ -10,16 +11,18 @@ import { Home } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { ThemeSecondaryNav } from './theme/ThemeSecondaryNav';
 import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorLeftSidebar: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     activePanel: activeTab, setActivePanel: setActiveTab, selectedSectionId, setSelectedSectionId, 
     activeSettingItem, setActiveSettingItem,
     setAddSectionWidgetOpen, selectedPageId, setSelectedPageId,
     isLeftSidebarCollapsed, setLeftSidebarCollapsed
   } = useLandingEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, theme, updateTheme, updatePageProps } = useSiteStore();
+  const { pages, toggleSectionVisibility, reorderSections, removeSection, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
 
   // Cleanup duplicate locked sections that might have been added manually before restrictions
@@ -66,29 +69,29 @@ export const EditorLeftSidebar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const hasScrolledPagesRef = React.useRef(false);
+  // Ensure the category containing selectedPageId is uncollapsed
+  React.useEffect(() => {
+    if (activePage && activePage.category && collapsedCategories[activePage.category]) {
+      setCollapsedCategories(prev => ({ ...prev, [activePage.category]: false }));
+    }
+  }, [activePage?.category, selectedPageId, collapsedCategories]);
 
   React.useEffect(() => {
     if (activeTab === 'pages') {
-      if (!selectedPageId && pages.length > 0) {
+      if ((!selectedPageId || selectedPageId === 'landing-page') && pages.length > 0) {
         const firstNonLandingPage = pages.find(p => p.id !== 'landing-page');
         if (firstNonLandingPage) {
           setSelectedPageId(firstNonLandingPage.id);
         }
       }
       
-      // Instantly ensure the active item is visible at the center without a jarring animation
-      if (!hasScrolledPagesRef.current) {
-        setTimeout(() => {
-          const activeElement = document.querySelector(`.${styles.activePageItem}`);
-          if (activeElement) {
-            activeElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-            hasScrolledPagesRef.current = true;
-          }
-        }, 10);
-      }
-    } else {
-      hasScrolledPagesRef.current = false;
+      const timer = setTimeout(() => {
+        const activeElement = document.querySelector(`.${styles.activePageItem}`);
+        if (activeElement) {
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [activeTab, selectedPageId, pages, setSelectedPageId]);
 
@@ -155,20 +158,45 @@ export const EditorLeftSidebar: React.FC = () => {
     <>
       {/* Primary Tabs */}
       <div className={styles.panelTabs}>
-        <button className={`${styles.panelTab} ${activeTab === 'editor' ? styles.activeTab : ''}`} onClick={() => setActiveTab('editor')}>
+        <button 
+          className={`${styles.panelTab} ${activeTab === 'editor' ? styles.activeTab : ''}`} 
+          onClick={() => {
+            setActiveTab('editor');
+            navigate('/editor', { replace: true });
+          }}
+        >
           <LayoutTemplate size={20} />
           Editor
         </button>
-        <button className={`${styles.panelTab} ${activeTab === 'pages' ? styles.activeTab : ''}`} onClick={() => setActiveTab('pages')}>
+        <button 
+          className={`${styles.panelTab} ${activeTab === 'pages' ? styles.activeTab : ''}`} 
+          onClick={() => {
+            setActiveTab('pages');
+            const targetId = (selectedPageId && selectedPageId !== 'landing-page') ? selectedPageId : 'shop-page';
+            navigate(`/editor/pages?pageId=${targetId}`, { replace: true });
+          }}
+        >
           <Files size={20} />
           Pages
         </button>
 
-        <button className={`${styles.panelTab} ${activeTab === 'theme' ? styles.activeTab : ''}`} onClick={() => setActiveTab('theme')}>
+        <button 
+          className={`${styles.panelTab} ${activeTab === 'theme' ? styles.activeTab : ''}`} 
+          onClick={() => {
+            setActiveTab('theme');
+            navigate('/editor/theme', { replace: true });
+          }}
+        >
           <Palette size={20} />
           Theme
         </button>
-        <button className={`${styles.panelTab} ${activeTab === 'settings' ? styles.activeTab : ''}`} onClick={() => setActiveTab('settings')}>
+        <button 
+          className={`${styles.panelTab} ${activeTab === 'settings' ? styles.activeTab : ''}`} 
+          onClick={() => {
+            setActiveTab('settings');
+            navigate('/editor/settings', { replace: true });
+          }}
+        >
           <Settings size={20} />
           Settings
         </button>
@@ -230,6 +258,7 @@ export const EditorLeftSidebar: React.FC = () => {
                           onClick={() => {
                             setSelectedPageId(pageId);
                             useLandingEditorStore.setState({ isRightSidebarOpen: true });
+                            navigate(`/editor/pages?pageId=${pageId}`, { replace: true });
                           }}
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', padding: '10px 12px',
@@ -290,160 +319,7 @@ export const EditorLeftSidebar: React.FC = () => {
             </div>
           </div>
         ) : activeTab === 'theme' ? (
-          <div className={styles.themeSidebar} style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <div className={styles.sectionHeaderCol} style={{ padding: '20px 16px 8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <h3 className={styles.fw600} style={{ margin: 0 }}>Theme styles</h3>
-                <button onClick={() => setLeftSidebarCollapsed(!isLeftSidebarCollapsed)} style={{ 
-                  background: isLeftSidebarCollapsed ? 'var(--primary-light)' : 'transparent', 
-                  border: 'none', cursor: 'pointer', 
-                  color: isLeftSidebarCollapsed ? 'var(--primary)' : 'var(--text-muted)', 
-                  display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' 
-                }}>
-                  {isLeftSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-            <div className={styles.inheritThemeBlock}>
-              <Wand2 size={20} className={styles.itIcon} />
-              <div className={styles.itContent}>
-                <h4>Inherit global theme <span className={styles.itBadge}>Active</span></h4>
-                <p>Changes here will apply to all pages automatically.</p>
-              </div>
-            </div>
-
-            <div className={styles.themeCategoryList} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
-              <div className={styles.themeCategory}>
-                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Global Colors</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {Object.entries(theme.colors).map(([key, value]) => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '13px', textTransform: 'capitalize', color: 'var(--text-main)' }}>{key}</span>
-                      <input 
-                        type="color" 
-                        value={value} 
-                        onChange={(e) => updateTheme({ colors: { ...theme.colors, [key]: e.target.value } })}
-                        style={{ width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '6px', cursor: 'pointer', backgroundColor: 'transparent' }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className={styles.themeCategory}>
-                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Typography</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Heading Font</label>
-                    <select 
-                      value={theme.typography.headingFont}
-                      onChange={(e) => updateTheme({ typography: { ...theme.typography, headingFont: e.target.value } })}
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
-                    >
-                      <option value="Outfit, sans-serif">Outfit</option>
-                      <option value="Inter, sans-serif">Inter</option>
-                      <option value="Playfair Display, serif">Playfair Display</option>
-                      <option value="Roboto, sans-serif">Roboto</option>
-                      <option value="Space Grotesk, sans-serif">Space Grotesk</option>
-                    </select>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Body Font</label>
-                    <select 
-                      value={theme.typography.bodyFont}
-                      onChange={(e) => updateTheme({ typography: { ...theme.typography, bodyFont: e.target.value } })}
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
-                    >
-                      <option value="Inter, sans-serif">Inter</option>
-                      <option value="Roboto, sans-serif">Roboto</option>
-                      <option value="Lato, sans-serif">Lato</option>
-                      <option value="Open Sans, sans-serif">Open Sans</option>
-                    </select>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Base Size</label>
-                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{theme.typography.baseSize}px</span>
-                    </div>
-                    <input 
-                      type="range" min="12" max="24" step="1" 
-                      value={theme.typography.baseSize}
-                      onChange={(e) => updateTheme({ typography: { ...theme.typography, baseSize: parseInt(e.target.value) } })}
-                      style={{ accentColor: 'var(--theme-primary)' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.themeCategory}>
-                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>UI Elements</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Border Radius</label>
-                    <select 
-                      value={theme.ui.borderRadius}
-                      onChange={(e) => updateTheme({ ui: { ...theme.ui, borderRadius: e.target.value } })}
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
-                    >
-                      <option value="0px">Sharp (0px)</option>
-                      <option value="4px">Slight (4px)</option>
-                      <option value="8px">Rounded (8px)</option>
-                      <option value="16px">Extra Rounded (16px)</option>
-                      <option value="24px">Soft (24px)</option>
-                      <option value="999px">Pill (999px)</option>
-                    </select>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Shadows</label>
-                    <select 
-                      value={theme.ui.shadow}
-                      onChange={(e) => updateTheme({ ui: { ...theme.ui, shadow: e.target.value } })}
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '13px', outline: 'none' }}
-                    >
-                      <option value="none">None</option>
-                      <option value="0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)">Soft</option>
-                      <option value="0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)">Medium</option>
-                      <option value="0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)">Large</option>
-                      <option value="0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)">Extra Large</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.themeCategory}>
-                <div className={styles.tcHeader} style={{ marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Layout</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Max Width</label>
-                      <span style={{ fontSize: '12px', fontWeight: 600 }}>{theme.layout.maxWidth}px</span>
-                    </div>
-                    <input 
-                      type="range" min="800" max="1600" step="100" 
-                      value={theme.layout.maxWidth}
-                      onChange={(e) => updateTheme({ layout: { ...theme.layout, maxWidth: parseInt(e.target.value) } })}
-                      style={{ accentColor: 'var(--theme-primary)' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-            </div>
-            </div>
-          </div>
-
+          <ThemeSecondaryNav />
         ) : (
           <div className={styles.sectionsSidebar} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0' }} className={styles.innerScroll}>
@@ -666,7 +542,10 @@ export const EditorLeftSidebar: React.FC = () => {
     </>
   );
 
-  if (isLeftSidebarCollapsed) {
+  const isSettings = activeTab === 'settings';
+  const shouldCollapse = isLeftSidebarCollapsed && !isSettings;
+
+  if (shouldCollapse) {
     return (
       <div 
         onMouseEnter={() => setIsHovered(true)}

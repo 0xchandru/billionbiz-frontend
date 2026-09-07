@@ -34,34 +34,11 @@ export interface PageData {
   };
 }
 
-export interface ThemeData {
-  presetName: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    background: string;
-    text: string;
-    accent: string;
-    border: string;
-  };
-  typography: {
-    headingFont: string;
-    bodyFont: string;
-    baseSize: number;
-  };
-  ui: {
-    borderRadius: string;
-    shadow: string;
-    buttonHover: string;
-    glassmorphism: boolean;
-  };
-  layout: {
-    maxWidth: number;
-  };
-  animation: {
-    enableScrollReveal: boolean;
-  };
-}
+import type { GlobalThemeData } from '../components/editor/theme/themePresets';
+import { getDefaultTheme, themePresets } from '../components/editor/theme/themePresets';
+import { useThemeHistoryStore } from './themeHistoryStore';
+
+export type ThemeData = GlobalThemeData;
 
 export interface SiteState {
   pages: PageData[];
@@ -78,8 +55,16 @@ export interface SiteState {
   updatePageProps: (pageId: string, newProps: Partial<PageData>) => void;
   addPage: (name: string, path: string) => void;
   removePage: (pageId: string) => void;
-  updateTheme: (newTheme: Partial<ThemeData>) => void;
+  updateTheme: (newTheme: Partial<ThemeData> | Record<string, any>, forceHistory?: boolean) => void;
   updateSettings: (newSettings: Record<string, any>) => void;
+  resetTheme: () => void;
+  resetAllThemeSettings: () => void;
+  resetColorPalette: () => void;
+  resetTypography: () => void;
+  resetButtons: () => void;
+  resetEffects: () => void;
+  undoTheme: () => void;
+  redoTheme: () => void;
   // New methods for Pages Editor
   updatePageSettings: (pageId: string, settings: Record<string, any>) => void;
   resetPageToDefault: (pageId: string) => void;
@@ -156,37 +141,10 @@ const initialPages: PageData[] = [
 ];
 
 export const useSiteStore = create<SiteState>()(
-  persist(
-    (set) => ({
+  persist<SiteState>(
+    (set, get) => ({
       pages: initialPages,
-  theme: {
-    presetName: 'Default',
-    colors: {
-      primary: '#198754',
-      secondary: '#ff6b00',
-      background: '#ffffff',
-      text: '#0f172a',
-      accent: '#facc15',
-      border: '#e2e8f0'
-    },
-    typography: {
-      headingFont: 'Outfit, sans-serif',
-      bodyFont: 'Inter, sans-serif',
-      baseSize: 16
-    },
-    ui: {
-      borderRadius: '8px',
-      shadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-      buttonHover: 'lift',
-      glassmorphism: false
-    },
-    layout: {
-      maxWidth: 1200
-    },
-    animation: {
-      enableScrollReveal: false
-    }
-  },
+  theme: getDefaultTheme(),
   settings: {
     siteName: 'BillionBiz',
     tagline: 'Build, Launch & Grow Your Business',
@@ -328,9 +286,145 @@ export const useSiteStore = create<SiteState>()(
     pages: state.pages.filter(page => page.id !== pageId)
   })),
 
-  updateTheme: (newTheme) => set((state) => ({
-    theme: { ...state.theme, ...newTheme }
-  })),
+  updateTheme: (newTheme, forceHistory = false) => {
+    useThemeHistoryStore.getState().pushState(get().theme, forceHistory);
+    set((state) => {
+      const merged = { ...state.theme, ...newTheme };
+      // Synchronize legacy colors object if palette is updated
+      if (newTheme.colors) {
+        merged.colors = { ...newTheme.colors };
+      } else if (newTheme.palette?.brand?.primary) {
+        merged.colors = {
+          ...merged.colors,
+          primary: newTheme.palette.brand.primary,
+          secondary: newTheme.palette.brand.secondary || merged.colors.secondary,
+          background: newTheme.palette.background.background || merged.colors.background,
+          text: newTheme.palette.text.body || merged.colors.text,
+          accent: newTheme.palette.brand.accent || merged.colors.accent,
+          border: newTheme.palette.border.border || merged.colors.border,
+        };
+      } else if (newTheme.colors?.primary && merged.palette) {
+        merged.palette = {
+          ...merged.palette,
+          brand: {
+            ...merged.palette.brand,
+            primary: newTheme.colors.primary,
+            secondary: newTheme.colors.secondary || merged.palette.brand.secondary,
+            accent: newTheme.colors.accent || merged.palette.brand.accent,
+          },
+          background: {
+            ...merged.palette.background,
+            background: newTheme.colors.background || merged.palette.background.background,
+          },
+          text: {
+            ...merged.palette.text,
+            body: newTheme.colors.text || merged.palette.text.body,
+          },
+          border: {
+            ...merged.palette.border,
+            border: newTheme.colors.border || merged.palette.border.border,
+          },
+        };
+      }
+      return { theme: merged };
+    });
+  },
+
+  resetTheme: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set(() => ({
+      theme: getDefaultTheme(),
+    }));
+  },
+
+  resetAllThemeSettings: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => {
+      const preset = themePresets[state.theme.presetName] || getDefaultTheme();
+      return {
+        theme: {
+          presetName: state.theme.presetName,
+          description: preset.description,
+          palette: JSON.parse(JSON.stringify(preset.palette)),
+          typography: JSON.parse(JSON.stringify(preset.typography)),
+          buttons: JSON.parse(JSON.stringify(preset.buttons)),
+          effects: JSON.parse(JSON.stringify(preset.effects)),
+          colors: { ...preset.colors },
+          ui: { ...preset.ui },
+          layout: { ...preset.layout },
+          animation: { ...preset.animation },
+        }
+      };
+    });
+  },
+
+  resetColorPalette: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => {
+      const preset = themePresets[state.theme.presetName] || getDefaultTheme();
+      return {
+        theme: {
+          ...state.theme,
+          colors: { ...preset.colors },
+          palette: JSON.parse(JSON.stringify(preset.palette)),
+        }
+      };
+    });
+  },
+
+  resetTypography: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => {
+      const preset = themePresets[state.theme.presetName] || getDefaultTheme();
+      return {
+        theme: {
+          ...state.theme,
+          typography: JSON.parse(JSON.stringify(preset.typography)),
+        }
+      };
+    });
+  },
+
+  resetButtons: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => {
+      const preset = themePresets[state.theme.presetName] || getDefaultTheme();
+      return {
+        theme: {
+          ...state.theme,
+          buttons: JSON.parse(JSON.stringify(preset.buttons)),
+        }
+      };
+    });
+  },
+
+  resetEffects: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => {
+      const preset = themePresets[state.theme.presetName] || getDefaultTheme();
+      return {
+        theme: {
+          ...state.theme,
+          effects: JSON.parse(JSON.stringify(preset.effects)),
+          ui: { ...preset.ui },
+        }
+      };
+    });
+  },
+
+  undoTheme: () => {
+    const previousTheme = useThemeHistoryStore.getState().undo(get().theme);
+    if (previousTheme) {
+      set({ theme: previousTheme });
+    }
+  },
+
+  redoTheme: () => {
+    const nextTheme = useThemeHistoryStore.getState().redo(get().theme);
+    if (nextTheme) {
+      set({ theme: nextTheme });
+    }
+  },
 
   updateSettings: (newSettings) => set((state) => ({
     settings: { ...state.settings, ...newSettings }
@@ -376,6 +470,22 @@ export const useSiteStore = create<SiteState>()(
     }),
     {
       name: 'billionbiz-storage-v4',
+      merge: (persistedState: any, currentState: any) => {
+        const defaultTheme = getDefaultTheme();
+        const storedTheme = persistedState?.theme || {};
+        return {
+          ...currentState,
+          ...persistedState,
+          theme: {
+            ...defaultTheme,
+            ...storedTheme,
+            palette: storedTheme.palette ? { ...defaultTheme.palette, ...storedTheme.palette } : defaultTheme.palette,
+            typography: storedTheme.typography ? { ...defaultTheme.typography, ...storedTheme.typography } : defaultTheme.typography,
+            buttons: storedTheme.buttons ? { ...defaultTheme.buttons, ...storedTheme.buttons } : defaultTheme.buttons,
+            effects: storedTheme.effects ? { ...defaultTheme.effects, ...storedTheme.effects } : defaultTheme.effects,
+          }
+        };
+      }
     }
   )
 );

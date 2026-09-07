@@ -13,37 +13,117 @@ export const PageRenderer: React.FC<{ page: PageData, overrideDevice?: string }>
   const { theme } = useSiteStore();
   const settings = useSiteStore(state => state.settings);
 
+  const p = theme.palette || {};
+  const t = theme.typography || {};
+  const b = theme.buttons || {};
+  const e = theme.effects || {};
+  const stylesObj = t.styles || {};
+
   const themeStyles = `
     .preview-theme-wrapper {
-      --theme-primary: ${theme.colors.primary};
-      --theme-secondary: ${theme.colors.secondary};
-      --theme-background: ${theme.colors.background};
-      --theme-text: ${theme.colors.text};
-      --theme-accent: ${theme.colors.accent};
-      --theme-border: ${theme.colors.border};
-      
-      --theme-font-heading: ${theme.typography.headingFont};
-      --theme-font-body: ${theme.typography.bodyFont};
-      --theme-base-size: ${theme.typography.baseSize}px;
-      
-      --theme-radius: ${theme.ui.borderRadius};
-      --theme-shadow: ${theme.ui.shadow};
-      
-      --theme-max-width: ${theme.layout.maxWidth}px;
-      
+      /* Palette: Brand */
+      --theme-brand-primary: ${p.brand?.primary || theme.colors?.primary || '#2563eb'};
+      --theme-brand-secondary: ${p.brand?.secondary || theme.colors?.secondary || '#4f46e5'};
+      --theme-brand-accent: ${p.brand?.accent || theme.colors?.accent || '#f59e0b'};
+      --theme-brand-link: ${p.brand?.link || theme.colors?.primary || '#2563eb'};
+
+      /* Palette: Background */
+      --theme-bg-background: ${p.background?.background || theme.colors?.background || '#ffffff'};
+      --theme-bg-surface: ${p.background?.surface || '#f8fafc'};
+      --theme-bg-section: ${p.background?.sectionBg || '#ffffff'};
+      --theme-bg-container: ${p.background?.containerBg || '#ffffff'};
+
+      /* Palette: Text */
+      --theme-text-heading: ${p.text?.heading || theme.colors?.text || '#0f172a'};
+      --theme-text-subheading: ${p.text?.subheading || '#334155'};
+      --theme-text-body: ${p.text?.body || theme.colors?.text || '#475569'};
+      --theme-text-muted: ${p.text?.muted || '#94a3b8'};
+      --theme-text-inverse: ${p.text?.inverse || '#ffffff'};
+
+      /* Palette: Border */
+      --theme-border-border: ${p.border?.border || theme.colors?.border || '#e2e8f0'};
+      --theme-border-divider: ${p.border?.divider || '#f1f5f9'};
+
+      /* Palette: States */
+      --theme-state-success: ${p.states?.success || '#10b981'};
+      --theme-state-warning: ${p.states?.warning || '#f59e0b'};
+      --theme-state-error: ${p.states?.error || '#ef4444'};
+      --theme-state-info: ${p.states?.info || '#3b82f6'};
+
+      /* Typography Tokens */
+      --theme-font-heading: ${t.headingFont || 'Outfit, sans-serif'};
+      --theme-font-body: ${t.bodyFont || 'Inter, sans-serif'};
+      --theme-font-button: ${t.buttonFont || t.bodyFont || 'Inter, sans-serif'};
+      --theme-font-accent: ${t.accentFont || t.headingFont || 'Space Grotesk, sans-serif'};
+      --theme-base-size: ${t.baseSize || 16}px;
+
+      /* Button Tokens */
+      --theme-btn-primary-bg: ${b.primary?.bg || '#2563eb'};
+      --theme-btn-primary-text: ${b.primary?.text || '#ffffff'};
+      --theme-btn-primary-border: ${b.primary?.border || '1px solid #2563eb'};
+      --theme-btn-primary-radius: ${b.primary?.borderRadius || '8px'};
+      --theme-btn-primary-weight: ${b.primary?.fontWeight || 600};
+
+      --theme-btn-secondary-bg: ${b.secondary?.bg || '#f1f5f9'};
+      --theme-btn-secondary-text: ${b.secondary?.text || '#0f172a'};
+      --theme-btn-secondary-border: ${b.secondary?.border || '1px solid #e2e8f0'};
+      --theme-btn-secondary-radius: ${b.secondary?.borderRadius || '8px'};
+
+      /* Effects */
+      --theme-radius: ${e.borderRadius || theme.ui?.borderRadius || '8px'};
+      --theme-shadow: ${e.shadow || theme.ui?.shadow || '0 4px 6px -1px rgb(0 0 0 / 0.1)'};
+      --theme-transition: ${e.transition || 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'};
+
+      /* Legacy compatibility aliases */
+      --theme-primary: var(--theme-brand-primary);
+      --theme-secondary: var(--theme-brand-secondary);
+      --theme-background: var(--theme-bg-background);
+      --theme-text: var(--theme-text-body);
+      --theme-accent: var(--theme-brand-accent);
+      --theme-border: var(--theme-border-border);
+      --theme-max-width: ${theme.layout?.maxWidth || 1280}px;
+
       font-family: var(--theme-font-body);
       font-size: var(--theme-base-size);
-      color: var(--theme-text);
-      background-color: var(--theme-background);
+      color: var(--theme-text-body);
+      background-color: var(--theme-bg-background);
     }
     
-    .preview-theme-wrapper h1, 
-    .preview-theme-wrapper h2, 
-    .preview-theme-wrapper h3, 
-    .preview-theme-wrapper h4, 
-    .preview-theme-wrapper h5, 
-    .preview-theme-wrapper h6 {
+    .preview-theme-wrapper h1 {
       font-family: var(--theme-font-heading);
+      font-size: ${stylesObj.h1?.fontSize || 44}px;
+      font-weight: ${stylesObj.h1?.fontWeight || 700};
+      line-height: ${stylesObj.h1?.lineHeight || 1.15};
+      letter-spacing: ${stylesObj.h1?.letterSpacing || -1}px;
+      color: var(--theme-text-heading);
+    }
+    .preview-theme-wrapper h2 {
+      font-family: var(--theme-font-heading);
+      font-size: ${stylesObj.h2?.fontSize || 34}px;
+      font-weight: ${stylesObj.h2?.fontWeight || 700};
+      line-height: ${stylesObj.h2?.lineHeight || 1.2};
+      letter-spacing: ${stylesObj.h2?.letterSpacing || -0.5}px;
+      color: var(--theme-text-heading);
+    }
+    .preview-theme-wrapper h3 {
+      font-family: var(--theme-font-heading);
+      font-size: ${stylesObj.h3?.fontSize || 26}px;
+      font-weight: ${stylesObj.h3?.fontWeight || 600};
+      line-height: ${stylesObj.h3?.lineHeight || 1.25};
+      letter-spacing: ${stylesObj.h3?.letterSpacing || -0.3}px;
+      color: var(--theme-text-heading);
+    }
+    .preview-theme-wrapper h4 {
+      font-family: var(--theme-font-heading);
+      font-size: ${stylesObj.h4?.fontSize || 20}px;
+      font-weight: ${stylesObj.h4?.fontWeight || 600};
+      line-height: ${stylesObj.h4?.lineHeight || 1.3};
+      letter-spacing: ${stylesObj.h4?.letterSpacing || 0}px;
+      color: var(--theme-text-heading);
+    }
+    .preview-theme-wrapper p {
+      color: var(--theme-text-body);
+      line-height: ${stylesObj.body?.lineHeight || 1.6};
     }
   `;
 

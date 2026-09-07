@@ -207,6 +207,13 @@
   transform: translateY(-1px);
 }
 
+.iconBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+}
+
 .actionBtns {
   display: flex;
   gap: 12px;
@@ -841,7 +848,7 @@
 
 /* ---------------- Right Panel ---------------- */
 .rightPanel {
-  width: 320px;
+  width: 340px;
   background-color: var(--panel-bg);
   border-left: 1px solid var(--border-color);
   display: flex;
@@ -853,7 +860,7 @@
 
 .rightPanelHidden {
   width: 0px;
-  transform: translateX(320px);
+  transform: translateX(340px);
   border-left: none;
   overflow: hidden;
 }
@@ -862,14 +869,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--border-color);
+  gap: 12px;
 }
 
 .phLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .propTabs {

@@ -17,13 +17,13 @@ const BlogPostsSection: React.FC<{ props: Record<string, any> }> = ({ props }) =
       backgroundColor: 'var(--theme-background)',
       position: 'relative',
       overflow: 'hidden',
-      ...(props._marginStyle || {}),
+      ...props._marginStyle,
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
         maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
-        ...(props._paddingStyle || {}),
+        ...props._paddingStyle,
       }}>
       <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', marginBottom: '40px', gap: isMobile ? '16px' : '0' }}>
         <h2 style={{

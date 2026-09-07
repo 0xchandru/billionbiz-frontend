@@ -20,14 +20,14 @@ const LogoListSection: React.FC<{ props: Record<string, any> }> = ({ props }) =>
       backgroundColor: '#f8fafc',
       position: 'relative',
       overflow: 'hidden',
-      ...(props._marginStyle || {}),
+      ...props._marginStyle,
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '60px 48px',
         textAlign: 'center',
         maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
-        ...(props._paddingStyle || {}),
+        ...props._paddingStyle,
       }}>
       {heading && (
         <p style={{

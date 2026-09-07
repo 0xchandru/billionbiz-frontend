@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 export type DeviceType = 'desktop' | 'tablet' | 'mobile' | 'all';
+export type ThemeCategoryType = 'themes' | 'colors' | 'typography' | 'buttons' | 'effects';
 
 interface LandingEditorState {
   // Section selection
@@ -30,6 +31,9 @@ interface LandingEditorState {
   // Selected page
   selectedPageId: string;
 
+  // Selected theme category
+  selectedThemeCategory: ThemeCategoryType | null;
+
   // Tab Memory
   lastEditorMemory: {
     selectedSectionId: string | null;
@@ -37,6 +41,10 @@ interface LandingEditorState {
   };
   lastPagesMemory: {
     selectedPageId: string;
+    isRightSidebarOpen: boolean;
+  };
+  lastThemeMemory: {
+    selectedThemeCategory: ThemeCategoryType | null;
     isRightSidebarOpen: boolean;
   };
 
@@ -55,6 +63,7 @@ interface LandingEditorState {
   setActiveSettingItem: (item: string | null) => void;
   setActivePanel: (panel: 'editor' | 'pages' | 'theme' | 'settings') => void;
   setSelectedPageId: (id: string) => void;
+  setSelectedThemeCategory: (category: ThemeCategoryType | null) => void;
 }
 
 export const useLandingEditorStore = create<LandingEditorState>((set) => ({
@@ -71,8 +80,10 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   activeSettingItem: 'General',
   activePanel: 'editor',
   selectedPageId: 'landing-page',
+  selectedThemeCategory: 'themes',
   lastEditorMemory: { selectedSectionId: null, isRightSidebarOpen: false },
   lastPagesMemory: { selectedPageId: '', isRightSidebarOpen: false },
+  lastThemeMemory: { selectedThemeCategory: 'themes', isRightSidebarOpen: true },
 
   setSelectedSectionId: (id) => set({
     selectedSectionId: id,
@@ -104,6 +115,14 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
   setInsertIndex: (index) => set({ insertIndex: index }),
   setSectionToDelete: (id) => set({ sectionToDelete: id }),
   setActiveSettingItem: (item) => set({ activeSettingItem: item }),
+  setSelectedThemeCategory: (category) => set({
+    selectedThemeCategory: category,
+    isRightSidebarOpen: category !== null,
+    lastThemeMemory: {
+      selectedThemeCategory: category,
+      isRightSidebarOpen: category !== null,
+    },
+  }),
   setActivePanel: (panel) => set((state) => {
     const lastEditorMemory = state.activePanel === 'editor' ? {
       selectedSectionId: state.selectedSectionId,
@@ -115,6 +134,11 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
       isRightSidebarOpen: state.isRightSidebarOpen,
     } : state.lastPagesMemory;
 
+    const lastThemeMemory = state.activePanel === 'theme' ? {
+      selectedThemeCategory: state.selectedThemeCategory,
+      isRightSidebarOpen: state.isRightSidebarOpen,
+    } : state.lastThemeMemory;
+
     if (panel === 'editor') {
       return {
         activePanel: panel,
@@ -123,17 +147,43 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isRightSidebarOpen: lastEditorMemory.isRightSidebarOpen,
         lastEditorMemory,
         lastPagesMemory,
+        lastThemeMemory,
         isColorWidgetOpen: false,
         isTypographyWidgetOpen: false,
       };
     } else if (panel === 'pages') {
+      const pageToSelect = (lastPagesMemory.selectedPageId && lastPagesMemory.selectedPageId !== 'landing-page')
+        ? lastPagesMemory.selectedPageId
+        : (state.selectedPageId && state.selectedPageId !== 'landing-page')
+          ? state.selectedPageId
+          : 'shop-page';
       return {
         activePanel: panel,
-        selectedPageId: lastPagesMemory.selectedPageId,
+        selectedPageId: pageToSelect,
         selectedSectionId: null,
-        isRightSidebarOpen: lastPagesMemory.isRightSidebarOpen,
+        isRightSidebarOpen: true,
+        lastEditorMemory,
+        lastPagesMemory: {
+          selectedPageId: pageToSelect,
+          isRightSidebarOpen: true,
+        },
+        lastThemeMemory,
+        isColorWidgetOpen: false,
+        isTypographyWidgetOpen: false,
+      };
+    } else if (panel === 'theme') {
+      const categoryToSelect = lastThemeMemory.selectedThemeCategory || 'themes';
+      return {
+        activePanel: panel,
+        selectedPageId: 'landing-page',
+        selectedThemeCategory: categoryToSelect,
+        isRightSidebarOpen: true,
         lastEditorMemory,
         lastPagesMemory,
+        lastThemeMemory: {
+          selectedThemeCategory: categoryToSelect,
+          isRightSidebarOpen: true,
+        },
         isColorWidgetOpen: false,
         isTypographyWidgetOpen: false,
       };
@@ -144,6 +194,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isRightSidebarOpen: false,
         lastEditorMemory,
         lastPagesMemory,
+        lastThemeMemory,
         isColorWidgetOpen: false,
         isTypographyWidgetOpen: false,
       };
@@ -160,12 +211,12 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
     } else {
       return {
         selectedPageId: id,
-        activePanel: state.activePanel === 'editor' ? 'pages' : state.activePanel,
+        activePanel: 'pages',
         selectedSectionId: null,
-        isRightSidebarOpen: state.isRightSidebarOpen,
+        isRightSidebarOpen: true,
         lastPagesMemory: {
           selectedPageId: id,
-          isRightSidebarOpen: state.isRightSidebarOpen,
+          isRightSidebarOpen: true,
         }
       };
     }

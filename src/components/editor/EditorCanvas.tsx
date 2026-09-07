@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronRight, User, ShoppingBag } from 'lucide-react';
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { PageRenderer } from './PageRenderer';
@@ -9,7 +8,7 @@ import styles from '../../pages/editor/EditorLayout.module.css';
 
 export const EditorCanvas: React.FC = () => {
    const { isRightSidebarOpen, activePanel: activeTab, device, selectedPageId } = useLandingEditorStore();
-   const { pages, theme, settings } = useSiteStore();
+   const { pages, theme } = useSiteStore();
    const containerRef = useRef<HTMLDivElement>(null);
    const [containerSize, setContainerSize] = useState({ width: 1280, height: 800 });
    const [isScrolled, setIsScrolled] = useState(false);

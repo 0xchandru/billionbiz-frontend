@@ -19,9 +19,10 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
     <section style={{
       width: '100%',
       backgroundColor: bgColor,
+      background: bgColor,
       position: 'relative',
       overflow: 'hidden',
-      ...(props._marginStyle || {}),
+      ...props._marginStyle,
     }}>
       <div style={{
         display: 'flex',
@@ -32,7 +33,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
         textAlign: isMobile || isTablet ? 'center' : 'left',
         maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
-        ...(props._paddingStyle || {}),
+        ...props._paddingStyle,
       }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px', alignItems: isMobile || isTablet ? 'center' : 'flex-start' }}>
         <h2 style={{

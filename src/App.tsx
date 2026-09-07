@@ -17,6 +17,7 @@ function App() {
           <Route path="*" element={<div>Placeholder Page</div>} />
         </Route>
         <Route path="/editor" element={<EditorLayout />} />
+        <Route path="/editor/:tab" element={<EditorLayout />} />
       </Routes>
     </BrowserRouter>
   );

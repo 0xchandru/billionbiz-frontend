@@ -18,13 +18,13 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
       backgroundColor: 'var(--theme-background)',
       position: 'relative',
       overflow: 'hidden',
-      ...(props._marginStyle || {}),
+      ...props._marginStyle,
     }}>
       <div style={{
         padding: isMobile ? '40px 24px' : '80px 48px',
         maxWidth: props._layoutWidth ?? '100%',
         margin: '0 auto',
-        ...(props._paddingStyle || {}),
+        ...props._paddingStyle,
       }}>
       <h2 style={{
         fontSize: isMobile ? '32px' : '40px',

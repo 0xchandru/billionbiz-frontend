@@ -4,6 +4,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type D
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { SectionFieldConfig, ListItemField, FieldOption } from '../sectionConfigs/types';
+import { ThemeOverrideControl } from './ThemeOverrideControl';
 import styles from '../../../pages/editor/EditorLayout.module.css';
 
 // ------------------------------------------------------------------
@@ -484,31 +485,18 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
           </div>
         );
 
-      case 'color':
+      case 'color': {
+        const isBg = field.key.toLowerCase().includes('bg') || field.key.toLowerCase().includes('background');
         return (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '8px 12px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '6px',
-            border: '1px solid var(--border-color)',
-          }}>
-            <input
-              type="color"
-              value={value || '#000000'}
-              onChange={(e) => handleChange(e.target.value)}
-              style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: 'transparent' }}
-            />
-            <input
-              type="text"
-              value={value || ''}
-              onChange={(e) => handleChange(e.target.value)}
-              style={{ flex: 1, fontSize: '13px', padding: '4px 8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-            />
-          </div>
+          <ThemeOverrideControl
+            label={field.label}
+            value={value}
+            onChange={handleChange}
+            isBackground={isBg}
+            fieldKey={field.key}
+          />
         );
+      }
 
       case 'image':
         return (
@@ -643,7 +631,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
       gap: '6px',
     }}>
       {/* Label row */}
-      {field.type !== 'toggle' && (
+      {field.type !== 'toggle' && field.type !== 'color' && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
             {field.label}

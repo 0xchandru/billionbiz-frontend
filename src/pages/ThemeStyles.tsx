@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Rocket, 
   RotateCcw, 
+  Undo,
+  Redo,
   CheckCircle2,
   Circle,
   Palette,
@@ -14,6 +16,7 @@ import {
   Droplet
 } from 'lucide-react';
 import { useSiteStore } from '../store/siteStore';
+import { useThemeHistoryStore } from '../store/themeHistoryStore';
 import styles from './ThemeStyles.module.css';
 
 const tabs = ['Presets', 'Colors', 'Typography', 'UI Elements', 'Layout'];
@@ -37,8 +40,45 @@ const presets = [
 ];
 
 const ThemeStyles = () => {
-  const { theme, updateTheme } = useSiteStore();
+  const { theme, updateTheme, undoTheme, redoTheme } = useSiteStore();
+  const { canUndo, canRedo } = useThemeHistoryStore();
   const [activeTab, setActiveTab] = useState('Presets');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tagName = target.tagName?.toLowerCase();
+        if (tagName === 'textarea') return;
+        if (tagName === 'input') {
+          const inputType = (target as HTMLInputElement).type?.toLowerCase();
+          if (['text', 'password', 'search', 'email', 'url', 'number'].includes(inputType)) {
+            return;
+          }
+        }
+      }
+
+      const isMac = typeof navigator !== 'undefined' && navigator.platform?.toUpperCase().includes('MAC');
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+      if (!modifier) return;
+
+      if ((e.key.toLowerCase() === 'y' && !e.shiftKey) || (e.key.toLowerCase() === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        useSiteStore.getState().redoTheme();
+        return;
+      }
+
+      if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        useSiteStore.getState().undoTheme();
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const themeStyles = `
     .preview-theme-wrapper {
@@ -97,7 +137,27 @@ const ThemeStyles = () => {
               Experience the power of real-time design tokens. Better than Shopify. Fully interactive.
             </p>
             <div className={styles.heroActions}>
-              <button className={styles.btnOutline} onClick={() => updateTheme(presets[0])}>
+              <button 
+                className={styles.btnOutline} 
+                onClick={undoTheme}
+                disabled={!canUndo}
+                style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title={canUndo ? 'Undo theme change (Ctrl+Z)' : 'Nothing to undo'}
+              >
+                <Undo size={16} />
+                <span>Undo</span>
+              </button>
+              <button 
+                className={styles.btnOutline} 
+                onClick={redoTheme}
+                disabled={!canRedo}
+                style={{ opacity: canRedo ? 1 : 0.4, cursor: canRedo ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title={canRedo ? 'Redo theme change (Ctrl+Y / Cmd+Shift+Z)' : 'Nothing to redo'}
+              >
+                <Redo size={16} />
+                <span>Redo</span>
+              </button>
+              <button className={styles.btnOutline} onClick={() => updateTheme(presets[0], true)}>
                 <RotateCcw size={16} />
                 <span>Reset to Default</span>
               </button>

@@ -21,8 +21,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Pages.module.css';
 
 const shopPages = [
-  { id: 'products-list', title: 'Products List', desc: 'Display all products in a collection.', icon: ShoppingBag, color: '#198754', bgColor: '#e8f5e9' },
-  { id: 'product-details', title: 'Product Details', desc: 'Show detailed information about a product.', icon: Package, color: '#198754', bgColor: '#e8f5e9' },
+  { id: 'shop-page', title: 'Products List', desc: 'Display all products in a collection.', icon: ShoppingBag, color: '#198754', bgColor: '#e8f5e9' },
+  { id: 'product-details-page', title: 'Product Details', desc: 'Show detailed information about a product.', icon: Package, color: '#198754', bgColor: '#e8f5e9' },
   { id: 'cart-page', title: 'Cart', desc: 'View and manage items in the cart.', icon: ShoppingCart, color: '#0d6efd', bgColor: '#cfe2ff' },
   { id: 'checkout-page', title: 'Checkout', desc: 'Secure checkout process.', icon: CreditCard, color: '#198754', bgColor: '#e8f5e9' },
 ];
@@ -33,7 +33,7 @@ const infoPages = [
   { id: 'faq-page', title: 'FAQ', desc: 'Answer common questions.', icon: HelpCircle, color: '#fd7e14', bgColor: '#ffe5d0' },
   { id: 'privacy-policy-page', title: 'Privacy Policy', desc: 'Your privacy policy information.', icon: Shield, color: '#fa5252', bgColor: '#ffe3e3' },
   { id: 'terms-conditions-page', title: 'Terms & Conditions', desc: 'Terms and conditions of your site.', icon: FileText, color: '#6f42c1', bgColor: '#e0cffc' },
-  { id: 'refund-policy-page', title: 'Refund Policy', desc: 'Your return and refund policy.', icon: RefreshCw, color: '#6f42c1', bgColor: '#e0cffc' },
+  { id: 'return-policy-page', title: 'Refund Policy', desc: 'Your return and refund policy.', icon: RefreshCw, color: '#6f42c1', bgColor: '#e0cffc' },
 ];
 
 const PageCard = ({ page }: { page: any }) => {
@@ -73,7 +73,7 @@ const Pages = () => {
             <Trash2 size={16} />
             <span>View Trash</span>
           </button>
-          <button className={styles.btnPrimary}>
+          <button className={styles.btnPrimary} onClick={() => navigate('/editor/pages')}>
             <Plus size={16} />
             <span>Add New Page</span>
           </button>
@@ -154,7 +154,7 @@ const Pages = () => {
             <h3 className={styles.sectionTitle}>Shop Pages</h3>
             <span className={styles.countBadge}>{shopPages.length} Pages</span>
           </div>
-          <button className={styles.viewAllBtn}>
+          <button className={styles.viewAllBtn} onClick={() => navigate('/editor/pages?pageId=shop-page')}>
             <span>View all</span>
             <ChevronRight size={16} />
           </button>
@@ -172,7 +172,7 @@ const Pages = () => {
             <h3 className={styles.sectionTitle}>Informational Pages</h3>
             <span className={styles.countBadge}>{infoPages.length} Pages</span>
           </div>
-          <button className={styles.viewAllBtn}>
+          <button className={styles.viewAllBtn} onClick={() => navigate('/editor/pages?pageId=about-page')}>
             <span>View all</span>
             <ChevronRight size={16} />
           </button>
