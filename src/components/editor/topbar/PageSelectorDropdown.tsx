@@ -1,0 +1,102 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check, FileText } from 'lucide-react';
+import { useSiteStore } from '../../../store/siteStore';
+import { useLandingEditorStore } from '../../../store/landingEditorStore';
+import styles from './topbar.module.css';
+
+export const PageSelectorDropdown: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const { pages } = useSiteStore();
+  const { selectedPageId, setSelectedPageId, activePanel, setActivePanel } = useLandingEditorStore();
+
+  const activePage = pages.find((p) => p.id === selectedPageId) || pages[0];
+
+  // Dynamic title based on active panel & page
+  const getContextTitle = () => {
+    if (activePanel === 'pages') return 'Site Pages';
+    if (activePanel === 'theme') return 'Theme & Styles';
+    if (activePanel === 'settings') return 'Site Settings';
+    if (!activePage) return 'Landing Page';
+    if (activePage.id === 'landing-page') return 'Landing Page';
+    return activePage.name;
+  };
+
+  const getContextSubtitle = () => {
+    if (activePanel === 'pages') return 'Manager';
+    if (activePanel === 'theme') return 'Global';
+    if (activePanel === 'settings') return 'Configuration';
+    return 'Storefront';
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const handleSelectPage = (pageId: string) => {
+    setSelectedPageId(pageId);
+    if (activePanel !== 'editor') {
+      setActivePanel('editor');
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative' }}>
+      <button 
+        className={styles.pageSelectorTrigger}
+        onClick={() => setIsOpen(!isOpen)}
+        title="Switch page context"
+        aria-expanded={isOpen}
+      >
+        <div className={styles.pageTitleGroup}>
+          <span className={styles.pageSubtitle}>{getContextSubtitle()}</span>
+          <span className={styles.pageTitleText}>{getContextTitle()}</span>
+        </div>
+        <ChevronDown 
+          size={13} 
+          className={styles.chevronIcon} 
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }}
+        />
+      </button>
+
+      {isOpen && (
+        <div className={`${styles.popoverCard} ${styles.pageSelectorPopover}`}>
+          <div style={{ padding: '4px 8px 6px', borderBottom: '1px solid #f1f5f9', marginBottom: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Switch Page
+            </span>
+          </div>
+          <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+            {pages.map((p) => {
+              const isSelected = p.id === (activePanel === 'editor' ? selectedPageId : null);
+              const displayName = p.id === 'landing-page' ? 'Landing Page' : p.name;
+              return (
+                <button
+                  key={p.id}
+                  className={`${styles.pageItem} ${isSelected ? styles.activePageItem : ''}`}
+                  onClick={() => handleSelectPage(p.id)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={13} style={{ opacity: isSelected ? 1 : 0.6 }} />
+                    <span style={{ fontWeight: isSelected ? 600 : 500 }}>{displayName}</span>
+                  </div>
+                  {isSelected && <Check size={14} color="#059669" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
