@@ -15,8 +15,10 @@ export const PageSelectorDropdown: React.FC = () => {
 
   const activePage = pages.find((p) => p.id === selectedPageId) || pages[0];
 
-  // Dynamic title based on active page
+  // Dynamic title based on active page or panel
   const getContextTitle = () => {
+    if (activePanel === 'theme') return 'Theme';
+    if (activePanel === 'settings') return 'Settings';
     if (activePanel === 'editor' || selectedPageId === 'landing-page' || !activePage) {
       return 'Landing Page';
     }
@@ -49,7 +51,10 @@ export const PageSelectorDropdown: React.FC = () => {
     setIsOpen(false);
   };
 
-  const currentlyActiveId = activePanel === 'editor' ? 'landing-page' : selectedPageId;
+  const currentlyActiveId =
+    activePanel === 'theme' || activePanel === 'settings'
+      ? null
+      : (activePanel === 'editor' ? 'landing-page' : selectedPageId);
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
