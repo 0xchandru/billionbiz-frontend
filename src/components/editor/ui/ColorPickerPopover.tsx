@@ -26,7 +26,13 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   style,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
+  const [popoverPos, setPopoverPos] = useState({
+    top: 0,
+    left: 0,
+    width: 308,
+    isAbove: false,
+    arrowLeft: 40,
+  });
   const triggerRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const hiddenColorInputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +41,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   const defaultPalette = getDefaultTheme().palette;
   const palette = theme?.palette || defaultPalette;
 
-  // Key theme swatches to offer first
+  // Key theme swatches to offer
   const themeSwatches = [
     { label: 'Primary', color: palette.brand?.primary || '#2563eb' },
     { label: 'Secondary', color: palette.brand?.secondary || '#4f46e5' },
@@ -47,32 +53,63 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     { label: 'Border', color: palette.border?.border || '#e2e8f0' },
   ];
 
-  // Calculate safe position inside the viewport
+  // Calculate safe and aligned position inside the viewport
   const updatePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const popoverWidth = 260;
-    const popoverHeight = 310;
 
-    // Prefer opening to the left of the trigger (since sidebar is on the right)
-    let left = rect.right - popoverWidth;
-    
-    // Check right screen collision
-    if (left + popoverWidth > window.innerWidth - 12) {
-      left = window.innerWidth - popoverWidth - 12;
-    }
-    // Check left screen collision
-    if (left < 12) {
-      left = 12;
+    // Check if trigger is inside the right sidebar (aside)
+    const sidebar = triggerRef.current.closest('aside') || document.querySelector('aside');
+    let left = 0;
+    let popoverWidth = 308;
+
+    if (sidebar) {
+      const sRect = sidebar.getBoundingClientRect();
+      // Match sidebar content width with equal 16px margins on both sides
+      popoverWidth = Math.min(308, Math.max(260, sRect.width - 24));
+      left = sRect.left + (sRect.width - popoverWidth) / 2;
+    } else {
+      // Outside sidebar (e.g. standalone page or modal)
+      popoverWidth = 280;
+      left = rect.left;
+      if (left + popoverWidth > window.innerWidth - 12) {
+        left = window.innerWidth - popoverWidth - 12;
+      }
+      if (left < 12) left = 12;
     }
 
-    // Vertical positioning: try below, if clipped try above
-    let top = rect.bottom + 6;
-    if (top + popoverHeight > window.innerHeight - 12) {
-      top = Math.max(12, rect.top - popoverHeight - 6);
+    // Measure or estimate popover height
+    const popoverHeight = popoverRef.current ? popoverRef.current.offsetHeight : 290;
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+    const spaceAbove = rect.top - 54; // Account for 46px topbar + 8px gap
+
+    let isAbove = false;
+    let top = 0;
+
+    // Prefer opening directly below the trigger row if room exists
+    if (spaceBelow >= popoverHeight + 8) {
+      isAbove = false;
+      top = rect.bottom + 8;
+    } else if (spaceAbove >= popoverHeight + 8) {
+      // Open directly above the trigger row
+      isAbove = true;
+      top = rect.top - popoverHeight - 8;
+    } else {
+      // Clamp to whichever side has more space
+      if (spaceBelow >= spaceAbove) {
+        isAbove = false;
+        top = Math.max(54, window.innerHeight - popoverHeight - 12);
+      } else {
+        isAbove = true;
+        top = Math.max(54, rect.top - popoverHeight - 8);
+      }
     }
 
-    setPopoverPos({ top, left });
+    // Pointer arrow aligned with trigger center
+    const triggerCenter = rect.left + rect.width / 2;
+    const arrowLeft = Math.max(20, Math.min(popoverWidth - 20, triggerCenter - left));
+
+    setPopoverPos({ top, left, width: popoverWidth, isAbove, arrowLeft });
   };
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -84,6 +121,13 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       setIsOpen(false);
     }
   };
+
+  // Re-adjust position after open when popover DOM node is measured
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+    }
+  }, [isOpen]);
 
   // Close on outside click or scroll
   useEffect(() => {
@@ -138,12 +182,11 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     lg: { width: '34px', height: '34px', borderRadius: '8px' },
   }[size];
 
-  const currentColor = (value && (value.startsWith('#') || value.startsWith('rgb'))) 
-    ? value 
-    : '#2563eb';
+  const currentColor = value || '#2563eb';
 
   return (
     <>
+      {/* Trigger Swatch Button */}
       <div
         ref={triggerRef}
         onClick={handleToggle}
@@ -174,6 +217,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
         }} />
       </div>
 
+      {/* Portal-Rendered Color Picker Popover */}
       {isOpen && createPortal(
         <div
           ref={popoverRef}
@@ -182,10 +226,10 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             position: 'fixed',
             top: `${popoverPos.top}px`,
             left: `${popoverPos.left}px`,
-            width: '260px',
+            width: `${popoverPos.width}px`,
             backgroundColor: '#ffffff',
             borderRadius: '12px',
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 12px 36px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.08)',
             zIndex: 999999,
             padding: '14px',
             display: 'flex',
@@ -193,8 +237,27 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             gap: '12px',
             fontFamily: 'Inter, -apple-system, sans-serif',
             animation: 'fadeIn 0.12s ease-out',
+            boxSizing: 'border-box',
           }}
         >
+          {/* Pointer Arrow */}
+          <div
+            style={{
+              position: 'absolute',
+              [popoverPos.isAbove ? 'bottom' : 'top']: '-5px',
+              left: `${popoverPos.arrowLeft}px`,
+              width: '10px',
+              height: '10px',
+              backgroundColor: '#ffffff',
+              transform: 'translateX(-50%) rotate(45deg)',
+              borderLeft: popoverPos.isAbove ? 'none' : '1px solid rgba(0,0,0,0.1)',
+              borderTop: popoverPos.isAbove ? 'none' : '1px solid rgba(0,0,0,0.1)',
+              borderRight: popoverPos.isAbove ? '1px solid rgba(0,0,0,0.1)' : 'none',
+              borderBottom: popoverPos.isAbove ? '1px solid rgba(0,0,0,0.1)' : 'none',
+              zIndex: 1,
+            }}
+          />
+
           {/* Header Row: Current swatch, Hex input, and Eyedropper */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
@@ -235,7 +298,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             <button
               type="button"
               onClick={handleEyeDropper}
-              title="Pick color from screen or advanced chooser"
+              title="Pick color with eyedropper or system chooser"
               style={{
                 width: '32px',
                 height: '32px',
@@ -255,7 +318,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             >
               <Pipette size={15} />
             </button>
-            {/* Hidden native input positioned safely inside portal, not at screen edge */}
+            {/* Hidden native input positioned safely inside portal */}
             <input
               ref={hiddenColorInputRef}
               type="color"
@@ -265,12 +328,12 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             />
           </div>
 
-          {/* Theme Palette Swatches */}
+          {/* Theme Palette Swatches (Clean 2-column layout with no text wrapping) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
               Theme Colors
             </span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
               {themeSwatches.map((item) => {
                 const isSelected = value?.toLowerCase() === item.color.toLowerCase();
                 return (
@@ -282,26 +345,39 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px',
-                      padding: '4px 6px',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
                       backgroundColor: isSelected ? '#eff6ff' : '#f8fafc',
-                      border: isSelected ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                      border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                       borderRadius: '6px',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.1s ease',
+                      minWidth: 0,
                     }}
                   >
-                    <div style={{
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: item.color,
-                      border: '1px solid rgba(0,0,0,0.15)',
-                      flexShrink: 0,
-                    }} />
-                    <span style={{ fontSize: '10px', fontWeight: 500, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {item.label}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        backgroundColor: item.color,
+                        border: '1px solid rgba(0,0,0,0.15)',
+                        flexShrink: 0,
+                      }} />
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        color: '#334155',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}>
+                        {item.label}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#94a3b8', flexShrink: 0, marginLeft: '4px' }}>
+                      {item.color}
                     </span>
                   </button>
                 );
@@ -323,10 +399,11 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                     onClick={() => onChange(hex)}
                     title={hex}
                     style={{
-                      height: '22px',
-                      borderRadius: '4px',
+                      height: '24px',
+                      borderRadius: '5px',
                       backgroundColor: hex,
                       border: isSelected ? '2px solid #2563eb' : '1px solid rgba(0,0,0,0.12)',
+                      boxShadow: isSelected ? '0 0 0 1px #2563eb' : 'none',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -337,7 +414,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
                     onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                   >
                     {isSelected && (
-                      <Check size={11} color={['#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fef08a'].includes(hex) ? '#0f172a' : '#ffffff'} />
+                      <Check size={12} color={['#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#fef08a'].includes(hex) ? '#0f172a' : '#ffffff'} />
                     )}
                   </div>
                 );
