@@ -28,6 +28,7 @@ export const EditorTopBar: React.FC = () => {
     hasUnsavedChanges, 
     markSaved, 
     lastPublishedSnapshots,
+    unpublishPage,
   } = useSiteStore();
   const { canUndo, canRedo } = useThemeHistoryStore();
 
@@ -187,6 +188,17 @@ export const EditorTopBar: React.FC = () => {
     showToast('Opening preview in new tab...');
   };
 
+  const handleStatusBadgeClick = () => {
+    if (isLive) {
+      if (activePage) {
+        unpublishPage(activePage.id);
+        showToast(`"${activePage.name}" unpublished to draft`);
+      }
+    } else {
+      setIsPublishModalOpen(true);
+    }
+  };
+
   const undoDisabled = isTheme ? !canUndo : true;
   const redoDisabled = isTheme ? !canRedo : true;
 
@@ -224,20 +236,21 @@ export const EditorTopBar: React.FC = () => {
               {/* 2. Landing Page / Contextual Page Selector */}
               <PageSelectorDropdown />
 
-              {/* 12. Live / Draft / Saved Status Label (Informational indicator, not clickable) */}
-              <div 
+              {/* 12. Live / Draft / Saved Status Label */}
+              <button 
                 className={`${styles.statusBadge} ${isLive ? styles.statusLive : isSavedDraft ? styles.statusSaved : styles.statusDraft}`}
+                onClick={handleStatusBadgeClick}
                 title={
                   isLive 
-                    ? 'Status: Live on storefront (published)' 
+                    ? 'Status: Live on storefront (published). Click to unpublish.' 
                     : isSavedDraft 
-                      ? 'Status: Saved to draft (unpublished changes)' 
-                      : 'Status: Draft (unsaved edits)'
+                      ? 'Status: Saved to draft. Click to review & publish to live storefront.' 
+                      : 'Status: Draft / Unsaved. Click to review & publish.'
                 }
               >
                 <span className={styles.statusDot} />
                 <span>{isLive ? 'Live' : isSavedDraft ? 'Saved' : 'Draft'}</span>
-              </div>
+              </button>
             </>
           )}
 

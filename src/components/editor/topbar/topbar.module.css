@@ -114,8 +114,7 @@
   border-radius: 9999px;
   font-size: 10.5px;
   font-weight: 500;
-  cursor: default;
-  user-select: none;
+  cursor: pointer;
   transition: all 0.12s ease;
 }
 
@@ -125,16 +124,28 @@
   border: 1px solid #dcfce7;
 }
 
+.statusLive:hover {
+  background-color: #dcfce7;
+}
+
 .statusDraft {
   background-color: #fffbeb;
   color: #b45309;
   border: 1px solid #fef3c7;
 }
 
+.statusDraft:hover {
+  background-color: #fef3c7;
+}
+
 .statusSaved {
   background-color: #eff6ff;
   color: #1d4ed8;
   border: 1px solid #dbeafe;
+}
+
+.statusSaved:hover {
+  background-color: #dbeafe;
 }
 
 .statusDot {
