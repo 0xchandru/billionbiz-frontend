@@ -60,6 +60,12 @@ import { imageWithTextConfig } from './imageWithTextConfig';
 import { videoConfig } from './videoConfig';
 import { newsletterConfig } from './newsletterConfig';
 import { richTextConfig } from './richTextConfig';
+import { blogPostsConfig } from './blogPostsConfig';
+import { contactFormConfig } from './contactFormConfig';
+import { pricingTableConfig } from './pricingTableConfig';
+import { galleryConfig } from './galleryConfig';
+import { mapConfig } from './mapConfig';
+import { logoListConfig } from './logoListConfig';
 
 [
   heroBannerConfig,
@@ -78,6 +84,12 @@ import { richTextConfig } from './richTextConfig';
   videoConfig,
   newsletterConfig,
   richTextConfig,
+  blogPostsConfig,
+  contactFormConfig,
+  pricingTableConfig,
+  galleryConfig,
+  mapConfig,
+  logoListConfig,
 ].forEach(registerSectionConfig);
 
 // Re-export types

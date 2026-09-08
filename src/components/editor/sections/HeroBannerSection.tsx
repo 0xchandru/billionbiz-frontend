@@ -6,7 +6,16 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const isTablet = device === 'tablet';
 
   const layout = props.selectedLayout ?? props.layout ?? 'left';
-  const bgColor = props.bgColor ?? 'var(--theme-background)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
+  const badgeBg = props.badgeBg || 'var(--theme-brand-secondary)';
+  const badgeColor = props.badgeColor || 'var(--theme-text-inverse, #ffffff)';
+  const primaryBtnBg = props.primaryBtnBg || 'var(--theme-btn-primary-bg)';
+  const primaryBtnColor = props.primaryBtnColor || 'var(--theme-btn-primary-text)';
+  const secondaryBtnBg = props.secondaryBtnBg || 'var(--theme-btn-secondary-bg, transparent)';
+  const secondaryBtnColor = props.secondaryBtnColor || 'var(--theme-btn-secondary-text, var(--theme-brand-primary))';
+
   const badge = props.badge ?? 'New Arrival';
   const heading = props.heading ?? 'Elevate Your Creative Workflow';
   const description = props.description ?? 'Discover the tools that empower professionals to build stunning digital experiences with ease.';
@@ -65,8 +74,8 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
         width: '100%',
       }}>
         <span style={{
-          backgroundColor: 'var(--theme-secondary)',
-          color: 'var(--theme-background)',
+          backgroundColor: badgeBg,
+          color: badgeColor,
           fontSize: '13px',
           fontWeight: 600,
           padding: '8px 16px',
@@ -82,15 +91,15 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           lineHeight: 1.05,
           letterSpacing: '-2px',
           marginBottom: '24px',
-          color: 'var(--theme-text)',
+          color: headingColor,
           fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
           {heading}
         </h1>
         <p style={{
           fontSize: isMobile ? '16px' : '20px',
-          color: 'var(--theme-text)',
-          opacity: 0.7,
+          color: textColor,
+          opacity: 0.85,
           lineHeight: 1.6,
           marginBottom: '40px',
           fontWeight: 400,
@@ -100,10 +109,10 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
         </p>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: isMobile || isTablet || isCenter ? 'center' : 'flex-start' }}>
           <button style={{
-            backgroundColor: 'var(--theme-primary)',
-            color: 'var(--theme-background)',
+            backgroundColor: primaryBtnBg,
+            color: primaryBtnColor,
             padding: '16px 32px',
-            borderRadius: 'var(--theme-radius)',
+            borderRadius: 'var(--theme-btn-primary-radius, var(--theme-radius))',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer',
@@ -113,11 +122,11 @@ const HeroBannerSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
             {primaryBtn}
           </button>
           <button style={{
-            backgroundColor: 'transparent',
-            border: '1px solid var(--theme-primary)',
-            color: 'var(--theme-primary)',
+            backgroundColor: secondaryBtnBg,
+            border: `1px solid ${secondaryBtnColor}`,
+            color: secondaryBtnColor,
             padding: '16px 32px',
-            borderRadius: 'var(--theme-radius)',
+            borderRadius: 'var(--theme-btn-secondary-radius, var(--theme-radius))',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer',

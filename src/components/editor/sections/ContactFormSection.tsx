@@ -7,7 +7,25 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
   const heading = props.heading ?? 'Get in Touch';
   const description = props.description ?? 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.';
   const buttonText = props.buttonText ?? 'Send Message';
-  const bgColor = props.bgColor ?? 'var(--theme-background)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
+  const inputBg = props.inputBg || 'var(--theme-bg-surface, #f8fafc)';
+  const borderColor = props.borderColor || 'var(--theme-border-border, #e2e8f0)';
+  const inputColor = props.inputColor || 'var(--theme-text-body)';
+  const buttonBg = props.buttonBg || 'var(--theme-btn-primary-bg, var(--theme-brand-primary))';
+  const buttonColor = props.buttonColor || 'var(--theme-btn-primary-text, #ffffff)';
+
+  const inputStyle: React.CSSProperties = {
+    padding: '14px 16px',
+    borderRadius: '8px',
+    border: `1px solid ${borderColor}`,
+    fontSize: '15px',
+    fontFamily: 'inherit',
+    backgroundColor: inputBg,
+    color: inputColor,
+    outline: 'none',
+  };
 
   return (
     <section style={{
@@ -33,7 +51,7 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
             fontSize: isMobile ? '32px' : '40px',
             fontWeight: 700,
             letterSpacing: '-1px',
-            color: 'var(--theme-text)',
+            color: headingColor,
             marginBottom: '16px',
             fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
@@ -42,8 +60,8 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
           <p style={{
             fontSize: '17px',
             lineHeight: 1.6,
-            color: 'var(--theme-text)',
-            opacity: 0.7,
+            color: textColor,
+            opacity: 0.85,
           }}>
             {description}
           </p>
@@ -54,78 +72,38 @@ const ContactFormSection: React.FC<{ props: Record<string, any> }> = ({ props })
             <input
               type="text"
               placeholder="First name"
-              style={{
-                flex: 1,
-                padding: '14px 16px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                fontSize: '15px',
-                fontFamily: 'inherit',
-                backgroundColor: '#f8fafc',
-                outline: 'none',
-              }}
+              style={{ ...inputStyle, flex: 1 }}
             />
             <input
               type="text"
               placeholder="Last name"
-              style={{
-                flex: 1,
-                padding: '14px 16px',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0',
-                fontSize: '15px',
-                fontFamily: 'inherit',
-                backgroundColor: '#f8fafc',
-                outline: 'none',
-              }}
+              style={{ ...inputStyle, flex: 1 }}
             />
           </div>
           <input
             type="email"
             placeholder="Email address"
-            style={{
-              padding: '14px 16px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              fontSize: '15px',
-              fontFamily: 'inherit',
-              backgroundColor: '#f8fafc',
-              outline: 'none',
-            }}
+            style={inputStyle}
           />
           <input
             type="text"
             placeholder="Subject"
-            style={{
-              padding: '14px 16px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              fontSize: '15px',
-              fontFamily: 'inherit',
-              backgroundColor: '#f8fafc',
-              outline: 'none',
-            }}
+            style={inputStyle}
           />
           <textarea
             placeholder="Your message"
             rows={5}
             style={{
-              padding: '14px 16px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              fontSize: '15px',
-              fontFamily: 'inherit',
-              backgroundColor: '#f8fafc',
+              ...inputStyle,
               resize: 'vertical',
-              outline: 'none',
             }}
           />
           <button style={{
             padding: '16px',
-            backgroundColor: 'var(--theme-primary)',
-            color: 'white',
+            backgroundColor: buttonBg,
+            color: buttonColor,
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: 'var(--theme-btn-primary-radius, 8px)',
             fontSize: '16px',
             fontWeight: 600,
             cursor: 'pointer',

@@ -63,11 +63,72 @@ export const faqConfig: SectionConfig = {
           },
         ],
       },
+      {
+        id: 'design',
+        label: 'Design',
+        groups: [
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'itemBg',
+                label: 'Item Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'borderColor',
+                label: 'Item Border Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'questionColor',
+                label: 'Question Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Answer Text Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'iconColor',
+                label: 'Icon Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+        ],
+      },
     ];
   },
   defaultProps: {
     selectedLayout: 'accordion',
     heading: 'Frequently Asked Questions',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    itemBg: 'inherit',
+    borderColor: 'inherit',
+    questionColor: 'inherit',
+    textColor: 'inherit',
+    iconColor: 'inherit',
     items: [
       { question: 'What is your return policy?', answer: 'We offer a 30-day hassle-free return policy.' },
       { question: 'How long does shipping take?', answer: 'Standard shipping takes 5-7 business days.' },

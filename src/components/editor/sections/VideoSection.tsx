@@ -7,7 +7,9 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const heading = props.heading ?? 'See it in Action';
   const description = props.description ?? 'Watch how our products transform everyday spaces into extraordinary experiences.';
   const videoUrl = props.videoUrl ?? 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-  const bgColor = props.bgColor ?? 'var(--theme-background)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
 
   // Convert youtube/vimeo URLs to embed URLs
   let embedUrl = videoUrl;
@@ -43,7 +45,7 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
           fontSize: isMobile ? '32px' : '40px',
           fontWeight: 700,
           letterSpacing: '-1px',
-          color: 'var(--theme-text)',
+          color: headingColor,
           marginBottom: '16px',
           fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
@@ -52,8 +54,8 @@ const VideoSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
         <p style={{
           fontSize: '17px',
           lineHeight: 1.6,
-          color: 'var(--theme-text)',
-          opacity: 0.7,
+          color: textColor,
+          opacity: 0.85,
         }}>
           {description}
         </p>

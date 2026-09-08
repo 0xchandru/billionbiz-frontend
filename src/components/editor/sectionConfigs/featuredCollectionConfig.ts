@@ -87,6 +87,48 @@ export const featuredCollectionConfig: SectionConfig = {
         label: 'Design',
         groups: [
           {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Product Title Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'priceColor',
+                label: 'Price Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'cardBg',
+                label: 'Product Card Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'linkColor',
+                label: 'View All Link Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+          {
             id: 'grid-settings',
             label: 'Grid Settings',
             showWhen: { field: 'selectedLayout', value: 'grid' },
@@ -111,6 +153,12 @@ export const featuredCollectionConfig: SectionConfig = {
     heading: 'Featured Collection',
     linkText: 'View all',
     columns: 4,
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    priceColor: 'inherit',
+    cardBg: 'inherit',
+    linkColor: 'inherit',
     products: [
       { name: 'Artisan Ceramic Vase', price: '$89.00', image: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400&h=400&fit=crop' },
       { name: 'Handwoven Throw', price: '$129.00', image: 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=400&h=400&fit=crop' },

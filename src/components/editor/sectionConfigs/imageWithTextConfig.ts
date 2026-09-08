@@ -58,6 +58,42 @@ export const imageWithTextConfig: SectionConfig = {
           },
         ],
       },
+      {
+        id: 'design',
+        label: 'Design',
+        groups: [
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Body Text Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'buttonColor',
+                label: 'Button / Link Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+        ],
+      },
     ];
   },
   defaultProps: {
@@ -66,5 +102,9 @@ export const imageWithTextConfig: SectionConfig = {
     body: 'Every piece in our collection is thoughtfully designed.',
     buttonText: 'Learn More',
     image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=700&h=700&fit=crop',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    buttonColor: 'inherit',
   },
 };

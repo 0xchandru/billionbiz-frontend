@@ -47,6 +47,36 @@ export const videoConfig: SectionConfig = {
           },
         ],
       },
+      {
+        id: 'design',
+        label: 'Design',
+        groups: [
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Description Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+        ],
+      },
     ];
   },
   defaultProps: {
@@ -54,5 +84,8 @@ export const videoConfig: SectionConfig = {
     heading: 'See it in Action',
     description: 'Watch how our products transform everyday spaces.',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
   },
 };

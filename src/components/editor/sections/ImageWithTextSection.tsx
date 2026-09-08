@@ -11,7 +11,10 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
   const imagePosition = props.imagePosition ?? 'left';
   const buttonText = props.buttonText ?? 'Learn More';
   const buttonLink = props.buttonLink ?? '#';
-  const bgColor = props.bgColor ?? 'var(--theme-background)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
+  const buttonColor = props.buttonColor || 'var(--theme-brand-link, var(--theme-brand-primary))';
 
   const isRight = imagePosition === 'right';
 
@@ -40,7 +43,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
           fontSize: isMobile ? '32px' : '40px',
           fontWeight: 700,
           letterSpacing: '-1px',
-          color: 'var(--theme-text)',
+          color: headingColor,
           lineHeight: 1.2,
           fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
@@ -49,8 +52,8 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
         <p style={{
           fontSize: '17px',
           lineHeight: 1.7,
-          color: 'var(--theme-text)',
-          opacity: 0.7,
+          color: textColor,
+          opacity: 0.85,
         }}>
           {body}
         </p>
@@ -59,7 +62,7 @@ const ImageWithTextSection: React.FC<{ props: Record<string, any> }> = ({ props 
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            color: 'var(--theme-primary)',
+            color: buttonColor,
             fontSize: '16px',
             fontWeight: 600,
             textDecoration: 'none',

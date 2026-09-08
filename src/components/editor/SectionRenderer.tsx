@@ -33,11 +33,15 @@ export const getDefaultPadding = (sectionType: string): any => {
 
 // --- Generic Placeholder Section ---
 const PlaceholderSection: React.FC<{ props: any }> = ({ props }) => {
+  const bgColor = props.bgColor || 'var(--theme-bg-surface, var(--theme-bg, #f8fafc))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading, var(--theme-text, #333))';
+  const textColor = props.textColor || 'var(--theme-text-muted, #64748b)';
+
   return (
     <div style={{
       padding: '60px 20px',
-      backgroundColor: 'var(--theme-bg, #f8fafc)',
-      border: '1px dashed #cbd5e1',
+      backgroundColor: bgColor,
+      border: '1px dashed var(--theme-border-default, #cbd5e1)',
       borderRadius: '8px',
       textAlign: 'center',
       display: 'flex',
@@ -47,10 +51,10 @@ const PlaceholderSection: React.FC<{ props: any }> = ({ props }) => {
       minHeight: '200px',
       margin: '16px 0'
     }}>
-      <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--theme-text, #333)' }}>
+      <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: headingColor }}>
         {props.name || 'Section Placeholder'}
       </h3>
-      <p style={{ margin: 0, fontSize: '14px', color: '#64748b' }}>
+      <p style={{ margin: 0, fontSize: '14px', color: textColor }}>
         This section is generated dynamically based on your store's data and layout settings.
       </p>
     </div>
@@ -777,11 +781,24 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     secondaryBtn: 'Explore Templates',
     image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=1000&fit=crop',
     layout: 'left',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    badgeBg: 'inherit',
+    badgeColor: 'inherit',
+    primaryBtnBg: 'inherit',
+    primaryBtnColor: 'inherit',
+    secondaryBtnBg: 'inherit',
+    secondaryBtnColor: 'inherit',
   },
   HeroCarousel: {
     autoPlay: true,
     interval: 5,
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    buttonBg: 'inherit',
+    buttonColor: 'inherit',
     slides: [
       { heading: 'Summer Collection', description: 'Brighten up your space with our new summer arrivals.', image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1200&h=600&fit=crop', buttonText: 'Shop Summer' }
     ]
@@ -790,6 +807,12 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     heading: 'Featured Collection',
     linkText: 'View all',
     columns: 4,
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    priceColor: 'inherit',
+    cardBg: 'inherit',
+    linkColor: 'inherit',
     products: [
       { name: 'Artisan Ceramic Vase', price: '$89.00', image: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400&h=400&fit=crop' },
       { name: 'Handwoven Throw', price: '$129.00', image: 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=400&h=400&fit=crop' },
@@ -799,6 +822,10 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
   },
   CategoryList: {
     heading: 'Shop by Category',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    cardBg: 'inherit',
     categories: [
       { name: 'Furniture', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop' },
       { name: 'Decor', image: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400&h=400&fit=crop' },
@@ -812,23 +839,39 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     imagePosition: 'left',
     buttonText: 'Learn More',
     buttonLink: '#',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    buttonColor: 'inherit',
   },
   RichText: {
     heading: 'Our Mission',
     body: 'We believe in creating products that are both beautiful and functional. Our team of designers and engineers work together to push the boundaries of what\'s possible.',
     alignment: 'center',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
   },
   Newsletter: {
     heading: 'Stay in the Loop',
     description: 'Subscribe to our newsletter and get 10% off your first order, plus exclusive access to new arrivals.',
     buttonText: 'Subscribe',
-    bgColor: '#0f172a',
-    textColor: '#ffffff',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    inputBg: 'inherit',
+    buttonBg: 'inherit',
+    buttonColor: 'inherit',
   },
   Testimonials: {
     heading: 'What Our Customers Say',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    cardBg: 'inherit',
+    borderColor: 'inherit',
+    textColor: 'inherit',
+    nameColor: 'inherit',
+    starColor: 'inherit',
     testimonials: [
       { name: 'Sarah Johnson', role: 'Interior Designer', quote: 'The quality of these products is outstanding. Every piece feels like a work of art.', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face', rating: 5 },
       { name: 'Michael Chen', role: 'Architect', quote: 'I\'ve been a loyal customer for 3 years. The attention to detail is unmatched.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face', rating: 5 },
@@ -837,6 +880,9 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
   },
   LogoList: {
     heading: 'Trusted by Leading Brands',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
     logos: [
       { name: 'Airbnb' }, { name: 'Spotify' }, { name: 'Stripe' },
       { name: 'Notion' }, { name: 'Figma' }, { name: 'Slack' },
@@ -846,10 +892,19 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     heading: 'See it in Action',
     description: 'Watch how our products transform everyday spaces into extraordinary experiences.',
     videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
   },
   FAQ: {
     heading: 'Frequently Asked Questions',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    itemBg: 'inherit',
+    borderColor: 'inherit',
+    questionColor: 'inherit',
+    textColor: 'inherit',
+    iconColor: 'inherit',
     items: [
       { question: 'What is your return policy?', answer: 'We offer a 30-day hassle-free return policy. Simply reach out to our support team.' },
       { question: 'How long does shipping take?', answer: 'Standard shipping takes 5-7 business days. Express shipping is 2-3 business days.' },
@@ -862,10 +917,24 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     heading: 'Get in Touch',
     description: 'Have a question? Fill out the form below and we\'ll get back to you within 24 hours.',
     buttonText: 'Send Message',
-    bgColor: 'var(--theme-background)',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    inputBg: 'inherit',
+    borderColor: 'inherit',
+    buttonBg: 'inherit',
+    buttonColor: 'inherit',
   },
   BlogPosts: {
     heading: 'Latest from Our Blog',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    cardBg: 'inherit',
+    borderColor: 'inherit',
+    titleColor: 'inherit',
+    textColor: 'inherit',
+    dateColor: 'inherit',
+    linkColor: 'inherit',
     posts: [
       { title: '10 Tips for Styling Your Living Room', excerpt: 'Discover expert interior design tips to transform your space.', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=400&fit=crop', date: 'Dec 15, 2025' },
       { title: 'The Art of Sustainable Living', excerpt: 'Learn how to make eco-friendly choices without compromising on style.', image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop', date: 'Dec 10, 2025' },
@@ -875,6 +944,8 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
   Gallery: {
     heading: 'Gallery',
     columns: 3,
+    bgColor: 'inherit',
+    headingColor: 'inherit',
     images: [
       { src: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&h=600&fit=crop', alt: 'Gallery 1' },
       { src: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop', alt: 'Gallery 2' },
@@ -891,10 +962,23 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
     phone: '+1 (555) 123-4567',
     email: 'hello@billionbiz.com',
     hours: 'Mon-Fri: 9am - 6pm | Sat: 10am - 4pm',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    accentColor: 'inherit',
   },
   PricingTable: {
     heading: 'Simple, transparent pricing',
     subheading: 'Choose the perfect plan for your business.',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    cardBg: 'inherit',
+    borderColor: 'inherit',
+    titleColor: 'inherit',
+    priceColor: 'inherit',
+    textColor: 'inherit',
+    buttonBg: 'inherit',
+    highlightedBg: 'inherit',
     plans: [
       { name: 'Starter', price: '$29', period: '/month', features: ['Up to 100 products', '2 staff accounts', 'Basic analytics', 'Email support', '2% transaction fee'], buttonText: 'Start Free Trial', highlighted: false },
       { name: 'Professional', price: '$79', period: '/month', features: ['Unlimited products', '5 staff accounts', 'Advanced analytics', 'Priority support', '1% transaction fee', 'Custom domain', 'Gift cards'], buttonText: 'Start Free Trial', highlighted: true },

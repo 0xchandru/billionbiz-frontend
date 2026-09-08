@@ -7,8 +7,12 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
   const heading = props.heading ?? 'Stay in the Loop';
   const description = props.description ?? 'Subscribe to our newsletter and get 10% off your first order, plus exclusive access to new arrivals and special deals.';
   const buttonText = props.buttonText ?? 'Subscribe';
-  const bgColor = props.bgColor ?? '#0f172a';
-  const textColor = props.textColor ?? '#ffffff';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-surface, #0f172a)';
+  const headingColor = props.headingColor || props.textColor || 'var(--theme-text-heading, #ffffff)';
+  const textColor = props.textColor || 'var(--theme-text-body, #ffffff)';
+  const inputBg = props.inputBg || 'var(--theme-bg-container, rgba(255,255,255,0.1))';
+  const buttonBg = props.buttonBg || 'var(--theme-btn-primary-bg, var(--theme-brand-primary))';
+  const buttonColor = props.buttonColor || 'var(--theme-btn-primary-text, #ffffff)';
 
   return (
     <section style={{
@@ -31,7 +35,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           fontSize: isMobile ? '28px' : '36px',
           fontWeight: 700,
           letterSpacing: '-0.5px',
-          color: textColor,
+          color: headingColor,
           marginBottom: '16px',
           fontFamily: 'var(--theme-font-heading), sans-serif',
         }}>
@@ -41,7 +45,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           fontSize: '16px',
           lineHeight: 1.6,
           color: textColor,
-          opacity: 0.7,
+          opacity: 0.85,
           marginBottom: '32px',
         }}>
           {description}
@@ -61,7 +65,7 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
               padding: '14px 20px',
               borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.2)',
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: inputBg,
               color: textColor,
               fontSize: '15px',
               outline: 'none',
@@ -70,10 +74,10 @@ const NewsletterSection: React.FC<{ props: Record<string, any> }> = ({ props }) 
           />
           <button style={{
             padding: '14px 28px',
-            backgroundColor: 'var(--theme-primary)',
-            color: 'white',
+            backgroundColor: buttonBg,
+            color: buttonColor,
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: 'var(--theme-btn-primary-radius, 8px)',
             fontWeight: 600,
             fontSize: '15px',
             cursor: 'pointer',

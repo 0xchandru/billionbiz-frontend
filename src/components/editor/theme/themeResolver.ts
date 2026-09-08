@@ -35,29 +35,47 @@ export interface ThemeTokenInfo {
 }
 
 // Maps section property keys to their default global theme CSS variables
-export const themeTokenMap: Record<string, { tokenVar: string; label: string; isBackground: boolean }> = {
-  bgColor: { tokenVar: 'var(--theme-bg-section)', label: 'Section Background', isBackground: true },
-  backgroundColor: { tokenVar: 'var(--theme-bg-section)', label: 'Background', isBackground: true },
-  containerBg: { tokenVar: 'var(--theme-bg-container)', label: 'Container Background', isBackground: true },
-  sectionBg: { tokenVar: 'var(--theme-bg-section)', label: 'Section Background', isBackground: true },
+export const themeTokenMap: Record<string, { tokenVar: string; label: string; isBackground: boolean; palettePath?: string }> = {
+  bgColor: { tokenVar: 'var(--theme-bg-section)', label: 'Section Background', isBackground: true, palettePath: 'background.sectionBg' },
+  backgroundColor: { tokenVar: 'var(--theme-bg-section)', label: 'Background', isBackground: true, palettePath: 'background.sectionBg' },
+  containerBg: { tokenVar: 'var(--theme-bg-container)', label: 'Container Background', isBackground: true, palettePath: 'background.containerBg' },
+  sectionBg: { tokenVar: 'var(--theme-bg-section)', label: 'Section Background', isBackground: true, palettePath: 'background.sectionBg' },
+  cardBg: { tokenVar: 'var(--theme-bg-surface)', label: 'Card Background', isBackground: true, palettePath: 'background.surface' },
+  itemBg: { tokenVar: 'var(--theme-bg-surface)', label: 'Item Background', isBackground: true, palettePath: 'background.surface' },
+  inputBg: { tokenVar: 'var(--theme-bg-surface)', label: 'Input Background', isBackground: true, palettePath: 'background.surface' },
+  badgeBg: { tokenVar: 'var(--theme-brand-secondary)', label: 'Badge Background', isBackground: true, palettePath: 'brand.secondary' },
+  highlightedBg: { tokenVar: 'var(--theme-brand-primary)', label: 'Highlighted Card Bg', isBackground: true, palettePath: 'brand.primary' },
   
-  textColor: { tokenVar: 'var(--theme-text-body)', label: 'Body Text Color', isBackground: false },
-  bodyColor: { tokenVar: 'var(--theme-text-body)', label: 'Body Text Color', isBackground: false },
-  headingColor: { tokenVar: 'var(--theme-text-heading)', label: 'Heading Color', isBackground: false },
-  subheadingColor: { tokenVar: 'var(--theme-text-subheading)', label: 'Subheading Color', isBackground: false },
-  mutedColor: { tokenVar: 'var(--theme-text-muted)', label: 'Muted Text Color', isBackground: false },
-  linkColor: { tokenVar: 'var(--theme-brand-link)', label: 'Link Color', isBackground: false },
-  accentColor: { tokenVar: 'var(--theme-brand-accent)', label: 'Accent Color', isBackground: false },
+  textColor: { tokenVar: 'var(--theme-text-body)', label: 'Body Text Color', isBackground: false, palettePath: 'text.body' },
+  bodyColor: { tokenVar: 'var(--theme-text-body)', label: 'Body Text Color', isBackground: false, palettePath: 'text.body' },
+  headingColor: { tokenVar: 'var(--theme-text-heading)', label: 'Heading Color', isBackground: false, palettePath: 'text.heading' },
+  titleColor: { tokenVar: 'var(--theme-text-heading)', label: 'Title Color', isBackground: false, palettePath: 'text.heading' },
+  subheadingColor: { tokenVar: 'var(--theme-text-subheading)', label: 'Subheading Color', isBackground: false, palettePath: 'text.subheading' },
+  mutedColor: { tokenVar: 'var(--theme-text-muted)', label: 'Muted Text Color', isBackground: false, palettePath: 'text.muted' },
+  linkColor: { tokenVar: 'var(--theme-brand-link)', label: 'Link Color', isBackground: false, palettePath: 'brand.link' },
+  accentColor: { tokenVar: 'var(--theme-brand-accent)', label: 'Accent Color', isBackground: false, palettePath: 'brand.accent' },
+  priceColor: { tokenVar: 'var(--theme-brand-primary)', label: 'Price Color', isBackground: false, palettePath: 'brand.primary' },
+  badgeColor: { tokenVar: 'var(--theme-text-inverse)', label: 'Badge Text Color', isBackground: false, palettePath: 'text.inverse' },
+  inputColor: { tokenVar: 'var(--theme-text-body)', label: 'Input Text Color', isBackground: false, palettePath: 'text.body' },
+  starColor: { tokenVar: 'var(--theme-brand-accent)', label: 'Star Rating Color', isBackground: false, palettePath: 'brand.accent' },
+  dateColor: { tokenVar: 'var(--theme-brand-primary)', label: 'Date Color', isBackground: false, palettePath: 'brand.primary' },
+  iconColor: { tokenVar: 'var(--theme-brand-primary)', label: 'Icon Color', isBackground: false, palettePath: 'brand.primary' },
+  questionColor: { tokenVar: 'var(--theme-text-heading)', label: 'Question Text', isBackground: false, palettePath: 'text.heading' },
+  answerColor: { tokenVar: 'var(--theme-text-body)', label: 'Answer Text', isBackground: false, palettePath: 'text.body' },
+  nameColor: { tokenVar: 'var(--theme-text-heading)', label: 'Name Color', isBackground: false, palettePath: 'text.heading' },
+  highlightedText: { tokenVar: 'var(--theme-text-inverse)', label: 'Highlighted Card Text', isBackground: false, palettePath: 'text.inverse' },
   
-  borderColor: { tokenVar: 'var(--theme-border-border)', label: 'Border Color', isBackground: false },
-  dividerColor: { tokenVar: 'var(--theme-border-divider)', label: 'Divider Color', isBackground: false },
+  borderColor: { tokenVar: 'var(--theme-border-border)', label: 'Border Color', isBackground: false, palettePath: 'border.border' },
+  dividerColor: { tokenVar: 'var(--theme-border-divider)', label: 'Divider Color', isBackground: false, palettePath: 'border.divider' },
   
-  buttonBg: { tokenVar: 'var(--theme-btn-primary-bg)', label: 'Button Background', isBackground: false },
-  buttonColor: { tokenVar: 'var(--theme-btn-primary-text)', label: 'Button Text Color', isBackground: false },
-  primaryBtnBg: { tokenVar: 'var(--theme-btn-primary-bg)', label: 'Primary Button Bg', isBackground: false },
-  secondaryBtnBg: { tokenVar: 'var(--theme-btn-secondary-bg)', label: 'Secondary Button Bg', isBackground: false },
-  footerBg: { tokenVar: 'var(--theme-footer-bg)', label: 'Footer Background', isBackground: true },
-  footerText: { tokenVar: 'var(--theme-footer-text)', label: 'Footer Text', isBackground: false },
+  buttonBg: { tokenVar: 'var(--theme-btn-primary-bg)', label: 'Button Background', isBackground: false, palettePath: 'brand.primary' },
+  buttonColor: { tokenVar: 'var(--theme-btn-primary-text)', label: 'Button Text Color', isBackground: false, palettePath: 'text.inverse' },
+  primaryBtnBg: { tokenVar: 'var(--theme-btn-primary-bg)', label: 'Primary Button Bg', isBackground: false, palettePath: 'brand.primary' },
+  primaryBtnColor: { tokenVar: 'var(--theme-btn-primary-text)', label: 'Primary Button Text', isBackground: false, palettePath: 'text.inverse' },
+  secondaryBtnBg: { tokenVar: 'var(--theme-btn-secondary-bg)', label: 'Secondary Button Bg', isBackground: false, palettePath: 'brand.secondary' },
+  secondaryBtnColor: { tokenVar: 'var(--theme-btn-secondary-text)', label: 'Secondary Button Text', isBackground: false, palettePath: 'brand.secondary' },
+  footerBg: { tokenVar: 'var(--theme-footer-bg)', label: 'Footer Background', isBackground: true, palettePath: 'background.footerBg' },
+  footerText: { tokenVar: 'var(--theme-footer-text)', label: 'Footer Text', isBackground: false, palettePath: 'text.footerText' },
 };
 
 /**
@@ -70,6 +88,17 @@ export function getSectionDefaultToken(
 ): ThemeTokenInfo {
   const key = fieldKey.toLowerCase();
   const type = sectionType || '';
+
+  // Direct map check
+  if (themeTokenMap[fieldKey]) {
+    const item = themeTokenMap[fieldKey];
+    return {
+      tokenVar: item.tokenVar,
+      label: item.label,
+      palettePath: item.palettePath || 'text.body',
+      isBackground: item.isBackground,
+    };
+  }
 
   // 1. ANNOUNCEMENT BAR SPECIALIZATION (Secondary Color + Inverse Text)
   if (type === 'AnnouncementBar') {
@@ -163,20 +192,50 @@ export function getSectionDefaultToken(
     }
   }
 
-  // 6. GENERAL FIELD KEY MAPPINGS ACROSS ALL SECTIONS
+  // 6. PRICE SPECIALIZATION (Brand Primary)
+  if (key.includes('price')) {
+    return {
+      tokenVar: 'var(--theme-brand-primary)',
+      label: 'Price Color',
+      palettePath: 'brand.primary',
+      isBackground: false,
+    };
+  }
+
+  // 7. BADGE SPECIALIZATION (Brand Secondary + Inverse Text)
+  if (key.includes('badge')) {
+    if (key.includes('bg') || key.includes('background')) {
+      return {
+        tokenVar: 'var(--theme-brand-secondary)',
+        label: 'Badge Background',
+        palettePath: 'brand.secondary',
+        isBackground: true,
+      };
+    }
+    return {
+      tokenVar: 'var(--theme-text-inverse)',
+      label: 'Badge Text',
+      palettePath: 'text.inverse',
+      isBackground: false,
+    };
+  }
+
+  // 8. CARD / ITEM BACKGROUND (Surface Background)
+  if (key.includes('cardbg') || key.includes('itembg') || key.includes('surface')) {
+    return {
+      tokenVar: 'var(--theme-bg-surface)',
+      label: 'Card Background',
+      palettePath: 'background.surface',
+      isBackground: true,
+    };
+  }
+
+  // 9. GENERAL FIELD KEY MAPPINGS ACROSS ALL SECTIONS
   if (key.includes('containerbg') || key.includes('container')) {
     return {
       tokenVar: 'var(--theme-bg-container)',
       label: 'Container Background',
       palettePath: 'background.containerBg',
-      isBackground: true,
-    };
-  }
-  if (key.includes('surface') || key.includes('cardbg')) {
-    return {
-      tokenVar: 'var(--theme-bg-surface)',
-      label: 'Surface Background',
-      palettePath: 'background.surface',
       isBackground: true,
     };
   }
@@ -188,7 +247,7 @@ export function getSectionDefaultToken(
       isBackground: true,
     };
   }
-  if (key.includes('heading') || key.includes('title')) {
+  if (key.includes('heading') || key.includes('title') || key.includes('name') || key.includes('question')) {
     return {
       tokenVar: 'var(--theme-text-heading)',
       label: 'Heading Text',
@@ -212,7 +271,7 @@ export function getSectionDefaultToken(
       isBackground: false,
     };
   }
-  if (key.includes('accent')) {
+  if (key.includes('accent') || key.includes('star')) {
     return {
       tokenVar: 'var(--theme-brand-accent)',
       label: 'Accent Color',
@@ -220,7 +279,7 @@ export function getSectionDefaultToken(
       isBackground: false,
     };
   }
-  if (key.includes('link')) {
+  if (key.includes('link') || key.includes('date') || key.includes('icon')) {
     return {
       tokenVar: 'var(--theme-brand-link)',
       label: 'Link Color',
@@ -252,7 +311,7 @@ export function getSectionDefaultToken(
       isBackground: false,
     };
   }
-  if (key.includes('buttontext') || key.includes('btntext')) {
+  if (key.includes('buttontext') || key.includes('btntext') || key.includes('buttoncolor') || key.includes('primarybtncolor')) {
     return {
       tokenVar: 'var(--theme-btn-primary-text)',
       label: 'Button Text',

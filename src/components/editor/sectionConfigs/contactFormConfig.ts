@@ -1,13 +1,12 @@
 import type { SectionConfig } from './types';
 
-export const newsletterConfig: SectionConfig = {
-  type: 'Newsletter',
-  name: 'Newsletter',
-  category: 'conversion',
-  description: 'Capture emails with a newsletter signup form.',
+export const contactFormConfig: SectionConfig = {
+  type: 'ContactForm',
+  name: 'Contact Form',
+  category: 'content',
+  description: 'Provide an interactive contact form for customer inquiries.',
   layouts: [
-    { id: 'standard', label: 'Standard', description: 'Center-aligned signup' },
-    { id: 'split', label: 'Split', description: 'Text on left, form on right' },
+    { id: 'standard', label: 'Standard', description: 'Centered form' },
   ],
   getTabs: (_selectedLayout = 'standard') => {
     return [
@@ -23,25 +22,19 @@ export const newsletterConfig: SectionConfig = {
                 key: 'heading',
                 label: 'Heading Text',
                 type: 'text',
-                defaultValue: 'Stay in the Loop',
+                defaultValue: 'Get in Touch',
               },
               {
                 key: 'description',
                 label: 'Description',
                 type: 'textarea',
-                defaultValue: 'Subscribe to our newsletter and get 10% off your first order.',
+                defaultValue: 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.',
               },
-            ],
-          },
-          {
-            id: 'form',
-            label: 'Form Settings',
-            fields: [
               {
                 key: 'buttonText',
                 label: 'Button Text',
                 type: 'text',
-                defaultValue: 'Subscribe',
+                defaultValue: 'Send Message',
               },
             ],
           },
@@ -80,6 +73,18 @@ export const newsletterConfig: SectionConfig = {
                 defaultValue: 'inherit',
               },
               {
+                key: 'borderColor',
+                label: 'Input Border Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'inputColor',
+                label: 'Input Text Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
                 key: 'buttonBg',
                 label: 'Button Background',
                 type: 'color',
@@ -99,13 +104,15 @@ export const newsletterConfig: SectionConfig = {
   },
   defaultProps: {
     selectedLayout: 'standard',
-    heading: 'Stay in the Loop',
-    description: 'Subscribe to our newsletter and get 10% off your first order.',
-    buttonText: 'Subscribe',
+    heading: 'Get in Touch',
+    description: 'Have a question or need help? Fill out the form below and our team will get back to you within 24 hours.',
+    buttonText: 'Send Message',
     bgColor: 'inherit',
     headingColor: 'inherit',
     textColor: 'inherit',
     inputBg: 'inherit',
+    borderColor: 'inherit',
+    inputColor: 'inherit',
     buttonBg: 'inherit',
     buttonColor: 'inherit',
   },

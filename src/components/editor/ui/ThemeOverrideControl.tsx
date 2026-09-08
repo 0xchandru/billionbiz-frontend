@@ -42,6 +42,14 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
   // Determine actual color for the token path
   const getTokenColor = (palettePath: string): string => {
     const parts = palettePath.split('.');
+    if (parts[0] === 'buttons') {
+      const b = theme?.buttons || getDefaultTheme().buttons;
+      let cur: any = b;
+      for (let i = 1; i < parts.length; i++) {
+        cur = cur?.[parts[i]];
+      }
+      if (cur) return cur;
+    }
     let current: any = palette;
     let fallback: any = defaultPalette;
     for (const part of parts) {
@@ -52,6 +60,7 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
     if (fallback) return fallback;
     if (palettePath === 'background.footerBg') return '#0f172a';
     if (palettePath === 'text.footerText') return '#ffffff';
+    if (palettePath === 'text.inverse') return '#ffffff';
     return '#2563eb';
   };
 

@@ -225,9 +225,9 @@ export const useSiteStore = create<SiteState>()(
       if (insertIndex !== undefined && insertIndex !== null) {
         sections.splice(insertIndex, 0, newSection);
       } else {
-        const footerIndex = sections.findIndex(s => s.type === 'Footer');
-        if (footerIndex !== -1) {
-          sections.splice(footerIndex, 0, newSection);
+        const firstFooterIndex = sections.findIndex(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type));
+        if (firstFooterIndex !== -1) {
+          sections.splice(firstFooterIndex, 0, newSection);
         } else {
           sections.push(newSection);
         }

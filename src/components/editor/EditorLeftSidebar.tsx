@@ -9,7 +9,7 @@ import { getCategoryDisplayName, getPageConfig } from './pageConfigs';
 import { SortableItem } from './SortableItem';
 import { Home } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ThemeSecondaryNav } from './theme/ThemeSecondaryNav';
 import styles from '../../pages/editor/EditorLayout.module.css';
@@ -22,36 +22,60 @@ export const EditorLeftSidebar: React.FC = () => {
     setAddSectionWidgetOpen, selectedPageId, setSelectedPageId,
     isLeftSidebarCollapsed, setLeftSidebarCollapsed, lastPagesMemory
   } = useLandingEditorStore();
-  const { pages, toggleSectionVisibility, reorderSections, removeSection, updatePageProps } = useSiteStore();
+  const { pages, toggleSectionVisibility, removeSection, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
 
-  // Cleanup duplicate locked sections that might have been added manually before restrictions
+  const headerBarTypes = ['AnnouncementBar', 'UtilityBar'];
+  const footerBarTypes = ['FooterMenu', 'FooterText'];
+
+  // Cleanup duplicate locked sections and guarantee canonical page section ordering:
+  // [AnnouncementBar?, UtilityBar?, Header, ...TemplateSections, FooterMenu?, FooterText?, Footer]
   React.useEffect(() => {
-    if (activePage) {
-      const headerCount = activePage.sections.filter(s => s.type === 'Header').length;
-      const footerCount = activePage.sections.filter(s => s.type === 'Footer').length;
-      
-      if (headerCount > 1 || footerCount > 1) {
-        const seen = new Set();
-        const deduplicated = activePage.sections.filter(s => {
-          if (s.type === 'Header' || s.type === 'Footer') {
-            if (seen.has(s.type)) return false;
-            seen.add(s.type);
-          }
-          return true;
-        });
-        updatePageProps(activePage.id, { sections: deduplicated });
+    if (activePage && activePage.sections) {
+      const seen = new Set<string>();
+      const deduplicated = activePage.sections.filter(s => {
+        if (s.type === 'Header' || s.type === 'Footer') {
+          if (seen.has(s.type)) return false;
+          seen.add(s.type);
+        }
+        return true;
+      });
+
+      const headerBars = deduplicated.filter(s => headerBarTypes.includes(s.type));
+      const header = deduplicated.find(s => s.type === 'Header');
+      const templateSections = deduplicated.filter(
+        s => !headerBarTypes.includes(s.type) &&
+             s.type !== 'Header' &&
+             !footerBarTypes.includes(s.type) &&
+             s.type !== 'Footer'
+      );
+      const footerBars = deduplicated.filter(s => footerBarTypes.includes(s.type));
+      const footer = deduplicated.find(s => s.type === 'Footer');
+
+      const canonical = [
+        ...headerBars,
+        ...(header ? [header] : []),
+        ...templateSections,
+        ...footerBars,
+        ...(footer ? [footer] : []),
+      ];
+
+      const isChanged = 
+        canonical.length !== activePage.sections.length ||
+        canonical.some((s, i) => s.id !== activePage.sections[i]?.id);
+
+      if (isChanged) {
+        updatePageProps(activePage.id, { sections: canonical });
       }
     }
-  }, [activePage, updatePageProps]);
+  }, [activePage?.id, activePage?.sections, updatePageProps]);
+
   const [sectionToDelete, setSectionToDelete] = React.useState<string | null>(null);
   
   const [headerAddOpen, setHeaderAddOpen] = React.useState(false);
   const [footerAddOpen, setFooterAddOpen] = React.useState(false);
   const [collapsedCategories, setCollapsedCategories] = React.useState<Record<string, boolean>>({});
   const [isHovered, setIsHovered] = React.useState(false);
-  
-
   
   const headerAddRef = React.useRef<HTMLDivElement>(null);
   const footerAddRef = React.useRef<HTMLDivElement>(null);
@@ -102,41 +126,151 @@ export const EditorLeftSidebar: React.FC = () => {
     })
   );
 
+  const moveHeaderBar = (sectionId: string, direction: 'up' | 'down') => {
+    if (!activePage) return;
+    const currentBars = activePage.sections.filter(s => headerBarTypes.includes(s.type));
+    const idx = currentBars.findIndex(s => s.id === sectionId);
+    if (idx === -1) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= currentBars.length) return;
+
+    const reordered = [...currentBars];
+    const [removed] = reordered.splice(idx, 1);
+    reordered.splice(targetIdx, 0, removed);
+
+    const header = activePage.sections.find(s => s.type === 'Header');
+    const rest = activePage.sections.filter(s => !headerBarTypes.includes(s.type) && s.type !== 'Header');
+    updatePageProps(activePage.id, { sections: [...reordered, ...(header ? [header] : []), ...rest] });
+  };
+
+  const moveFooterBar = (sectionId: string, direction: 'up' | 'down') => {
+    if (!activePage) return;
+    const currentBars = activePage.sections.filter(s => footerBarTypes.includes(s.type));
+    const idx = currentBars.findIndex(s => s.id === sectionId);
+    if (idx === -1) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= currentBars.length) return;
+
+    const reordered = [...currentBars];
+    const [removed] = reordered.splice(idx, 1);
+    reordered.splice(targetIdx, 0, removed);
+
+    const nonFooter = activePage.sections.filter(s => !footerBarTypes.includes(s.type) && s.type !== 'Footer');
+    const footer = activePage.sections.find(s => s.type === 'Footer');
+    updatePageProps(activePage.id, { sections: [...nonFooter, ...reordered, ...(footer ? [footer] : [])] });
+  };
+
+  const moveTemplateSection = (sectionId: string, direction: 'up' | 'down') => {
+    if (!activePage) return;
+    const currentTemplate = activePage.sections.filter(
+      s => !headerBarTypes.includes(s.type) && s.type !== 'Header' && !footerBarTypes.includes(s.type) && s.type !== 'Footer'
+    );
+    const idx = currentTemplate.findIndex(s => s.id === sectionId);
+    if (idx === -1) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= currentTemplate.length) return;
+
+    const reordered = [...currentTemplate];
+    const [removed] = reordered.splice(idx, 1);
+    reordered.splice(targetIdx, 0, removed);
+
+    const headers = activePage.sections.filter(s => headerBarTypes.includes(s.type) || s.type === 'Header');
+    const footers = activePage.sections.filter(s => footerBarTypes.includes(s.type) || s.type === 'Footer');
+    updatePageProps(activePage.id, { sections: [...headers, ...reordered, ...footers] });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    if (!over || active.id === over.id || !activePage) return;
 
-    if (over && active.id !== over.id && activePage) {
-      const oldIndex = activePage.sections.findIndex(s => s.id === active.id);
-      let newIndex = activePage.sections.findIndex(s => s.id === over.id);
+    const sections = [...activePage.sections];
+    const activeSection = sections.find(s => s.id === active.id);
+    const overSection = sections.find(s => s.id === over.id);
+    if (!activeSection || !overSection) return;
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const headerGroupTypes = ['AnnouncementBar', 'UtilityBar', 'Header'];
-        const footerGroupTypes = ['FooterMenu', 'FooterText', 'Footer'];
-        
-        const isHeaderItem = headerGroupTypes.includes(activePage.sections[oldIndex].type);
-        const isFooterItem = footerGroupTypes.includes(activePage.sections[oldIndex].type);
-        const isBodyItem = !isHeaderItem && !isFooterItem;
+    // Disallow dragging locked Header or Footer
+    if (activeSection.type === 'Header' || activeSection.type === 'Footer') return;
 
-        const headerIndex = activePage.sections.findIndex(s => s.type === 'Header');
-        const footerIndex = activePage.sections.findIndex(s => s.type === 'Footer');
-        
-        const firstFooterItemIndex = activePage.sections.findIndex(s => footerGroupTypes.includes(s.type));
-        const actualFooterStartIndex = firstFooterItemIndex !== -1 ? firstFooterItemIndex : footerIndex;
+    const isHeaderBar = headerBarTypes.includes(activeSection.type);
+    const isFooterBar = footerBarTypes.includes(activeSection.type);
+    const isTemplate = !isHeaderBar && !isFooterBar;
 
-        if (isHeaderItem) {
-          if (newIndex > headerIndex) newIndex = headerIndex;
-        } else if (isFooterItem) {
-          if (newIndex < actualFooterStartIndex) newIndex = actualFooterStartIndex;
-          if (newIndex > footerIndex) newIndex = footerIndex;
-        } else if (isBodyItem) {
-          if (newIndex <= headerIndex) newIndex = headerIndex + 1;
-          if (newIndex >= actualFooterStartIndex && actualFooterStartIndex !== -1) newIndex = actualFooterStartIndex - 1;
-        }
+    // --- Case 1: Dragging within Header group ---
+    if (isHeaderBar) {
+      const currentBars = sections.filter(s => headerBarTypes.includes(s.type));
+      const oldBarIndex = currentBars.findIndex(s => s.id === active.id);
+      let newBarIndex = currentBars.findIndex(s => s.id === over.id);
 
-        if (oldIndex !== newIndex) {
-          reorderSections(activePage.id, oldIndex, newIndex);
-        }
+      if (overSection.type === 'Header' || newBarIndex === -1) {
+        // Dragged onto or past Header -> place as the last header bar (right above Header)
+        newBarIndex = currentBars.length - 1;
       }
+
+      if (oldBarIndex !== -1 && newBarIndex !== -1 && oldBarIndex !== newBarIndex) {
+        const reordered = Array.from(currentBars);
+        const [removed] = reordered.splice(oldBarIndex, 1);
+        reordered.splice(newBarIndex, 0, removed);
+
+        const header = sections.find(s => s.type === 'Header');
+        const otherSections = sections.filter(s => !headerBarTypes.includes(s.type) && s.type !== 'Header');
+
+        const updated = [...reordered, ...(header ? [header] : []), ...otherSections];
+        updatePageProps(activePage.id, { sections: updated });
+      }
+      return;
+    }
+
+    // --- Case 2: Dragging within Footer group ---
+    if (isFooterBar) {
+      const currentBars = sections.filter(s => footerBarTypes.includes(s.type));
+      const oldBarIndex = currentBars.findIndex(s => s.id === active.id);
+      let newBarIndex = currentBars.findIndex(s => s.id === over.id);
+
+      if (overSection.type === 'Footer' || newBarIndex === -1) {
+        // Dragged onto or past Footer -> place as the last footer bar (right above Footer)
+        newBarIndex = currentBars.length - 1;
+      }
+
+      if (oldBarIndex !== -1 && newBarIndex !== -1 && oldBarIndex !== newBarIndex) {
+        const reordered = Array.from(currentBars);
+        const [removed] = reordered.splice(oldBarIndex, 1);
+        reordered.splice(newBarIndex, 0, removed);
+
+        const nonFooterSections = sections.filter(s => !footerBarTypes.includes(s.type) && s.type !== 'Footer');
+        const footer = sections.find(s => s.type === 'Footer');
+
+        const updated = [...nonFooterSections, ...reordered, ...(footer ? [footer] : [])];
+        updatePageProps(activePage.id, { sections: updated });
+      }
+      return;
+    }
+
+    // --- Case 3: Dragging within Template group ---
+    if (isTemplate) {
+      const currentTemplate = sections.filter(
+        s => !headerBarTypes.includes(s.type) && s.type !== 'Header' && !footerBarTypes.includes(s.type) && s.type !== 'Footer'
+      );
+      const oldTemplateIndex = currentTemplate.findIndex(s => s.id === active.id);
+      let newTemplateIndex = currentTemplate.findIndex(s => s.id === over.id);
+
+      if (headerBarTypes.includes(overSection.type) || overSection.type === 'Header') {
+        newTemplateIndex = 0;
+      } else if (footerBarTypes.includes(overSection.type) || overSection.type === 'Footer') {
+        newTemplateIndex = currentTemplate.length - 1;
+      }
+
+      if (oldTemplateIndex !== -1 && newTemplateIndex !== -1 && oldTemplateIndex !== newTemplateIndex) {
+        const reordered = Array.from(currentTemplate);
+        const [removed] = reordered.splice(oldTemplateIndex, 1);
+        reordered.splice(newTemplateIndex, 0, removed);
+
+        const headerSections = sections.filter(s => headerBarTypes.includes(s.type) || s.type === 'Header');
+        const footerSections = sections.filter(s => footerBarTypes.includes(s.type) || s.type === 'Footer');
+
+        const updated = [...headerSections, ...reordered, ...footerSections];
+        updatePageProps(activePage.id, { sections: updated });
+      }
+      return;
     }
   };
 
@@ -342,162 +476,190 @@ export const EditorLeftSidebar: React.FC = () => {
                 <p className={styles.labelSm} style={{ margin: 0, color: 'var(--text-muted)' }}>Manage your page structure</p>
               </div>
               <div className={styles.sectionsList} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px 16px' }}>
-                  {activePage && (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                    modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-                  >
-                    <SortableContext
-                      items={activePage.sections.map(s => s.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className={styles.sectionGroup}>
-                        <div className={styles.sectionCategoryHeader}>
-                          <span>Header</span>
-                          <div style={{ position: 'relative' }} ref={headerAddRef}>
-                            <button 
-                              className={styles.miniAddBtn}
-                              disabled={activePage.sections.some(s => s.type === 'AnnouncementBar') && activePage.sections.some(s => s.type === 'UtilityBar')}
-                              onClick={() => setHeaderAddOpen(!headerAddOpen)}
-                              title="Add header block"
-                              style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
-                            >
-                              <Plus size={12} /> Add
-                            </button>
-                            {headerAddOpen && (
-                              <div className={styles.dropdownMenu} style={{ top: '100%', right: 0 }}>
-                                <button 
-                                  className={styles.dropdownItem} 
-                                  disabled={activePage.sections.some(s => s.type === 'AnnouncementBar')}
-                                  style={{ 
-                                    opacity: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 0.5 : 1, 
-                                    cursor: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 'not-allowed' : 'pointer' 
-                                  }}
-                                  onClick={() => !activePage.sections.some(s => s.type === 'AnnouncementBar') && handleAddHeaderItem('AnnouncementBar')}
-                                >
-                                  Announcement Bar
-                                </button>
-                                <button 
-                                  className={styles.dropdownItem} 
-                                  disabled={activePage.sections.some(s => s.type === 'UtilityBar')}
-                                  style={{ 
-                                    opacity: activePage.sections.some(s => s.type === 'UtilityBar') ? 0.5 : 1, 
-                                    cursor: activePage.sections.some(s => s.type === 'UtilityBar') ? 'not-allowed' : 'pointer' 
-                                  }}
-                                  onClick={() => !activePage.sections.some(s => s.type === 'UtilityBar') && handleAddHeaderItem('UtilityBar')}
-                                >
-                                  Utility Bar
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {activePage.sections.filter(s => ['AnnouncementBar', 'UtilityBar', 'Header'].includes(s.type)).map(section => {
-                          return (
-                            <SortableItem
-                              key={section.id}
-                              id={section.id}
-                              section={section}
-                              isSelected={selectedSectionId === section.id}
-                              onSelect={() => setSelectedSectionId(section.id)}
-                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
-                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
-                            />
-                          );
-                        })}
-                      </div>
+                  {activePage && (() => {
+                    const headerSections = activePage.sections.filter(s => headerBarTypes.includes(s.type) || s.type === 'Header');
+                    const headerBars = activePage.sections.filter(s => headerBarTypes.includes(s.type));
+                    const templateSections = activePage.sections.filter(s => !headerBarTypes.includes(s.type) && s.type !== 'Header' && !footerBarTypes.includes(s.type) && s.type !== 'Footer');
+                    const footerSections = activePage.sections.filter(s => footerBarTypes.includes(s.type) || s.type === 'Footer');
+                    const footerBars = activePage.sections.filter(s => footerBarTypes.includes(s.type));
 
-                      <div className={styles.sectionGroup}>
-                        <div className={styles.sectionCategoryHeader}>Template</div>
-                        {activePage.sections.filter(s => !['AnnouncementBar', 'UtilityBar', 'Header', 'FooterMenu', 'FooterText', 'Footer'].includes(s.type)).map(section => {
-                          const index = activePage.sections.findIndex(s => s.id === section.id);
-                          return (
-                            <SortableItem
-                              key={section.id}
-                              id={section.id}
-                              section={section}
-                              isSelected={selectedSectionId === section.id}
-                              onSelect={() => setSelectedSectionId(section.id)}
-                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
-                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
-                              onInsertClick={() => {
-                                useLandingEditorStore.getState().setInsertIndex(index + 1);
-                                setAddSectionWidgetOpen(true);
-                              }}
-                            />
-                          );
-                        })}
-                        <button 
-                          className={styles.groupAddBtn} 
-                          onClick={() => {
-                            const firstFooterIndex = activePage.sections.findIndex(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type));
-                            useLandingEditorStore.getState().setInsertIndex(firstFooterIndex !== -1 ? firstFooterIndex : null);
-                            setAddSectionWidgetOpen(true);
-                          }}
-                        >
-                          <Plus size={14} /> Add section
-                        </button>
-                      </div>
-
-                      <div className={styles.sectionGroup}>
-                        <div className={styles.sectionCategoryHeader}>
-                          <span>Footer</span>
-                          <div style={{ position: 'relative' }} ref={footerAddRef}>
-                            <button 
-                              className={styles.miniAddBtn}
-                              onClick={() => setFooterAddOpen(!footerAddOpen)}
-                              title="Add footer block"
-                              style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
-                            >
-                              <Plus size={12} /> Add
-                            </button>
-                            {footerAddOpen && (
-                              <div className={styles.dropdownMenu} style={{ bottom: '100%', right: 0, top: 'auto', marginBottom: '4px', marginTop: 0 }}>
-                                <button 
-                                  className={styles.dropdownItem} 
-                                  disabled={activePage.sections.some(s => s.type === 'FooterMenu')}
-                                  style={{ 
-                                    opacity: activePage.sections.some(s => s.type === 'FooterMenu') ? 0.5 : 1, 
-                                    cursor: activePage.sections.some(s => s.type === 'FooterMenu') ? 'not-allowed' : 'pointer' 
-                                  }}
-                                  onClick={() => !activePage.sections.some(s => s.type === 'FooterMenu') && handleAddFooterItem('FooterMenu')}
-                                >
-                                  Footer Menu
-                                </button>
-                                <button 
-                                  className={styles.dropdownItem} 
-                                  disabled={activePage.sections.some(s => s.type === 'FooterText')}
-                                  style={{ 
-                                    opacity: activePage.sections.some(s => s.type === 'FooterText') ? 0.5 : 1, 
-                                    cursor: activePage.sections.some(s => s.type === 'FooterText') ? 'not-allowed' : 'pointer' 
-                                  }}
-                                  onClick={() => !activePage.sections.some(s => s.type === 'FooterText') && handleAddFooterItem('FooterText')}
-                                >
-                                  Footer Text
-                                </button>
-                              </div>
-                            )}
+                    return (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                        modifiers={[restrictToVerticalAxis]}
+                      >
+                        <div className={styles.sectionGroup}>
+                          <div className={styles.sectionCategoryHeader}>
+                            <span>Header</span>
+                            <div style={{ position: 'relative' }} ref={headerAddRef}>
+                              <button 
+                                className={styles.miniAddBtn}
+                                disabled={activePage.sections.some(s => s.type === 'AnnouncementBar') && activePage.sections.some(s => s.type === 'UtilityBar')}
+                                onClick={() => setHeaderAddOpen(!headerAddOpen)}
+                                title="Add header block"
+                                style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
+                              >
+                                <Plus size={12} /> Add
+                              </button>
+                              {headerAddOpen && (
+                                <div className={styles.dropdownMenu} style={{ top: '100%', right: 0 }}>
+                                  <button 
+                                    className={styles.dropdownItem} 
+                                    disabled={activePage.sections.some(s => s.type === 'AnnouncementBar')}
+                                    style={{ 
+                                      opacity: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 0.5 : 1, 
+                                      cursor: activePage.sections.some(s => s.type === 'AnnouncementBar') ? 'not-allowed' : 'pointer' 
+                                    }}
+                                    onClick={() => !activePage.sections.some(s => s.type === 'AnnouncementBar') && handleAddHeaderItem('AnnouncementBar')}
+                                  >
+                                    Announcement Bar
+                                  </button>
+                                  <button 
+                                    className={styles.dropdownItem} 
+                                    disabled={activePage.sections.some(s => s.type === 'UtilityBar')}
+                                    style={{ 
+                                      opacity: activePage.sections.some(s => s.type === 'UtilityBar') ? 0.5 : 1, 
+                                      cursor: activePage.sections.some(s => s.type === 'UtilityBar') ? 'not-allowed' : 'pointer' 
+                                    }}
+                                    onClick={() => !activePage.sections.some(s => s.type === 'UtilityBar') && handleAddHeaderItem('UtilityBar')}
+                                  >
+                                    Utility Bar
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
+                          <SortableContext
+                            items={headerSections.map(s => s.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {headerSections.map(section => {
+                              const isHeaderBar = headerBarTypes.includes(section.type);
+                              const barIdx = isHeaderBar ? headerBars.findIndex(s => s.id === section.id) : -1;
+                              return (
+                                <SortableItem
+                                  key={section.id}
+                                  id={section.id}
+                                  section={section}
+                                  isSelected={selectedSectionId === section.id}
+                                  onSelect={() => setSelectedSectionId(section.id)}
+                                  onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                                  onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                                  onMoveUp={isHeaderBar && barIdx > 0 ? () => moveHeaderBar(section.id, 'up') : undefined}
+                                  onMoveDown={isHeaderBar && barIdx !== -1 && barIdx < headerBars.length - 1 ? () => moveHeaderBar(section.id, 'down') : undefined}
+                                />
+                              );
+                            })}
+                          </SortableContext>
                         </div>
-                        {activePage.sections.filter(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type)).map(section => {
-                          return (
-                            <SortableItem
-                              key={section.id}
-                              id={section.id}
-                              section={section}
-                              isSelected={selectedSectionId === section.id}
-                              onSelect={() => setSelectedSectionId(section.id)}
-                              onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
-                              onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
-                            />
-                          );
-                        })}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                )}
+
+                        <div className={styles.sectionGroup}>
+                          <div className={styles.sectionCategoryHeader}>Template</div>
+                          <SortableContext
+                            items={templateSections.map(s => s.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {templateSections.map((section, idx) => {
+                              const storeIndex = activePage.sections.findIndex(s => s.id === section.id);
+                              return (
+                                <SortableItem
+                                  key={section.id}
+                                  id={section.id}
+                                  section={section}
+                                  isSelected={selectedSectionId === section.id}
+                                  onSelect={() => setSelectedSectionId(section.id)}
+                                  onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                                  onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                                  onInsertClick={() => {
+                                    useLandingEditorStore.getState().setInsertIndex(storeIndex + 1);
+                                    setAddSectionWidgetOpen(true);
+                                  }}
+                                  onMoveUp={idx > 0 ? () => moveTemplateSection(section.id, 'up') : undefined}
+                                  onMoveDown={idx < templateSections.length - 1 ? () => moveTemplateSection(section.id, 'down') : undefined}
+                                />
+                              );
+                            })}
+                          </SortableContext>
+                          <button 
+                            className={styles.groupAddBtn} 
+                            onClick={() => {
+                              const firstFooterIndex = activePage.sections.findIndex(s => ['FooterMenu', 'FooterText', 'Footer'].includes(s.type));
+                              useLandingEditorStore.getState().setInsertIndex(firstFooterIndex !== -1 ? firstFooterIndex : null);
+                              setAddSectionWidgetOpen(true);
+                            }}
+                          >
+                            <Plus size={14} /> Add section
+                          </button>
+                        </div>
+
+                        <div className={styles.sectionGroup}>
+                          <div className={styles.sectionCategoryHeader}>
+                            <span>Footer</span>
+                            <div style={{ position: 'relative' }} ref={footerAddRef}>
+                              <button 
+                                className={styles.miniAddBtn}
+                                onClick={() => setFooterAddOpen(!footerAddOpen)}
+                                title="Add footer block"
+                                style={{ display: 'flex', gap: '4px', fontSize: '11px', padding: '4px 8px' }}
+                              >
+                                <Plus size={12} /> Add
+                              </button>
+                              {footerAddOpen && (
+                                <div className={styles.dropdownMenu} style={{ bottom: '100%', right: 0, top: 'auto', marginBottom: '4px', marginTop: 0 }}>
+                                  <button 
+                                    className={styles.dropdownItem} 
+                                    disabled={activePage.sections.some(s => s.type === 'FooterMenu')}
+                                    style={{ 
+                                      opacity: activePage.sections.some(s => s.type === 'FooterMenu') ? 0.5 : 1, 
+                                      cursor: activePage.sections.some(s => s.type === 'FooterMenu') ? 'not-allowed' : 'pointer' 
+                                    }}
+                                    onClick={() => !activePage.sections.some(s => s.type === 'FooterMenu') && handleAddFooterItem('FooterMenu')}
+                                  >
+                                    Footer Menu
+                                  </button>
+                                  <button 
+                                    className={styles.dropdownItem} 
+                                    disabled={activePage.sections.some(s => s.type === 'FooterText')}
+                                    style={{ 
+                                      opacity: activePage.sections.some(s => s.type === 'FooterText') ? 0.5 : 1, 
+                                      cursor: activePage.sections.some(s => s.type === 'FooterText') ? 'not-allowed' : 'pointer' 
+                                    }}
+                                    onClick={() => !activePage.sections.some(s => s.type === 'FooterText') && handleAddFooterItem('FooterText')}
+                                  >
+                                    Footer Text
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <SortableContext
+                            items={footerSections.map(s => s.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {footerSections.map(section => {
+                              const isFooterBar = footerBarTypes.includes(section.type);
+                              const barIdx = isFooterBar ? footerBars.findIndex(s => s.id === section.id) : -1;
+                              return (
+                                <SortableItem
+                                  key={section.id}
+                                  id={section.id}
+                                  section={section}
+                                  isSelected={selectedSectionId === section.id}
+                                  onSelect={() => setSelectedSectionId(section.id)}
+                                  onToggleVisibility={(e) => { e.stopPropagation(); toggleSectionVisibility(activePage.id, section.id); }}
+                                  onRemove={(e) => { e.stopPropagation(); setSectionToDelete(section.id); }}
+                                  onMoveUp={isFooterBar && barIdx > 0 ? () => moveFooterBar(section.id, 'up') : undefined}
+                                  onMoveDown={isFooterBar && barIdx !== -1 && barIdx < footerBars.length - 1 ? () => moveFooterBar(section.id, 'down') : undefined}
+                                />
+                              );
+                            })}
+                          </SortableContext>
+                        </div>
+                      </DndContext>
+                    );
+                  })()}
               </div>
             </div>
             

@@ -17,10 +17,12 @@ interface SortableItemProps {
   onToggleVisibility: (e: React.MouseEvent) => void;
   onRemove: (e: React.MouseEvent) => void;
   onInsertClick?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 export const SortableItem: React.FC<SortableItemProps> = ({ 
-  id, section, isSelected, onSelect, onToggleVisibility, onRemove, onInsertClick 
+  id, section, isSelected, onSelect, onToggleVisibility, onRemove, onInsertClick, onMoveUp, onMoveDown 
 }) => {
   const {
     attributes,
@@ -167,10 +169,26 @@ export const SortableItem: React.FC<SortableItemProps> = ({
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                    <button 
+                      className={styles.dropdownItem} 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onMoveUp?.();
+                      }}
+                      disabled={!onMoveUp}
+                      style={!onMoveUp ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                    >
                       <ChevronUp size={16} /> Move Up
                     </button>
-                    <button className={styles.dropdownItem} onClick={() => setIsMenuOpen(false)}>
+                    <button 
+                      className={styles.dropdownItem} 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onMoveDown?.();
+                      }}
+                      disabled={!onMoveDown}
+                      style={!onMoveDown ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                    >
                       <ChevronDown size={16} /> Move Down
                     </button>
                     

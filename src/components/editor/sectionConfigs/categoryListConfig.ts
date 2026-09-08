@@ -63,11 +63,51 @@ export const categoryListConfig: SectionConfig = {
           },
         ],
       },
+      {
+        id: 'design',
+        label: 'Design',
+        groups: [
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Category Title Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'cardBg',
+                label: 'Card Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+        ],
+      },
     ];
   },
   defaultProps: {
     selectedLayout: 'grid',
     heading: 'Shop by Category',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    cardBg: 'inherit',
     categories: [
       { name: 'Furniture', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop' },
       { name: 'Decor', image: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=400&h=400&fit=crop' },

@@ -82,11 +82,72 @@ export const testimonialsConfig: SectionConfig = {
           },
         ],
       },
+      {
+        id: 'design',
+        label: 'Design',
+        groups: [
+          {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'cardBg',
+                label: 'Card Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'borderColor',
+                label: 'Card Border Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Quote Text Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'nameColor',
+                label: 'Author Name Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'starColor',
+                label: 'Star Rating Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+        ],
+      },
     ];
   },
   defaultProps: {
     selectedLayout: 'grid',
     heading: 'What Our Customers Say',
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    cardBg: 'inherit',
+    borderColor: 'inherit',
+    textColor: 'inherit',
+    nameColor: 'inherit',
+    starColor: 'inherit',
     testimonials: [
       { name: 'Sarah Johnson', role: 'Interior Designer', quote: 'The quality of these products is outstanding.', rating: 5, avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face' },
     ],

@@ -45,7 +45,19 @@ export const richTextConfig: SectionConfig = {
             fields: [
               {
                 key: 'bgColor',
-                label: 'Background Color',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Body Text Color',
                 type: 'color',
                 defaultValue: 'inherit',
               },
@@ -60,5 +72,7 @@ export const richTextConfig: SectionConfig = {
     heading: 'Our Mission',
     body: 'We believe in creating products that are both beautiful and functional.',
     bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
   },
 };

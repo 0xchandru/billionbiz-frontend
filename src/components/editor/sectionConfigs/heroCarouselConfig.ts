@@ -77,6 +77,42 @@ export const heroCarouselConfig: SectionConfig = {
         label: 'Design',
         groups: [
           {
+            id: 'colors',
+            label: 'Colors',
+            fields: [
+              {
+                key: 'bgColor',
+                label: 'Section Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'headingColor',
+                label: 'Heading Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'textColor',
+                label: 'Description Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'buttonBg',
+                label: 'Button Background',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+              {
+                key: 'buttonColor',
+                label: 'Button Text Color',
+                type: 'color',
+                defaultValue: 'inherit',
+              },
+            ],
+          },
+          {
             id: 'settings',
             label: 'Carousel Settings',
             fields: [
@@ -106,6 +142,11 @@ export const heroCarouselConfig: SectionConfig = {
     selectedLayout: 'full',
     autoPlay: true,
     interval: 5,
+    bgColor: 'inherit',
+    headingColor: 'inherit',
+    textColor: 'inherit',
+    buttonBg: 'inherit',
+    buttonColor: 'inherit',
     slides: [
       { 
         heading: 'Summer Collection', 

@@ -12,10 +12,19 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
     { name: 'Emily Parker', role: 'Home Stylist', quote: 'Fast shipping, beautiful packaging, and the products always exceed expectations. Highly recommend!', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face', rating: 5 },
   ];
 
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const cardBg = props.cardBg || 'var(--theme-bg-surface, #f8fafc)';
+  const borderColor = props.borderColor || 'var(--theme-border-border, #e2e8f0)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
+  const nameColor = props.nameColor || 'var(--theme-text-heading)';
+  const starColor = props.starColor || 'var(--theme-brand-accent, #facc15)';
+
   return (
     <section style={{ 
       width: '100%', 
-      backgroundColor: 'var(--theme-background)',
+      backgroundColor: bgColor,
+      background: bgColor,
       position: 'relative',
       overflow: 'hidden',
       ...props._marginStyle,
@@ -30,7 +39,7 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
         fontSize: isMobile ? '32px' : '40px',
         fontWeight: 700,
         letterSpacing: '-1px',
-        color: 'var(--theme-text)',
+        color: headingColor,
         textAlign: 'center',
         marginBottom: '48px',
         fontFamily: 'var(--theme-font-heading), sans-serif',
@@ -46,38 +55,38 @@ const TestimonialsSection: React.FC<{ props: Record<string, any> }> = ({ props }
       }}>
         {testimonials.map((t: any, i: number) => (
           <div key={i} style={{
-            backgroundColor: '#f8fafc',
+            backgroundColor: cardBg,
             borderRadius: '16px',
             padding: '32px',
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
-            border: '1px solid #e2e8f0',
+            border: `1px solid ${borderColor}`,
           }}>
             <div style={{ display: 'flex', gap: '2px' }}>
               {[...Array(t.rating || 5)].map((_, j) => (
-                <span key={j} style={{ color: '#facc15', fontSize: '18px' }}>★</span>
+                <span key={j} style={{ color: starColor, fontSize: '18px' }}>★</span>
               ))}
             </div>
             <p style={{
               fontSize: '16px',
               lineHeight: 1.7,
-              color: 'var(--theme-text)',
-              opacity: 0.8,
+              color: textColor,
+              opacity: 0.85,
               flex: 1,
               fontStyle: 'italic',
             }}>
               "{t.quote}"
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: `1px solid ${borderColor}`, paddingTop: '20px' }}>
               <img
                 src={t.avatar}
                 alt={t.name}
                 style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
               />
               <div>
-                <p style={{ fontWeight: 600, fontSize: '14px', color: 'var(--theme-text)' }}>{t.name}</p>
-                <p style={{ fontSize: '13px', color: 'var(--theme-text)', opacity: 0.5 }}>{t.role}</p>
+                <p style={{ fontWeight: 600, fontSize: '14px', color: nameColor }}>{t.name}</p>
+                <p style={{ fontSize: '13px', color: textColor, opacity: 0.6 }}>{t.role}</p>
               </div>
             </div>
           </div>

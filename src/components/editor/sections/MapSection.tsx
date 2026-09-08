@@ -12,10 +12,15 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const email = props.email ?? 'hello@billionbiz.com';
   const hours = props.hours ?? 'Mon-Fri: 9am - 6pm | Sat: 10am - 4pm';
 
+  const bgColor = props.bgColor || 'var(--theme-bg-section, var(--theme-background, #ffffff))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading, var(--theme-text, #0f172a))';
+  const textColor = props.textColor || 'var(--theme-text-body, var(--theme-text, #334155))';
+  const accentColor = props.accentColor || 'var(--theme-brand-primary, #6366f1)';
+
   return (
     <section style={{ 
       width: '100%', 
-      backgroundColor: 'var(--theme-background)',
+      backgroundColor: bgColor,
       position: 'relative',
       overflow: 'hidden',
       ...props._marginStyle,
@@ -32,27 +37,27 @@ const MapSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
             fontSize: isMobile ? '32px' : '40px',
             fontWeight: 700,
             letterSpacing: '-1px',
-            color: 'var(--theme-text)',
+            color: headingColor,
             fontFamily: 'var(--theme-font-heading), sans-serif',
           }}>
             {heading}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
             <div>
-              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--theme-text)', opacity: 0.4, marginBottom: '8px' }}>Address</p>
-              <p style={{ fontSize: '16px', lineHeight: 1.6, color: 'var(--theme-text)', opacity: 0.8 }}>{address}</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: textColor, opacity: 0.6, marginBottom: '8px' }}>Address</p>
+              <p style={{ fontSize: '16px', lineHeight: 1.6, color: textColor }}>{address}</p>
             </div>
             <div>
-              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--theme-text)', opacity: 0.4, marginBottom: '8px' }}>Phone</p>
-              <p style={{ fontSize: '16px', color: 'var(--theme-primary)', fontWeight: 500 }}>{phone}</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: textColor, opacity: 0.6, marginBottom: '8px' }}>Phone</p>
+              <p style={{ fontSize: '16px', color: accentColor, fontWeight: 500 }}>{phone}</p>
             </div>
             <div>
-              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--theme-text)', opacity: 0.4, marginBottom: '8px' }}>Email</p>
-              <p style={{ fontSize: '16px', color: 'var(--theme-primary)', fontWeight: 500 }}>{email}</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: textColor, opacity: 0.6, marginBottom: '8px' }}>Email</p>
+              <p style={{ fontSize: '16px', color: accentColor, fontWeight: 500 }}>{email}</p>
             </div>
             <div>
-              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--theme-text)', opacity: 0.4, marginBottom: '8px' }}>Hours</p>
-              <p style={{ fontSize: '16px', lineHeight: 1.6, color: 'var(--theme-text)', opacity: 0.8 }}>{hours}</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: textColor, opacity: 0.6, marginBottom: '8px' }}>Hours</p>
+              <p style={{ fontSize: '16px', lineHeight: 1.6, color: textColor }}>{hours}</p>
             </div>
           </div>
         </div>

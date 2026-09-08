@@ -14,12 +14,21 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
     { question: 'What payment methods do you accept?', answer: 'We accept all major credit cards (Visa, Mastercard, Amex), PayPal, Apple Pay, Google Pay, and Shop Pay for a seamless checkout experience.' },
   ];
 
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, var(--theme-background))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading)';
+  const itemBg = props.itemBg || 'var(--theme-bg-surface, #ffffff)';
+  const borderColor = props.borderColor || 'var(--theme-border-border, #e2e8f0)';
+  const questionColor = props.questionColor || 'var(--theme-text-heading)';
+  const textColor = props.textColor || 'var(--theme-text-body)';
+  const iconColor = props.iconColor || 'var(--theme-brand-primary)';
+
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
     <section style={{ 
       width: '100%', 
-      backgroundColor: 'var(--theme-background)',
+      backgroundColor: bgColor,
+      background: bgColor,
       position: 'relative',
       overflow: 'hidden',
       ...props._marginStyle,
@@ -34,7 +43,7 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
         fontSize: isMobile ? '32px' : '40px',
         fontWeight: 700,
         letterSpacing: '-1px',
-        color: 'var(--theme-text)',
+        color: headingColor,
         textAlign: 'center',
         marginBottom: '48px',
         fontFamily: 'var(--theme-font-heading), sans-serif',
@@ -46,10 +55,10 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
           const isOpen = openIndex === i;
           return (
             <div key={i} style={{
-              border: '1px solid #e2e8f0',
+              border: `1px solid ${borderColor}`,
               borderRadius: '12px',
               overflow: 'hidden',
-              backgroundColor: isOpen ? '#f8fafc' : 'white',
+              backgroundColor: itemBg,
               transition: 'all 0.2s',
             }}>
               <button
@@ -65,7 +74,7 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
                   cursor: 'pointer',
                   fontSize: '16px',
                   fontWeight: 600,
-                  color: 'var(--theme-text)',
+                  color: questionColor,
                   textAlign: 'left',
                   fontFamily: 'inherit',
                 }}
@@ -78,7 +87,7 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
                     transition: 'transform 0.2s',
                     flexShrink: 0,
                     marginLeft: '16px',
-                    color: 'var(--theme-primary)',
+                    color: iconColor,
                   }}
                 />
               </button>
@@ -87,8 +96,8 @@ const FAQSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
                   padding: '0 24px 20px',
                   fontSize: '15px',
                   lineHeight: 1.7,
-                  color: 'var(--theme-text)',
-                  opacity: 0.7,
+                  color: textColor,
+                  opacity: 0.85,
                 }}>
                   {item.answer}
                 </div>

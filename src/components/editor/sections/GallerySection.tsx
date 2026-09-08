@@ -16,10 +16,13 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
     { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=600&fit=crop', alt: 'Gallery 6' },
   ];
 
+  const bgColor = props.bgColor || 'var(--theme-bg-section, var(--theme-background, #ffffff))';
+  const headingColor = props.headingColor || 'var(--theme-text-heading, var(--theme-text, #0f172a))';
+
   return (
     <section style={{ 
       width: '100%', 
-      backgroundColor: 'var(--theme-background)',
+      backgroundColor: bgColor,
       position: 'relative',
       overflow: 'hidden',
       ...props._marginStyle,
@@ -34,7 +37,7 @@ const GallerySection: React.FC<{ props: Record<string, any> }> = ({ props }) => 
         fontSize: isMobile ? '32px' : '40px',
         fontWeight: 700,
         letterSpacing: '-1px',
-        color: 'var(--theme-text)',
+        color: headingColor,
         textAlign: 'center',
         marginBottom: '40px',
         fontFamily: 'var(--theme-font-heading), sans-serif',
