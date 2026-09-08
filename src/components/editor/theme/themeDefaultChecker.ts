@@ -39,7 +39,8 @@ export function isThemeModified(theme: GlobalThemeData): boolean {
     !isDeepEqual(theme.typography, preset.typography) ||
     !isDeepEqual(theme.buttons, preset.buttons) ||
     !isDeepEqual(theme.effects, preset.effects) ||
-    !isDeepEqual(theme.ui, preset.ui)
+    !isDeepEqual(theme.ui, preset.ui) ||
+    Boolean(theme.customCss && theme.customCss.trim().length > 0)
   );
 }
 
@@ -93,6 +94,14 @@ export function isEffectsDefault(theme: GlobalThemeData): boolean {
 }
 
 /**
+ * Check if custom CSS is at default (empty)
+ */
+export function isCustomCssDefault(theme: GlobalThemeData): boolean {
+  if (!theme) return true;
+  return !theme.customCss || theme.customCss.trim().length === 0;
+}
+
+/**
  * Check whether the active theme category is currently at default
  */
 export function isCategoryDefault(category: ThemeCategoryType, theme: GlobalThemeData): boolean {
@@ -107,6 +116,8 @@ export function isCategoryDefault(category: ThemeCategoryType, theme: GlobalThem
       return isButtonsDefault(theme);
     case 'effects':
       return isEffectsDefault(theme);
+    case 'custom-css':
+      return isCustomCssDefault(theme);
     default:
       return true;
   }

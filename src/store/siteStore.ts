@@ -74,6 +74,7 @@ export interface SiteState {
   resetTypography: () => void;
   resetButtons: () => void;
   resetEffects: () => void;
+  resetCustomCss: () => void;
   undoTheme: () => void;
   redoTheme: () => void;
   // New methods for Pages Editor
@@ -369,6 +370,7 @@ export const useSiteStore = create<SiteState>()(
           ui: { ...preset.ui },
           layout: { ...preset.layout },
           animation: { ...preset.animation },
+          customCss: '',
         },
         hasUnsavedChanges: true,
       };
@@ -428,6 +430,17 @@ export const useSiteStore = create<SiteState>()(
         }
       };
     });
+  },
+
+  resetCustomCss: () => {
+    useThemeHistoryStore.getState().pushState(get().theme, true);
+    set((state) => ({
+      theme: {
+        ...state.theme,
+        customCss: '',
+      },
+      hasUnsavedChanges: true,
+    }));
   },
 
   undoTheme: () => {

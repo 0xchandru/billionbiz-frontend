@@ -69,7 +69,12 @@ export const EditorCanvas: React.FC = () => {
                         margin: '0',
                      }}
                   >
-               <PageRenderer page={pages.find(p => p.id === selectedPageId) || pages[0]} overrideDevice={deviceType} />
+               {(() => {
+                  const previewPage = activeTab === 'theme'
+                     ? (pages.find(p => p.id === 'landing-page') || pages[0])
+                     : (pages.find(p => p.id === selectedPageId) || pages[0]);
+                  return <PageRenderer page={previewPage} overrideDevice={deviceType} />;
+               })()}
             </div>
          </div>
       </div>

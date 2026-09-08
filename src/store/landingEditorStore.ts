@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export type DeviceType = 'desktop' | 'tablet' | 'mobile' | 'all';
-export type ThemeCategoryType = 'themes' | 'colors' | 'typography' | 'buttons' | 'effects';
+export type ThemeCategoryType = 'themes' | 'colors' | 'typography' | 'buttons' | 'effects' | 'custom-css';
 
 interface LandingEditorState {
   // Section selection
@@ -155,7 +155,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
         isTypographyWidgetOpen: false,
       };
     } else if (panel === 'pages') {
-      const pageToSelect = state.selectedPageId || lastPagesMemory.selectedPageId || 'shop-page';
+      const pageToSelect = (state.activePanel === 'theme' ? lastPagesMemory.selectedPageId : state.selectedPageId) || lastPagesMemory.selectedPageId || 'shop-page';
       return {
         activePanel: panel,
         selectedPageId: pageToSelect,
@@ -174,7 +174,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
       const categoryToSelect = lastThemeMemory.selectedThemeCategory || 'themes';
       return {
         activePanel: panel,
-        selectedPageId: state.selectedPageId || 'landing-page',
+        selectedPageId: 'landing-page',
         selectedThemeCategory: categoryToSelect,
         isRightSidebarOpen: true,
         lastEditorMemory,
@@ -202,7 +202,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set) => ({
     return {};
   }),
   setSelectedPageId: (id) => set((state) => ({
-    selectedPageId: id,
+    selectedPageId: state.activePanel === 'theme' ? 'landing-page' : id,
     selectedSectionId: null,
     lastEditorMemory: state.activePanel === 'editor' ? {
       ...state.lastEditorMemory,

@@ -20,7 +20,7 @@ export const EditorLeftSidebar: React.FC = () => {
     activePanel: activeTab, setActivePanel: setActiveTab, selectedSectionId, setSelectedSectionId, 
     activeSettingItem, setActiveSettingItem,
     setAddSectionWidgetOpen, selectedPageId, setSelectedPageId,
-    isLeftSidebarCollapsed, setLeftSidebarCollapsed
+    isLeftSidebarCollapsed, setLeftSidebarCollapsed, lastPagesMemory
   } = useLandingEditorStore();
   const { pages, toggleSectionVisibility, reorderSections, removeSection, updatePageProps } = useSiteStore();
   const activePage = pages.find(p => p.id === selectedPageId) || pages[0];
@@ -173,7 +173,9 @@ export const EditorLeftSidebar: React.FC = () => {
           className={`${styles.panelTab} ${activeTab === 'pages' ? styles.activeTab : ''}`} 
           onClick={() => {
             setActiveTab('pages');
-            const targetId = (selectedPageId && selectedPageId !== 'landing-page') ? selectedPageId : 'shop-page';
+            const targetId = (lastPagesMemory?.selectedPageId && lastPagesMemory.selectedPageId !== 'landing-page') 
+              ? lastPagesMemory.selectedPageId 
+              : ((selectedPageId && selectedPageId !== 'landing-page') ? selectedPageId : 'shop-page');
             navigate(`/editor/pages?pageId=${targetId}`, { replace: true });
           }}
         >
@@ -185,6 +187,7 @@ export const EditorLeftSidebar: React.FC = () => {
           className={`${styles.panelTab} ${activeTab === 'theme' ? styles.activeTab : ''}`} 
           onClick={() => {
             setActiveTab('theme');
+            setSelectedPageId('landing-page');
             navigate('/editor/theme', { replace: true });
           }}
         >

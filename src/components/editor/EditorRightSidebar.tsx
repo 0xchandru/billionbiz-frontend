@@ -15,6 +15,7 @@ import { ColorPalettePanel } from './theme/panels/ColorPalettePanel';
 import { TypographyPanel } from './theme/panels/TypographyPanel';
 import { ButtonsPanel } from './theme/panels/ButtonsPanel';
 import { EffectsPanel } from './theme/panels/EffectsPanel';
+import { CustomCssPanel } from './theme/panels/CustomCssPanel';
 import type { ThemeCategoryType } from '../../store/landingEditorStore';
 import { ThemeResetButton } from './theme/ui/ThemeResetButton';
 import { isCategoryDefault } from './theme/themeDefaultChecker';
@@ -472,7 +473,7 @@ export const ListEditor: React.FC<ListEditorProps> = ({ items, onChange, listFie
 
 export const EditorRightSidebar: React.FC = () => {
   const { isRightSidebarOpen, closeRightSidebar, selectedSectionId, selectedPageId, isColorWidgetOpen, setColorWidgetOpen, isTypographyWidgetOpen, setTypographyWidgetOpen, activePanel, selectedThemeCategory } = useLandingEditorStore();
-  const { pages, updateSectionProps, theme, updateTheme, updatePageProps, resetTheme: _resetTheme, resetAllThemeSettings, resetColorPalette, resetTypography, resetButtons, resetEffects } = useSiteStore();
+  const { pages, updateSectionProps, theme, updateTheme, updatePageProps, resetTheme: _resetTheme, resetAllThemeSettings, resetColorPalette, resetTypography, resetButtons, resetEffects, resetCustomCss } = useSiteStore();
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
   const [confirmResetCategory, setConfirmResetCategory] = useState<ThemeCategoryType | null>(null);
@@ -503,6 +504,7 @@ export const EditorRightSidebar: React.FC = () => {
       typography: 'Typography',
       buttons: 'Buttons',
       effects: 'Effects',
+      'custom-css': 'Custom CSS',
     };
     const activeCategory = selectedThemeCategory || 'themes';
     const title = categoryTitles[activeCategory] || 'Theme';
@@ -513,6 +515,7 @@ export const EditorRightSidebar: React.FC = () => {
       typography: 'Reset Typography',
       buttons: 'Reset Buttons',
       effects: 'Reset Effects',
+      'custom-css': 'Clear CSS',
     };
     const resetLabel = categoryResetLabels[activeCategory] || 'Reset to default';
     const isCurrentDefault = isCategoryDefault(activeCategory, theme);
@@ -529,6 +532,8 @@ export const EditorRightSidebar: React.FC = () => {
         resetButtons();
       } else if (confirmResetCategory === 'effects') {
         resetEffects();
+      } else if (confirmResetCategory === 'custom-css') {
+        resetCustomCss();
       }
       setConfirmResetCategory(null);
     };
@@ -565,6 +570,12 @@ export const EditorRightSidebar: React.FC = () => {
             title: 'Reset Effects?',
             description: `Are you sure you want to reset effects back to the "${presetName}" preset defaults? Your radius, shadow, and animation customizations will be discarded.`,
             confirmLabel: 'Reset Effects',
+          };
+        case 'custom-css':
+          return {
+            title: 'Clear Custom CSS?',
+            description: 'Are you sure you want to clear all custom CSS rules? This will remove all custom stylesheets applied to your store.',
+            confirmLabel: 'Clear CSS',
           };
         default:
           return {
@@ -605,6 +616,7 @@ export const EditorRightSidebar: React.FC = () => {
             {activeCategory === 'typography' && <TypographyPanel />}
             {activeCategory === 'buttons' && <ButtonsPanel />}
             {activeCategory === 'effects' && <EffectsPanel />}
+            {activeCategory === 'custom-css' && <CustomCssPanel />}
           </div>
         </aside>
 

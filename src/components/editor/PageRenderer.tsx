@@ -215,6 +215,9 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
       style={{ paddingBottom: (device === 'mobile' && hasHeader && showBottomNav && bottomNavLinks.length > 0) ? '80px' : '0' }}
     >
       <style>{themeStyles}</style>
+      {safeTheme.customCss ? (
+        <style id="custom-theme-css" dangerouslySetInnerHTML={{ __html: safeTheme.customCss }} />
+      ) : null}
       {orderedSections.map((section, index) => {
         if (isSectionHidden(section)) return null;
 

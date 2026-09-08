@@ -63,15 +63,18 @@ const EditorLayout: React.FC = () => {
     if (pageIdParam) {
       const resolved = resolvePageId(pageIdParam, pages);
       if (resolved) {
-        setSelectedPageId(resolved);
         if (tabParam === 'pages') {
+          setSelectedPageId(resolved);
           setActivePanel('pages');
           useLandingEditorStore.setState({ isRightSidebarOpen: true });
         } else if (tabParam === 'theme') {
+          setSelectedPageId('landing-page');
           setActivePanel('theme');
         } else if (tabParam === 'settings') {
+          setSelectedPageId(resolved);
           setActivePanel('settings');
         } else {
+          setSelectedPageId('landing-page');
           setActivePanel('editor');
         }
         return;
@@ -82,6 +85,7 @@ const EditorLayout: React.FC = () => {
       setActivePanel('pages');
       useLandingEditorStore.setState({ isRightSidebarOpen: true });
     } else if (tabParam === 'theme') {
+      setSelectedPageId('landing-page');
       setActivePanel('theme');
     } else if (tabParam === 'settings') {
       setActivePanel('settings');

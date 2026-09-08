@@ -131,6 +131,7 @@ export interface GlobalThemeData {
   typography: ThemeTypography;
   buttons: ThemeButtons;
   effects: ThemeEffects;
+  customCss?: string;
 }
 
 const defaultTypographyStyles: ThemeTypography['styles'] = {

@@ -5,6 +5,7 @@ import {
   Type, 
   MousePointerClick, 
   Wand2, 
+  Code2,
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen
@@ -56,6 +57,12 @@ const CATEGORIES: CategoryItem[] = [
     description: 'Radius, shadows & animations',
     icon: Wand2,
   },
+  {
+    id: 'custom-css',
+    label: 'Custom CSS',
+    description: 'Add custom stylesheets & overrides',
+    icon: Code2,
+  },
 ];
 
 export const ThemeSecondaryNav: React.FC = () => {
@@ -79,6 +86,8 @@ export const ThemeSecondaryNav: React.FC = () => {
         return !isButtonsDefault(theme);
       case 'effects':
         return !isEffectsDefault(theme);
+      case 'custom-css':
+        return Boolean(theme.customCss && theme.customCss.trim().length > 0);
       case 'themes':
       default:
         return false;
