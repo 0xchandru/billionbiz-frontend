@@ -543,8 +543,8 @@ const FooterMenu: React.FC<{ props: any }> = ({ props }) => {
   const title = props.title || 'Quick Links';
   const links = props.links || ['Home', 'Shop', 'About Us', 'Contact'];
   const alignment = props.alignment || 'left';
-  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, #0f172a)';
-  const textColor = props.textColor || 'var(--theme-text-inverse, #ffffff)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-footer-bg, #0f172a)';
+  const textColor = props.textColor || 'var(--theme-footer-text, #ffffff)';
   
   return (
     <div style={{ padding: '24px 48px', backgroundColor: bgColor, color: textColor, textAlign: alignment as any }}>
@@ -573,8 +573,8 @@ const FooterText: React.FC<{ props: any }> = ({ props }) => {
   const title = props.title || 'About Our Store';
   const text = props.text || 'We sell the best products in the world. Enjoy your shopping experience!';
   const alignment = props.alignment || 'left';
-  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-bg-section, #0f172a)';
-  const textColor = props.textColor || 'var(--theme-text-inverse, #ffffff)';
+  const bgColor = props.bgColor || props.backgroundColor || 'var(--theme-footer-bg, #0f172a)';
+  const textColor = props.textColor || 'var(--theme-footer-text, #ffffff)';
   
   return (
     <div style={{ padding: '24px 48px', backgroundColor: bgColor, color: textColor, textAlign: alignment as any }}>
@@ -599,8 +599,8 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
   
   const showSocial = props.showSocial !== false;
   // const showPayment = props.showPayment !== false; // Not used in this basic layout
-  const bgColor = props.bgColor || '#0f172a';
-  const textColor = props.textColor || '#ffffff';
+  const bgColor = props.bgColor || 'var(--theme-footer-bg, #0f172a)';
+  const textColor = props.textColor || 'var(--theme-footer-text, #ffffff)';
 
   const isMobile = props.device === 'mobile';
   const isTablet = props.device === 'tablet';
@@ -650,8 +650,9 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
                 {['Twitter', 'Instagram', 'Facebook'].map(social => (
                   <a key={social} href="#" style={{
                     width: '36px', height: '36px', borderRadius: '8px',
-                    backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex',
+                    backgroundColor: 'var(--theme-footer-border, rgba(255,255,255,0.1))', display: 'flex',
                     alignItems: 'center', justifyContent: 'center',
+                    border: '1px solid rgba(255,255,255,0.15)',
                     color: textColor, textDecoration: 'none', fontSize: '12px', fontWeight: 600,
                   }}>
                     {social[0]}
@@ -689,9 +690,9 @@ const Footer: React.FC<{ props: any }> = ({ props }) => {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '12px',
-        opacity: 0.6,
+        opacity: 0.7,
         fontSize: '13px',
-        borderTop: layout === 'minimal' ? 'none' : '1px solid rgba(255,255,255,0.1)',
+        borderTop: layout === 'minimal' ? 'none' : '1px solid var(--theme-footer-border, rgba(255,255,255,0.12))',
         paddingTop: layout === 'minimal' ? '0' : '32px',
       }}>
         <span>{copyright}</span>
@@ -900,8 +901,8 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
       { name: 'Enterprise', price: '$299', period: '/month', features: ['Unlimited everything', '15 staff accounts', 'Custom reports', 'Dedicated manager', '0.5% transaction fee', 'Custom domain', 'Advanced API access'], buttonText: 'Contact Sales', highlighted: false },
     ],
   },
-  FooterMenu: { title: 'Quick Links', links: ['Home', 'Shop', 'About Us', 'Contact'] },
-  FooterText: { title: 'About Our Store', text: 'We sell the best products in the world. Enjoy your shopping experience!' },
+  FooterMenu: { title: 'Quick Links', links: ['Home', 'Shop', 'About Us', 'Contact'], bgColor: 'inherit', textColor: 'inherit' },
+  FooterText: { title: 'About Our Store', text: 'We sell the best products in the world. Enjoy your shopping experience!', bgColor: 'inherit', textColor: 'inherit' },
   Footer: {
     logo: 'BillionBiz',
     description: 'Empowering creators and builders to make the best digital experiences possible.',
@@ -911,6 +912,8 @@ export const defaultPropsMap: Record<string, Record<string, any>> = {
       { title: 'Company', links: ['About Us', 'Careers', 'Blog', 'Press'] },
       { title: 'Support', links: ['Help Center', 'Contact', 'Status', 'Privacy Policy'] },
     ],
+    bgColor: 'inherit',
+    textColor: 'inherit',
   },
   PageHeader: { heading: 'Page Title', description: 'Page description goes here.' },
   Breadcrumbs: {},

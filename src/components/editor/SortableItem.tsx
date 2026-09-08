@@ -86,10 +86,39 @@ export const SortableItem: React.FC<SortableItemProps> = ({
               <GripVertical size={16} className={styles.dragIcon} />
             </div>
           )}
-          <span className={styles.sectionName}>{section.name}</span>
+          <span 
+            className={styles.sectionName}
+            style={section.isHidden ? { opacity: 0.5, textDecoration: 'line-through' } : undefined}
+          >
+            {section.name}
+          </span>
         </div>
-        <div className={styles.sectionItemRight}>
+        <div className={styles.sectionItemRight} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
           {!isLocked && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleVisibility(e);
+                }}
+                title={section.isHidden ? "Show section" : "Hide section"}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  color: section.isHidden ? '#94a3b8' : 'var(--text-muted, #64748b)',
+                  transition: 'all 0.12s ease',
+                }}
+              >
+                {section.isHidden ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+
               <div style={{ position: 'relative' }} ref={menuRef}>
                 <div 
                   style={{ cursor: 'pointer', display: 'flex', padding: '4px' }}
@@ -194,6 +223,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({
                   document.body
                 )}
               </div>
+            </>
           )}
         </div>
       </div>

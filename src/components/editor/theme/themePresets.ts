@@ -15,6 +15,7 @@ export interface ThemeColorPalette {
     surface: string;
     sectionBg: string;
     containerBg: string;
+    footerBg: string;
   };
   text: {
     heading: string;
@@ -22,10 +23,13 @@ export interface ThemeColorPalette {
     body: string;
     muted: string;
     inverse: string;
+    footerText: string;
+    footerMuted?: string;
   };
   border: {
     border: string;
     divider: string;
+    footerBorder?: string;
   };
   states: {
     success: string;
@@ -177,6 +181,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#f8fafc',
         sectionBg: '#f8fafc',
         containerBg: '#ffffff',
+        footerBg: '#0f172a',
       },
       text: {
         heading: '#0f172a',
@@ -184,10 +189,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#475569',
         muted: '#94a3b8',
         inverse: '#ffffff',
+        footerText: '#f8fafc',
+        footerMuted: '#94a3b8',
       },
       border: {
         border: '#e2e8f0',
         divider: '#f1f5f9',
+        footerBorder: '#1e293b',
       },
       states: {
         success: '#10b981',
@@ -269,6 +277,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#fafafa',
         sectionBg: '#f4f4f5',
         containerBg: '#ffffff',
+        footerBg: '#18181b',
       },
       text: {
         heading: '#09090b',
@@ -276,10 +285,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#52525b',
         muted: '#a1a1aa',
         inverse: '#ffffff',
+        footerText: '#fafafa',
+        footerMuted: '#a1a1aa',
       },
       border: {
         border: '#e4e4e7',
         divider: '#f4f4f5',
+        footerBorder: '#27272a',
       },
       states: {
         success: '#15803d',
@@ -365,6 +377,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#15151e',
         sectionBg: '#12121a',
         containerBg: '#181824',
+        footerBg: '#08080c',
       },
       text: {
         heading: '#f8f6f0',
@@ -372,10 +385,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#b8b2a7',
         muted: '#7a756c',
         inverse: '#0d0d12',
+        footerText: '#f8f6f0',
+        footerMuted: '#a8a29e',
       },
       border: {
         border: '#2a2a38',
         divider: '#20202e',
+        footerBorder: '#22222e',
       },
       states: {
         success: '#10b981',
@@ -462,6 +478,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#ffffff',
         sectionBg: '#e0f2fe',
         containerBg: '#ffffff',
+        footerBg: '#082f49',
       },
       text: {
         heading: '#0c4a6e',
@@ -469,10 +486,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#334155',
         muted: '#64748b',
         inverse: '#ffffff',
+        footerText: '#f0f9ff',
+        footerMuted: '#7dd3fc',
       },
       border: {
         border: '#bae6fd',
         divider: '#e0f2fe',
+        footerBorder: '#0c4a6e',
       },
       states: {
         success: '#14b8a6',
@@ -554,6 +574,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#ffffff',
         sectionBg: '#f7f3ec',
         containerBg: '#ffffff',
+        footerBg: '#1c1917',
       },
       text: {
         heading: '#292524',
@@ -561,10 +582,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#57534e',
         muted: '#a8a29e',
         inverse: '#ffffff',
+        footerText: '#fafaf9',
+        footerMuted: '#a8a29e',
       },
       border: {
         border: '#e7e5e4',
         divider: '#f5f5f4',
+        footerBorder: '#292524',
       },
       states: {
         success: '#15803d',
@@ -650,6 +674,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#f8fafc',
         sectionBg: '#f1f5f9',
         containerBg: '#ffffff',
+        footerBg: '#0f172a',
       },
       text: {
         heading: '#1e293b',
@@ -657,10 +682,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#475569',
         muted: '#94a3b8',
         inverse: '#ffffff',
+        footerText: '#ffffff',
+        footerMuted: '#94a3b8',
       },
       border: {
         border: '#cbd5e1',
         divider: '#e2e8f0',
+        footerBorder: '#1e293b',
       },
       states: {
         success: '#16a34a',
@@ -746,6 +774,7 @@ export const themePresets: Record<string, GlobalThemeData> = {
         surface: '#f8fafc',
         sectionBg: '#f8fafc',
         containerBg: '#ffffff',
+        footerBg: '#0f172a',
       },
       text: {
         heading: '#0f172a',
@@ -753,10 +782,13 @@ export const themePresets: Record<string, GlobalThemeData> = {
         body: '#0f172a',
         muted: '#64748b',
         inverse: '#ffffff',
+        footerText: '#f8fafc',
+        footerMuted: '#94a3b8',
       },
       border: {
         border: '#e2e8f0',
         divider: '#f1f5f9',
+        footerBorder: '#1e293b',
       },
       states: {
         success: '#198754',

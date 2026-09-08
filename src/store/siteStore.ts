@@ -13,6 +13,12 @@ export interface SectionData {
   isHidden: boolean;
 }
 
+export interface PageSnapshot {
+  sections: SectionData[];
+  pageProps: Record<string, any>;
+  publishedAt: string;
+}
+
 export interface PageData {
   id: string;
   name: string;
@@ -32,6 +38,7 @@ export interface PageData {
     tablet: boolean;
     mobile: boolean;
   };
+  lastPublishedSnapshot?: PageSnapshot;
 }
 
 import type { GlobalThemeData } from '../components/editor/theme/themePresets';
@@ -46,7 +53,7 @@ export interface SiteState {
   settings: Record<string, any>;
   isLoading: boolean;
   hasUnsavedChanges: boolean;
-  lastPublishedSnapshots: Record<string, { sections: SectionData[]; pageProps: Record<string, any> }>;
+  lastPublishedSnapshots: Record<string, PageSnapshot>;
   markSaved: () => void;
   markUnsaved: () => void;
   
@@ -109,7 +116,7 @@ const buildPredefinedPages = (): PageData[] => {
       path: config.path,
       type: config.type,
       category: config.category,
-      status: 'published' as const,
+      status: 'draft' as const,
       seoTitle: `${config.name} - BillionBiz`,
       seoDescription: config.description || '',
       sections: generateDefaultSections(pageId, config.type),
@@ -127,7 +134,7 @@ const initialPages: PageData[] = [
     path: '/',
     type: 'landing',
     category: 'storefront',
-    status: 'published',
+    status: 'draft',
     seoTitle: 'BillionBiz | Build, Launch & Grow Your Business',
     seoDescription: 'The best platform to launch your store.',
     sections: [
@@ -150,13 +157,7 @@ export const useSiteStore = create<SiteState>()(
       pages: initialPages,
       theme: getDefaultTheme(),
       hasUnsavedChanges: false,
-      lastPublishedSnapshots: initialPages.reduce((acc, p) => {
-        acc[p.id] = {
-          sections: JSON.parse(JSON.stringify(p.sections)),
-          pageProps: JSON.parse(JSON.stringify(p.pageProps || {})),
-        };
-        return acc;
-      }, {} as Record<string, { sections: SectionData[]; pageProps: Record<string, any> }>),
+      lastPublishedSnapshots: {},
       markSaved: () => set({ hasUnsavedChanges: false }),
       markUnsaved: () => set({ hasUnsavedChanges: true }),
       settings: {
@@ -340,7 +341,7 @@ export const useSiteStore = create<SiteState>()(
           },
         };
       }
-      return { theme: merged };
+      return { theme: merged, hasUnsavedChanges: true };
     });
   },
 
@@ -348,6 +349,7 @@ export const useSiteStore = create<SiteState>()(
     useThemeHistoryStore.getState().pushState(get().theme, true);
     set(() => ({
       theme: getDefaultTheme(),
+      hasUnsavedChanges: true,
     }));
   },
 
@@ -367,7 +369,8 @@ export const useSiteStore = create<SiteState>()(
           ui: { ...preset.ui },
           layout: { ...preset.layout },
           animation: { ...preset.animation },
-        }
+        },
+        hasUnsavedChanges: true,
       };
     });
   },
@@ -381,7 +384,8 @@ export const useSiteStore = create<SiteState>()(
           ...state.theme,
           colors: { ...preset.colors },
           palette: JSON.parse(JSON.stringify(preset.palette)),
-        }
+        },
+        hasUnsavedChanges: true,
       };
     });
   },
@@ -429,14 +433,14 @@ export const useSiteStore = create<SiteState>()(
   undoTheme: () => {
     const previousTheme = useThemeHistoryStore.getState().undo(get().theme);
     if (previousTheme) {
-      set({ theme: previousTheme });
+      set({ theme: previousTheme, hasUnsavedChanges: true });
     }
   },
 
   redoTheme: () => {
     const nextTheme = useThemeHistoryStore.getState().redo(get().theme);
     if (nextTheme) {
-      set({ theme: nextTheme });
+      set({ theme: nextTheme, hasUnsavedChanges: true });
     }
   },
 
@@ -471,24 +475,41 @@ export const useSiteStore = create<SiteState>()(
   
   publishPage: (pageId) => set((state) => {
     const targetPage = state.pages.find(page => page.id === pageId);
-    const pages = state.pages.map(page => 
-      page.id === pageId ? { ...page, status: 'published' as const } : page
-    );
-    const updatedSnapshots = {
-      ...state.lastPublishedSnapshots,
-      [pageId]: {
-        sections: targetPage ? JSON.parse(JSON.stringify(targetPage.sections)) : [],
-        pageProps: targetPage ? JSON.parse(JSON.stringify(targetPage.pageProps || {})) : {},
-      }
+    if (!targetPage) return state;
+
+    const snapshot: PageSnapshot = {
+      sections: JSON.parse(JSON.stringify(targetPage.sections)),
+      pageProps: JSON.parse(JSON.stringify(targetPage.pageProps || {})),
+      publishedAt: new Date().toISOString(),
     };
-    return { pages, hasUnsavedChanges: false, lastPublishedSnapshots: updatedSnapshots };
+
+    const pages = state.pages.map(page => 
+      page.id === pageId 
+        ? { ...page, status: 'published' as const, lastPublishedSnapshot: snapshot } 
+        : page
+    );
+
+    const updatedSnapshots = {
+      ...(state.lastPublishedSnapshots || {}),
+      [pageId]: snapshot,
+    };
+
+    return { 
+      pages, 
+      hasUnsavedChanges: false, 
+      lastPublishedSnapshots: updatedSnapshots 
+    };
   }),
   
   unpublishPage: (pageId) => set((state) => {
     const pages = state.pages.map(page => 
-      page.id === pageId ? { ...page, status: 'draft' as const } : page
+      page.id === pageId 
+        ? { ...page, status: 'draft' as const, lastPublishedSnapshot: undefined } 
+        : page
     );
-    return { pages };
+    const updatedSnapshots = { ...(state.lastPublishedSnapshots || {}) };
+    delete updatedSnapshots[pageId];
+    return { pages, lastPublishedSnapshots: updatedSnapshots };
   })
     }),
     {
@@ -496,13 +517,46 @@ export const useSiteStore = create<SiteState>()(
       merge: (persistedState: any, currentState: any) => {
         const defaultTheme = getDefaultTheme();
         const storedTheme = persistedState?.theme || {};
+        const storedSnapshots: Record<string, PageSnapshot> = persistedState?.lastPublishedSnapshots || {};
+        
+        const storedPages = Array.isArray(persistedState?.pages)
+          ? persistedState.pages.map((p: any) => {
+              const snapshot = p.lastPublishedSnapshot || storedSnapshots[p.id];
+              const hasValidSnapshot = Boolean(
+                snapshot &&
+                snapshot.publishedAt &&
+                Array.isArray(snapshot.sections)
+              );
+              return {
+                ...p,
+                status: hasValidSnapshot && p.status === 'published' ? 'published' : 'draft',
+                lastPublishedSnapshot: hasValidSnapshot ? snapshot : undefined,
+              };
+            })
+          : currentState.pages;
+
         return {
           ...currentState,
           ...persistedState,
+          pages: storedPages,
+          lastPublishedSnapshots: storedSnapshots,
           theme: {
             ...defaultTheme,
             ...storedTheme,
-            palette: storedTheme.palette ? { ...defaultTheme.palette, ...storedTheme.palette } : defaultTheme.palette,
+            palette: storedTheme.palette ? {
+              ...defaultTheme.palette,
+              ...storedTheme.palette,
+              background: {
+                ...defaultTheme.palette.background,
+                ...(storedTheme.palette.background || {}),
+                footerBg: storedTheme.palette.background?.footerBg || defaultTheme.palette.background.footerBg,
+              },
+              text: {
+                ...defaultTheme.palette.text,
+                ...(storedTheme.palette.text || {}),
+                footerText: storedTheme.palette.text?.footerText || defaultTheme.palette.text.footerText,
+              },
+            } : defaultTheme.palette,
             typography: storedTheme.typography ? { ...defaultTheme.typography, ...storedTheme.typography } : defaultTheme.typography,
             buttons: storedTheme.buttons ? { ...defaultTheme.buttons, ...storedTheme.buttons } : defaultTheme.buttons,
             effects: storedTheme.effects ? { ...defaultTheme.effects, ...storedTheme.effects } : defaultTheme.effects,

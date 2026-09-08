@@ -27,6 +27,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
+    activePanel,
     setActivePanel,
     setAddSectionWidgetOpen,
     setSelectedThemeCategory,
@@ -167,7 +168,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     },
     {
       id: 'save-site',
-      title: 'Save Current Changes',
+      title: activePanel === 'theme' ? 'Save Theme Customizations' : activePanel === 'settings' ? 'Save Store Settings' : 'Save Current Changes',
       badge: 'Action',
       icon: <CheckCircle2 size={15} color="#059669" />,
       action: () => {
@@ -175,7 +176,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         onClose();
       },
     },
-    {
+    ...(activePanel !== 'settings' ? [{
       id: 'preview-site',
       title: 'Preview Live Storefront',
       badge: 'Action',
@@ -184,8 +185,8 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         onPreview();
         onClose();
       },
-    },
-    {
+    }] : []),
+    ...((activePanel === 'editor' || activePanel === 'pages') ? [{
       id: 'publish-site',
       title: 'Publish Storefront',
       badge: 'Action',
@@ -194,7 +195,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         onPublish();
         onClose();
       },
-    },
+    }] : []),
   ];
 
   // Sections added in current editor page

@@ -48,7 +48,11 @@ export const ThemeOverrideControl: React.FC<ThemeOverrideControlProps> = ({
       current = current?.[part];
       fallback = fallback?.[part];
     }
-    return current || fallback || '#2563eb';
+    if (current) return current;
+    if (fallback) return fallback;
+    if (palettePath === 'background.footerBg') return '#0f172a';
+    if (palettePath === 'text.footerText') return '#ffffff';
+    return '#2563eb';
   };
 
   const tokenInfo = {

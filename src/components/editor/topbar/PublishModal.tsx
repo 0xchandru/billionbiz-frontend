@@ -39,7 +39,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({
 
   if (!isOpen || !activePage) return null;
 
-  const snapshot = lastPublishedSnapshots?.[activePage.id];
+  const snapshot = activePage.lastPublishedSnapshot || (activePage ? lastPublishedSnapshots?.[activePage.id] : null);
   const snapshotSections: SectionData[] = snapshot?.sections || [];
   const currentSections: SectionData[] = activePage.sections || [];
 

@@ -114,7 +114,8 @@
   border-radius: 9999px;
   font-size: 10.5px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   transition: all 0.12s ease;
 }
 
@@ -124,18 +125,16 @@
   border: 1px solid #dcfce7;
 }
 
-.statusLive:hover {
-  background-color: #dcfce7;
-}
-
 .statusDraft {
   background-color: #fffbeb;
   color: #b45309;
   border: 1px solid #fef3c7;
 }
 
-.statusDraft:hover {
-  background-color: #fef3c7;
+.statusSaved {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
 }
 
 .statusDot {
@@ -150,6 +149,51 @@
 
 .statusDraft .statusDot {
   background-color: #f59e0b;
+}
+
+.statusSaved .statusDot {
+  background-color: #3b82f6;
+}
+
+/* Context Tag for Theme / Settings in Zone Left */
+.contextTag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Primary Save Button for Theme and Settings */
+.btnPrimarySave {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.btnPrimarySave:hover {
+  background-color: #1d4ed8;
+}
+
+.btnPrimarySave:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background-color: #64748b;
 }
 
 /* History Undo / Redo */

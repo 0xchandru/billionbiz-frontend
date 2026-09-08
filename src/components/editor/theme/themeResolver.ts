@@ -56,6 +56,8 @@ export const themeTokenMap: Record<string, { tokenVar: string; label: string; is
   buttonColor: { tokenVar: 'var(--theme-btn-primary-text)', label: 'Button Text Color', isBackground: false },
   primaryBtnBg: { tokenVar: 'var(--theme-btn-primary-bg)', label: 'Primary Button Bg', isBackground: false },
   secondaryBtnBg: { tokenVar: 'var(--theme-btn-secondary-bg)', label: 'Secondary Button Bg', isBackground: false },
+  footerBg: { tokenVar: 'var(--theme-footer-bg)', label: 'Footer Background', isBackground: true },
+  footerText: { tokenVar: 'var(--theme-footer-text)', label: 'Footer Text', isBackground: false },
 };
 
 /**
@@ -129,21 +131,21 @@ export function getSectionDefaultToken(
     }
   }
 
-  // 4. FOOTER & FOOTER BLOCKS (Section Background + Inverse Text)
+  // 4. FOOTER & FOOTER BLOCKS (Footer Background + Footer Text)
   if (['Footer', 'FooterMenu', 'FooterText'].includes(type)) {
     if (key.includes('bg') || key.includes('background')) {
       return {
-        tokenVar: 'var(--theme-bg-section)',
+        tokenVar: 'var(--theme-footer-bg)',
         label: 'Footer Background',
-        palettePath: 'background.sectionBg',
+        palettePath: 'background.footerBg',
         isBackground: true,
       };
     }
     if (key.includes('text') || key.includes('color') || key.includes('link')) {
       return {
-        tokenVar: 'var(--theme-text-inverse)',
-        label: 'Inverse Text',
-        palettePath: 'text.inverse',
+        tokenVar: 'var(--theme-footer-text)',
+        label: 'Footer Text',
+        palettePath: 'text.footerText',
         isBackground: false,
       };
     }

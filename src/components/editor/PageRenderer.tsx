@@ -65,6 +65,12 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
       --theme-bg-section: ${p.background?.sectionBg || defaultTheme.palette.background.sectionBg};
       --theme-bg-container: ${p.background?.containerBg || defaultTheme.palette.background.containerBg};
 
+      /* Palette: Footer */
+      --theme-footer-bg: ${p.background?.footerBg || (safeTheme.presetName === 'Luxury' ? '#08080c' : safeTheme.presetName === 'Ocean' ? '#082f49' : safeTheme.presetName === 'Warm' ? '#1c1917' : safeTheme.presetName === 'Minimal' ? '#18181b' : '#0f172a')};
+      --theme-footer-text: ${p.text?.footerText || (safeTheme.presetName === 'Luxury' ? '#f8f6f0' : safeTheme.presetName === 'Warm' ? '#fafaf9' : safeTheme.presetName === 'Ocean' ? '#f0f9ff' : '#ffffff')};
+      --theme-footer-muted: ${p.text?.footerMuted || '#94a3b8'};
+      --theme-footer-border: ${p.border?.footerBorder || 'rgba(255, 255, 255, 0.12)'};
+
       /* Palette: Text */
       --theme-text-heading: ${p.text?.heading || safeTheme.colors?.text || defaultTheme.palette.text.heading};
       --theme-text-subheading: ${p.text?.subheading || defaultTheme.palette.text.subheading};

@@ -197,6 +197,13 @@ export const ColorPalettePanel: React.FC = () => {
               onChange={(v) => updatePaletteSection('background', 'containerBg', v)}
               description="Inner card & content wrappers"
             />
+            <ColorItem
+              label="Footer Background"
+              tokenKey="background.footerBg"
+              value={palette.background.footerBg || '#0f172a'}
+              onChange={(v) => updatePaletteSection('background', 'footerBg', v)}
+              description="Default background for site footer"
+            />
           </div>
         )}
       </div>
@@ -257,6 +264,13 @@ export const ColorPalettePanel: React.FC = () => {
               value={palette.text.inverse}
               onChange={(v) => updatePaletteSection('text', 'inverse', v)}
               description="Text on dark/contrasting backgrounds"
+            />
+            <ColorItem
+              label="Footer Text"
+              tokenKey="text.footerText"
+              value={palette.text.footerText || '#ffffff'}
+              onChange={(v) => updatePaletteSection('text', 'footerText', v)}
+              description="Text and links inside site footer"
             />
           </div>
         )}
