@@ -648,7 +648,7 @@ export const EditorRightSidebar: React.FC = () => {
               layouts={pageConfig.layouts}
               props={activePage.pageProps || {}}
               onPropChange={(key, value) => updatePageProps(activePage.id, {
-                pageProps: { ...(activePage.pageProps || {}), [key]: value }
+                pageProps: { ...activePage.pageProps, [key]: value }
               })}
               pageName={pageConfig.name}
             />

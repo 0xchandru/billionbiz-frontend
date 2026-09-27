@@ -763,10 +763,10 @@ export const useSiteStore = create<SiteState>()(
           ...snapshot,
           sections: (snapshot.sections || []).map(stripEditorPayload),
         });
-        const { headerEditor, ...settings } = state.settings || {};
+        const { headerEditor: _headerEditor, ...settings } = state.settings || {};
         return {
           pages: state.pages.map((page) => {
-            const { lastPublishedSnapshot, ...pageWithoutSnapshot } = page;
+            const { lastPublishedSnapshot: _lastPublishedSnapshot, ...pageWithoutSnapshot } = page;
             return {
               ...pageWithoutSnapshot,
               sections: page.sections.map(stripEditorPayload),
@@ -902,7 +902,7 @@ export const useSiteStore = create<SiteState>()(
 
         const storedSettings = {
           ...currentState.settings,
-          ...(persistedState?.settings || {}),
+          ...persistedState?.settings,
           storeName: (!persistedState?.settings?.storeName || persistedState?.settings?.storeName === 'BillionBiz') ? 'Shoum' : persistedState.settings.storeName,
           siteName: (!persistedState?.settings?.siteName || persistedState?.settings?.siteName === 'BillionBiz') ? 'Shoum' : persistedState.settings.siteName,
         };
@@ -921,12 +921,12 @@ export const useSiteStore = create<SiteState>()(
               ...storedTheme.palette,
               background: {
                 ...defaultTheme.palette.background,
-                ...(storedTheme.palette.background || {}),
+                ...storedTheme.palette.background,
                 footerBg: storedTheme.palette.background?.footerBg || defaultTheme.palette.background.footerBg,
               },
               text: {
                 ...defaultTheme.palette.text,
-                ...(storedTheme.palette.text || {}),
+                ...storedTheme.palette.text,
                 footerText: storedTheme.palette.text?.footerText || defaultTheme.palette.text.footerText,
               },
             } : defaultTheme.palette,

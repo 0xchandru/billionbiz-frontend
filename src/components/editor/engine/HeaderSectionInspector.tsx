@@ -502,9 +502,9 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
   };
 
   const currentResponsiveArrangement: HeaderResponsiveArrangement = {
-    desktop: { ...fallbackArrangement.desktop, ...(row.layout?.responsiveArrangement?.desktop || {}), disabled: row.layout?.responsiveArrangement?.desktop?.disabled || fallbackArrangement.desktop.disabled },
-    tablet: { ...fallbackArrangement.tablet, ...(row.layout?.responsiveArrangement?.tablet || {}), disabled: row.layout?.responsiveArrangement?.tablet?.disabled || fallbackArrangement.tablet.disabled },
-    mobile: { ...fallbackArrangement.mobile, ...(row.layout?.responsiveArrangement?.mobile || {}), disabled: row.layout?.responsiveArrangement?.mobile?.disabled || fallbackArrangement.mobile.disabled },
+    desktop: { ...fallbackArrangement.desktop, ...row.layout?.responsiveArrangement?.desktop, disabled: row.layout?.responsiveArrangement?.desktop?.disabled || fallbackArrangement.desktop.disabled },
+    tablet: { ...fallbackArrangement.tablet, ...row.layout?.responsiveArrangement?.tablet, disabled: row.layout?.responsiveArrangement?.tablet?.disabled || fallbackArrangement.tablet.disabled },
+    mobile: { ...fallbackArrangement.mobile, ...row.layout?.responsiveArrangement?.mobile, disabled: row.layout?.responsiveArrangement?.mobile?.disabled || fallbackArrangement.mobile.disabled },
   };
   const updateArrangementSlot = (componentKey: string, slot: keyof HeaderSlotArrangement, insertAt?: number) => {
     const nextArrangement = JSON.parse(JSON.stringify(currentResponsiveArrangement)) as HeaderResponsiveArrangement;
@@ -586,7 +586,7 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
       };
       const finalGlobalOverrides = {
         ...baseGlobalOverrides,
-        ...(variant.globalOverrides || {}),
+        ...variant.globalOverrides,
       };
       useEditorContextStore.getState().updateHeaderSettings(finalGlobalOverrides);
     } else if (isAnnouncement) {

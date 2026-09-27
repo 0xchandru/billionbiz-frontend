@@ -328,8 +328,8 @@ export const useEditorContextStore = create<EditorContextState>()(
               ? {
                   ...r,
                   ...updates,
-                  layout: { ...r.layout, ...(updates.layout || {}) },
-                  styling: { ...r.styling, ...(updates.styling || {}) },
+                  layout: { ...r.layout, ...updates.layout },
+                  styling: { ...r.styling, ...updates.styling },
                 }
               : r
           );
@@ -566,7 +566,7 @@ export const useEditorContextStore = create<EditorContextState>()(
                 return {
                   ...el,
                   ...updates,
-                  props: { ...el.props, ...(updates.props || {}) },
+                  props: { ...el.props, ...updates.props },
                 };
               }),
             };
@@ -1026,7 +1026,7 @@ export const useEditorContextStore = create<EditorContextState>()(
                   return {
                     ...el,
                     ...updates,
-                    props: { ...el.props, ...(updates.props || {}) },
+                    props: { ...el.props, ...updates.props },
                   };
                 }),
               })),
@@ -1398,7 +1398,7 @@ export const useEditorContextStore = create<EditorContextState>()(
               previewSettings: {
                 positioning: (variant.id === 'floating' ? 'floating' : (variant.id === 'transparent' ? 'overlay' : (variant.id === 'side-rail' ? 'sticky' : 'static'))) as any,
                 heroAwareMode: (variant.id === 'transparent' ? 'transparent-hero' : 'standard') as any,
-                ...(variant.globalOverrides || {}),
+                ...variant.globalOverrides,
               },
               originalRows: baseRows,
               originalSettings: state.headerSettings,
@@ -1545,7 +1545,7 @@ export const useEditorContextStore = create<EditorContextState>()(
 
           set({
             footerRows: newRows,
-            footerSettings: { ...state.footerSettings, ...(variant.globalOverrides || {}) },
+            footerSettings: { ...state.footerSettings, ...variant.globalOverrides },
             currentFooterVariantId: variantId,
             presetPreview: null,
           });
@@ -1624,7 +1624,7 @@ export const useEditorContextStore = create<EditorContextState>()(
 
           set({
             headerRows: newRows,
-            headerSettings: { ...state.headerSettings, ...(template.globalOverrides || {}) },
+            headerSettings: { ...state.headerSettings, ...template.globalOverrides },
             currentHeaderVariantId: template.variantId,
             currentHeaderArrangementId: template.arrangementId,
             presetPreview: null,
@@ -1638,7 +1638,7 @@ export const useEditorContextStore = create<EditorContextState>()(
 
           set({
             footerRows: newRows,
-            footerSettings: { ...state.footerSettings, ...(template.globalOverrides || {}) },
+            footerSettings: { ...state.footerSettings, ...template.globalOverrides },
             currentFooterVariantId: template.variantId,
             currentFooterArrangementId: template.arrangementId,
             presetPreview: null,

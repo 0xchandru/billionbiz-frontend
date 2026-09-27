@@ -870,7 +870,7 @@ export const EditorLeftSidebar: React.FC = () => {
                   onClick={() => {
                     updatePageProps(activePage.id, {
                       pageProps: {
-                        ...(activePage.pageProps || {}),
+                        ...activePage.pageProps,
                         _selectedLayout: layout.id,
                         selectedLayout: layout.id,
                         layout: layout.id,
