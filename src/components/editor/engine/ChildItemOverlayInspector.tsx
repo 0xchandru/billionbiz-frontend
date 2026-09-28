@@ -21,6 +21,9 @@ import {
   RotateCcw,
   Palette,
   Sparkles,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
@@ -28,7 +31,7 @@ import { useSiteStore } from '../../../store/siteStore';
 import { getDefaultTheme } from '../theme/themePresets';
 import { ColorInheritanceControl } from './ColorInheritanceControl';
 import { ColorPickerPopover } from '../ui/ColorPickerPopover';
-import type { HeaderRow, HeaderElement, ActionItemConfig } from './types';
+import type { HeaderRow, HeaderElement, FooterRow, FooterElement, ActionItemConfig } from './types';
 import {
   CUSTOM_PRESET_ICONS,
   getDefaultActionItems,
@@ -39,9 +42,10 @@ import {
 import styles from '../../../pages/editor/EditorLayout.module.css';
 
 interface ChildItemOverlayInspectorProps {
-  element: HeaderElement;
-  row: HeaderRow;
+  element: HeaderElement | FooterElement | any;
+  row: HeaderRow | FooterRow | any;
   onClose: () => void;
+  editorType?: 'header' | 'footer';
 }
 
 // ─── Default Internal Routes ────────────────────────────────
@@ -62,12 +66,20 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
   element,
   row,
   onClose,
+  editorType,
 }) => {
-  const { updateHeaderElement } = useEditorContextStore();
+  const { updateHeaderElement, updateFooterElement, selectTarget } = useEditorContextStore();
+  const selectedTarget = useEditorContextStore((state) => state.selectedTarget);
   const device = useLandingEditorStore((state) => state.device);
   const { theme } = useSiteStore();
   const defaultPalette = getDefaultTheme().palette;
   const palette = theme?.palette || (theme as any)?.colors || defaultPalette;
+
+  const isFooter =
+    editorType === 'footer' ||
+    (selectedTarget as any)?.editorType === 'footer' ||
+    (row as any)?.columns !== undefined ||
+    (row as any)?.type === 'navigation';
 
   const THEME_CSS_TOKENS = [
     { name: 'Primary', varName: 'var(--primary)', color: palette.brand?.primary || '#2563eb' },
@@ -82,7 +94,9 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
   const isNav =
     element.type === 'primary-nav' ||
     element.type === 'navigation' ||
-    element.type === 'navigation-menu';
+    element.type === 'navigation-menu' ||
+    element.type === 'link-group' ||
+    element.type === 'category-menu';
   const isSearch = element.type === 'search';
   const isActions = element.type === 'actions' || element.type === 'action-group';
   const isCta = element.type === 'cta';
@@ -139,16 +153,41 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
   const [expandedLinkIdx, setExpandedLinkIdx] = useState<number | null>(null);
 
   const handleUpdateProps = (updates: Record<string, any>) => {
-    updateHeaderElement(row.id, element.id, {
-      props: {
-        ...element.props,
-        ...updates,
-      },
-    });
+    if (isFooter) {
+      updateFooterElement(row.id, element.id, {
+        props: {
+          ...element.props,
+          ...updates,
+        },
+      });
+    } else {
+      updateHeaderElement(row.id, element.id, {
+        props: {
+          ...element.props,
+          ...updates,
+        },
+      });
+    }
   };
 
-  const handleUpdateMeta = (updates: Partial<HeaderElement>) => {
-    updateHeaderElement(row.id, element.id, updates);
+  const handleUpdateMeta = (updates: any) => {
+    if (isFooter) {
+      updateFooterElement(row.id, element.id, updates);
+    } else {
+      updateHeaderElement(row.id, element.id, updates);
+    }
+  };
+
+  const handleBack = () => {
+    if (isFooter) {
+      selectTarget({
+        type: 'row',
+        editorType: 'footer',
+        rowId: row.id,
+      });
+      useEditorContextStore.getState().setActiveTab('columns');
+    }
+    onClose();
   };
 
 
@@ -352,81 +391,151 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
       }}
     >
       {/* ─── 1. INTERACTIVE BREADCRUMB HEADER (Item 21 & 22) ─── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border-color, #e2e8f0)',
-          backgroundColor: '#ffffff',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: '6px',
-              border: '1px solid #e2e8f0',
-              background: '#f8fafc',
-              cursor: 'pointer',
-              color: '#334155',
-            }}
-            title="Back to Header"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                color: '#64748b',
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
-            >
-              Header
-            </button>
-            <span style={{ color: '#cbd5e1' }}>/</span>
-            <span style={{ color: '#0f172a', fontWeight: 700, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              {(element.type === 'logo' || element.id === 'el-logo' || element.name === 'Logo') ? 'Logo & Brandname' : element.name}
-            </span>
-          </div>
-        </div>
+      {(() => {
+        const footerColumns = isFooter ? ((row as FooterRow).columns || []) : [];
+        const colIndex = footerColumns.findIndex((c) =>
+          (c.elements || []).some((e) => e.id === element.id)
+        );
+        const columnNumber = colIndex !== -1 ? colIndex + 1 : 1;
+        const isStoreLogo = element.type === 'logo' || element.id === 'el-footer-logo' || element.name === 'Store Logo';
+        const displayTitle = isStoreLogo
+          ? (isFooter ? 'Store Logo' : 'Logo & Brandname')
+          : (element.name || 'Component');
 
-        {/* Close inspector */}
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            color: '#64748b',
-          }}
-          title="Close inspector"
-        >
-          <X size={18} />
-        </button>
-      </div>
+        return (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 16px',
+              borderBottom: '1px solid var(--border-color, #e2e8f0)',
+              backgroundColor: '#ffffff',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, marginRight: '8px' }}>
+              <button
+                type="button"
+                onClick={handleBack}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  color: '#334155',
+                  flexShrink: 0,
+                }}
+                title={isFooter ? 'Back to Footer Directory' : 'Back to Header'}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12.5px', fontWeight: 600, minWidth: 0, flex: 1 }}>
+                {isFooter ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                    >
+                      Footer
+                    </button>
+                    <span style={{ color: '#cbd5e1', flexShrink: 0 }}>/</span>
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                    >
+                      Column {columnNumber}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#2563eb')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+                  >
+                    Header
+                  </button>
+                )}
+                <span style={{ color: '#cbd5e1', flexShrink: 0 }}>/</span>
+                <span
+                  title={displayTitle}
+                  style={{
+                    color: '#0f172a',
+                    fontWeight: 700,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    minWidth: 0,
+                  }}
+                >
+                  {displayTitle}
+                </span>
+              </div>
+            </div>
+
+            {/* Close inspector */}
+              <button
+                type="button"
+                onClick={handleBack}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  flexShrink: 0,
+                }}
+                title="Close inspector"
+              >
+                <X size={18} />
+              </button>
+          </div>
+        );
+      })()}
 
       {/* ─── 2. Shared right-sidebar header and scrollable tabs ─── */}
       <div className={styles.propTabs} style={{ borderBottom: '1px solid var(--border-color, #e2e8f0)', background: '#f8fafc', display: 'flex', alignItems: 'center' }}>
@@ -3903,17 +4012,812 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
           <div>
             {activeTab === 'content' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
-                    Component Content / Text
-                  </label>
-                  <input
-                    type="text"
-                    value={element.props.text || ''}
-                    onChange={(e) => handleUpdateProps({ text: e.target.value })}
-                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
-                  />
-                </div>
+                {/* 1. Brand Description / Bio */}
+                {(element.type === 'brand-description' || element.type === 'brand-story') && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Brand Story & Bio
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Brand Name (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.brandName || ''}
+                        onChange={(e) => handleUpdateProps({ brandName: e.target.value })}
+                        placeholder="BillionBiz"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Description / Bio Text
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={element.props.text || ''}
+                        onChange={(e) => handleUpdateProps({ text: e.target.value })}
+                        placeholder="Write your brand mission or bio..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', lineHeight: 1.5 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Tagline
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.tagline || ''}
+                        onChange={(e) => handleUpdateProps({ tagline: e.target.value })}
+                        placeholder="Crafted for modern retail"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 2. Contact Information */}
+                {(element.type === 'contact' || element.type === 'address') && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Contact Details
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Section Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.heading || 'Contact Us'}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Phone Hotline
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.phone || ''}
+                        onChange={(e) => handleUpdateProps({ phone: e.target.value })}
+                        placeholder="+1 (800) 555-0199"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Support Email
+                      </label>
+                      <input
+                        type="email"
+                        value={element.props.email || ''}
+                        onChange={(e) => handleUpdateProps({ email: e.target.value })}
+                        placeholder="support@yourstore.com"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Physical Address
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.address || ''}
+                        onChange={(e) => handleUpdateProps({ address: e.target.value })}
+                        placeholder="100 Commerce Blvd, Suite 400"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        WhatsApp Number
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.whatsapp || ''}
+                        onChange={(e) => handleUpdateProps({ whatsapp: e.target.value })}
+                        placeholder="+1 (800) 555-0198"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 3. Business Hours */}
+                {element.type === 'business-hours' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Business Hours
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.heading || 'Business Hours'}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Weekday Hours
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.weekdayHours || 'Mon – Fri: 9:00 AM – 7:00 PM EST'}
+                        onChange={(e) => handleUpdateProps({ weekdayHours: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Weekend Hours
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.weekendHours || 'Saturday: 10:00 AM – 5:00 PM EST'}
+                        onChange={(e) => handleUpdateProps({ weekendHours: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 4. Rich Text */}
+                {element.type === 'rich-text' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Rich Text Content
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Heading (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.heading || ''}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        placeholder="About Us"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Body Text / Content
+                      </label>
+                      <textarea
+                        rows={5}
+                        value={element.props.content || ''}
+                        onChange={(e) => handleUpdateProps({ content: e.target.value })}
+                        placeholder="Write your text or editorial here..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', lineHeight: 1.5 }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 5. Image */}
+                {element.type === 'image' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Image Settings
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Image URL
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.imageUrl || ''}
+                        onChange={(e) => handleUpdateProps({ imageUrl: e.target.value })}
+                        placeholder="https://example.com/badge.png"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Alt Text
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.altText || ''}
+                        onChange={(e) => handleUpdateProps({ altText: e.target.value })}
+                        placeholder="Badge illustration"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Link Destination URL (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.linkUrl || ''}
+                        onChange={(e) => handleUpdateProps({ linkUrl: e.target.value })}
+                        placeholder="https://example.com"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 6. Custom HTML */}
+                {element.type === 'custom-html' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Custom HTML / Embed
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        HTML Embed Code
+                      </label>
+                      <textarea
+                        rows={6}
+                        value={element.props.html || ''}
+                        onChange={(e) => handleUpdateProps({ html: e.target.value })}
+                        placeholder="<div>Custom Content</div>"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', fontFamily: 'monospace' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 7. Divider / Spacer */}
+                {(element.type === 'divider' || element.type === 'spacer') && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      {element.type === 'spacer' ? 'Spacer Height' : 'Divider Styling'}
+                    </div>
+                    {element.type === 'spacer' ? (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                          Height ({element.props.height ?? 20}px)
+                        </label>
+                        <input
+                          type="range"
+                          min="8"
+                          max="64"
+                          value={element.props.height ?? 20}
+                          onChange={(e) => handleUpdateProps({ height: Number(e.target.value) })}
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                            Line Style
+                          </label>
+                          <select
+                            value={element.props.style || 'solid'}
+                            onChange={(e) => handleUpdateProps({ style: e.target.value })}
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                          >
+                            <option value="solid">Solid Line</option>
+                            <option value="dashed">Dashed Line</option>
+                            <option value="dotted">Dotted Line</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                            Thickness ({element.props.thickness ?? 1}px)
+                          </label>
+                          <input
+                            type="range"
+                            min="1"
+                            max="6"
+                            value={element.props.thickness ?? 1}
+                            onChange={(e) => handleUpdateProps({ thickness: Number(e.target.value) })}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* 8. Newsletter Signup */}
+                {element.type === 'newsletter-form' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Newsletter Configuration
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Headline
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.title ?? 'Stay in the loop'}
+                        onChange={(e) => handleUpdateProps({ title: e.target.value })}
+                        placeholder="Stay in the loop"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Subtitle / Description
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={element.props.subtitle ?? 'Subscribe for weekly releases, stories & member perks.'}
+                        onChange={(e) => handleUpdateProps({ subtitle: e.target.value })}
+                        placeholder="Subscribe for weekly releases..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Input Placeholder
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.placeholder ?? 'Enter your email...'}
+                        onChange={(e) => handleUpdateProps({ placeholder: e.target.value })}
+                        placeholder="Enter your email..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.buttonText ?? 'Subscribe'}
+                        onChange={(e) => handleUpdateProps({ buttonText: e.target.value })}
+                        placeholder="Subscribe"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Form Layout
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                        {[
+                          { id: 'stacked', label: 'Stacked (Best)' },
+                          { id: 'inline', label: 'Inline Row' },
+                          { id: 'joined', label: 'Joined Capsule' },
+                        ].map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handleUpdateProps({ layout: m.id })}
+                            style={{
+                              padding: '7px 4px',
+                              borderRadius: '6px',
+                              border: (element.props.layout || 'stacked') === m.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                              backgroundColor: (element.props.layout || 'stacked') === m.id ? '#eff6ff' : '#ffffff',
+                              color: (element.props.layout || 'stacked') === m.id ? '#1d4ed8' : '#334155',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                            }}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Button Style
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                        {[
+                          { id: 'solid', label: 'Solid Fill' },
+                          { id: 'pill', label: 'Curved Pill' },
+                          { id: 'outline', label: 'Outline' },
+                        ].map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => handleUpdateProps({ buttonStyle: s.id })}
+                            style={{
+                              padding: '6px',
+                              borderRadius: '6px',
+                              border: (element.props.buttonStyle || 'solid') === s.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                              backgroundColor: (element.props.buttonStyle || 'solid') === s.id ? '#eff6ff' : '#ffffff',
+                              color: (element.props.buttonStyle || 'solid') === s.id ? '#1d4ed8' : '#334155',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                          Button Color
+                        </label>
+                        <input
+                          type="color"
+                          value={element.props.buttonBg || '#2563eb'}
+                          onChange={(e) => handleUpdateProps({ buttonBg: e.target.value })}
+                          style={{ width: '100%', height: '36px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                          Button Text
+                        </label>
+                        <input
+                          type="color"
+                          value={element.props.buttonColor || '#ffffff'}
+                          onChange={(e) => handleUpdateProps({ buttonColor: e.target.value })}
+                          style={{ width: '100%', height: '36px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer' }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+                      ✦ Headline, description & input borders dynamically inherit from footer color palette variables.
+                    </div>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                        <input
+                          type="checkbox"
+                          checked={element.props.showDisclaimer !== false}
+                          onChange={(e) => handleUpdateProps({ showDisclaimer: e.target.checked })}
+                        />
+                        <span>Show Privacy Disclaimer</span>
+                      </label>
+                      {element.props.showDisclaimer !== false && (
+                        <input
+                          type="text"
+                          value={element.props.disclaimerText ?? 'By subscribing you agree to our Privacy Policy.'}
+                          onChange={(e) => handleUpdateProps({ disclaimerText: e.target.value })}
+                          style={{ width: '100%', marginTop: '6px', padding: '6px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '11px', color: '#64748b' }}
+                        />
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* 9. Social Links */}
+                {(element.type === 'social-links' || element.type === 'social-icons') && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Social Profiles Configuration
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                          Heading Text
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={element.props.showHeading !== false}
+                            onChange={(e) => handleUpdateProps({ showHeading: e.target.checked })}
+                          />
+                          <span>Show</span>
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        value={element.props.heading ?? 'Connect With Us'}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        placeholder="Connect With Us"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Display Style
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                        {[
+                          { id: 'circles', label: 'Circles' },
+                          { id: 'rounded', label: 'Rounded' },
+                          { id: 'minimal', label: 'Minimal' },
+                        ].map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => handleUpdateProps({ variant: v.id })}
+                            style={{
+                              padding: '6px 4px',
+                              borderRadius: '6px',
+                              border: (element.props.variant || 'circles') === v.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                              backgroundColor: (element.props.variant || 'circles') === v.id ? '#eff6ff' : '#ffffff',
+                              color: (element.props.variant || 'circles') === v.id ? '#1d4ed8' : '#334155',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {v.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '4px' }}>
+                        <span>Icon Size</span>
+                        <span style={{ color: '#2563eb' }}>{element.props.size ?? 16}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="12"
+                        max="26"
+                        value={element.props.size ?? 16}
+                        onChange={(e) => handleUpdateProps({ size: Number(e.target.value) })}
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>
+                        Active Platforms & Links
+                      </label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {(element.props.platforms || [
+                          { platform: 'instagram', url: 'https://instagram.com', enabled: true },
+                          { platform: 'twitter', url: 'https://twitter.com', enabled: true },
+                          { platform: 'facebook', url: 'https://facebook.com', enabled: true },
+                          { platform: 'youtube', url: 'https://youtube.com', enabled: true },
+                          { platform: 'tiktok', url: 'https://tiktok.com', enabled: false },
+                          { platform: 'linkedin', url: 'https://linkedin.com', enabled: false },
+                        ]).map((plat: any, pIdx: number) => {
+                          const currentPlatforms = element.props.platforms || [
+                            { platform: 'instagram', url: 'https://instagram.com', enabled: true },
+                            { platform: 'twitter', url: 'https://twitter.com', enabled: true },
+                            { platform: 'facebook', url: 'https://facebook.com', enabled: true },
+                            { platform: 'youtube', url: 'https://youtube.com', enabled: true },
+                            { platform: 'tiktok', url: 'https://tiktok.com', enabled: false },
+                            { platform: 'linkedin', url: 'https://linkedin.com', enabled: false },
+                          ];
+                          return (
+                            <div key={plat.platform} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
+                              <input
+                                type="checkbox"
+                                checked={plat.enabled !== false}
+                                onChange={(e) => {
+                                  const updated = currentPlatforms.map((p: any, i: number) =>
+                                    i === pIdx ? { ...p, enabled: e.target.checked } : p
+                                  );
+                                  handleUpdateProps({ platforms: updated });
+                                }}
+                              />
+                              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#1e293b', width: '70px', textTransform: 'capitalize' }}>
+                                {plat.platform}
+                              </span>
+                              <input
+                                type="text"
+                                value={plat.url || ''}
+                                onChange={(e) => {
+                                  const updated = currentPlatforms.map((p: any, i: number) =>
+                                    i === pIdx ? { ...p, url: e.target.value } : p
+                                  );
+                                  handleUpdateProps({ platforms: updated });
+                                }}
+                                placeholder={`https://${plat.platform}.com/...`}
+                                style={{ flex: 1, padding: '4px 6px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* 10. Payment Methods */}
+                {element.type === 'payment-methods' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Payment Methods Badges
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>
+                          Heading
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={element.props.showHeading !== false}
+                            onChange={(e) => handleUpdateProps({ showHeading: e.target.checked })}
+                          />
+                          <span>Show</span>
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        value={element.props.heading ?? 'Accepted Payments'}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        placeholder="Accepted Payments"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>
+                        Accepted Providers
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        {[
+                          { id: 'visa', label: 'Visa' },
+                          { id: 'mastercard', label: 'Mastercard' },
+                          { id: 'amex', label: 'American Express' },
+                          { id: 'paypal', label: 'PayPal' },
+                          { id: 'applepay', label: 'Apple Pay' },
+                          { id: 'googlepay', label: 'Google Pay' },
+                          { id: 'klarna', label: 'Klarna' },
+                          { id: 'shoppay', label: 'Shop Pay' },
+                        ].map((prov) => {
+                          const activeProviders: string[] = element.props.providers || ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'];
+                          const isChecked = activeProviders.includes(prov.id);
+                          return (
+                            <label
+                              key={prov.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 8px',
+                                border: isChecked ? '1px solid #93c5fd' : '1px solid #e2e8f0',
+                                backgroundColor: isChecked ? '#eff6ff' : '#ffffff',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '11.5px',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const next = e.target.checked
+                                    ? [...activeProviders, prov.id]
+                                    : activeProviders.filter((p: string) => p !== prov.id);
+                                  handleUpdateProps({ providers: next });
+                                }}
+                              />
+                              <span style={{ fontWeight: isChecked ? 600 : 400 }}>{prov.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* 11. Trust Badges */}
+                {element.type === 'trust-badges' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Trust Guarantees in Column
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Heading (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.heading || ''}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        placeholder="Guaranteed Safe"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Icon Accent Color
+                      </label>
+                      <input
+                        type="color"
+                        value={element.props.iconColor || '#10b981'}
+                        onChange={(e) => handleUpdateProps({ iconColor: e.target.value })}
+                        style={{ width: '100%', height: '36px', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 12. App Download */}
+                {element.type === 'app-download' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Mobile App Badges
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.heading ?? 'Get Our App'}
+                        onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                        placeholder="Get Our App"
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        App Store URL
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.appStoreUrl || '#'}
+                        onChange={(e) => handleUpdateProps({ appStoreUrl: e.target.value })}
+                        placeholder="https://apps.apple.com/..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Google Play URL
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.googlePlayUrl || '#'}
+                        onChange={(e) => handleUpdateProps({ googlePlayUrl: e.target.value })}
+                        placeholder="https://play.google.com/..."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* 13. Copyright */}
+                {element.type === 'copyright' && (
+                  <>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      Copyright Statement
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Copyright Text
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={element.props.text ?? '© 2026 BillionBiz, Inc. All rights reserved.'}
+                        onChange={(e) => handleUpdateProps({ text: e.target.value })}
+                        placeholder="© 2026 BillionBiz, Inc. All rights reserved."
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Default Fallback */}
+                {element.type !== 'brand-description' &&
+                  element.type !== 'brand-story' &&
+                  element.type !== 'contact' &&
+                  element.type !== 'address' &&
+                  element.type !== 'business-hours' &&
+                  element.type !== 'rich-text' &&
+                  element.type !== 'image' &&
+                  element.type !== 'custom-html' &&
+                  element.type !== 'divider' &&
+                  element.type !== 'spacer' &&
+                  element.type !== 'newsletter-form' &&
+                  element.type !== 'social-links' &&
+                  element.type !== 'social-icons' &&
+                  element.type !== 'payment-methods' &&
+                  element.type !== 'trust-badges' &&
+                  element.type !== 'app-download' &&
+                  element.type !== 'copyright' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                        Component Content / Text
+                      </label>
+                      <input
+                        type="text"
+                        value={element.props.text || ''}
+                        onChange={(e) => handleUpdateProps({ text: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+                      />
+                    </div>
+                  )}
               </div>
             )}
 
@@ -3929,21 +4833,116 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
                   onModeChange={(m) => handleUpdateProps({ colorMode: m })}
                   onChange={(c) => handleUpdateProps({ textColor: c, color: c })}
                 />
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                    Alignment
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'left', label: 'Left', icon: AlignLeft },
+                      { id: 'center', label: 'Center', icon: AlignCenter },
+                      { id: 'right', label: 'Right', icon: AlignRight },
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleUpdateProps({ alignment: item.id })}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px',
+                          padding: '7px 4px',
+                          borderRadius: '6px',
+                          border: (element.props.alignment || 'left') === item.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                          backgroundColor: (element.props.alignment || 'left') === item.id ? '#eff6ff' : '#ffffff',
+                          color: (element.props.alignment || 'left') === item.id ? '#1d4ed8' : '#334155',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <item.icon size={13} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                    Font Size ({element.props.fontSize ?? 13}px)
+                  </label>
+                  <input
+                    type="range"
+                    min="11"
+                    max="28"
+                    value={element.props.fontSize ?? 13}
+                    onChange={(e) => handleUpdateProps({ fontSize: Number(e.target.value) })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>
+                    Bottom Margin ({element.props.marginBottom ?? 12}px)
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="48"
+                    value={element.props.marginBottom ?? 12}
+                    onChange={(e) => handleUpdateProps({ marginBottom: Number(e.target.value) })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
               </div>
             )}
 
             {activeTab === 'behavior' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ borderTop: '1px solid var(--border-color, #e2e8f0)', paddingTop: '16px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#0f172a' }}>
-                    <span>Visible on all device viewports</span>
-                    <input
-                      type="checkbox"
-                      checked={element.isVisible !== false}
-                      onChange={(e) => handleUpdateMeta({ isVisible: e.target.checked })}
-                      style={{ width: '16px', height: '16px' }}
-                    />
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#0f172a' }}>
+                  <span>Visible on all device viewports</span>
+                  <input
+                    type="checkbox"
+                    checked={element.props.isVisible !== false}
+                    onChange={(e) => handleUpdateProps({ isVisible: e.target.checked })}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#0f172a' }}>
+                  <span>Hide this component on Mobile</span>
+                  <input
+                    type="checkbox"
+                    checked={element.props.hideOnMobile === true}
+                    onChange={(e) => handleUpdateProps({ hideOnMobile: e.target.checked })}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#0f172a' }}>
+                  <span>Hide this component on Tablet</span>
+                  <input
+                    type="checkbox"
+                    checked={element.props.hideOnTablet === true}
+                    onChange={(e) => handleUpdateProps({ hideOnTablet: e.target.checked })}
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                </label>
+
+                <div style={{ borderTop: '1px solid var(--border-color, #e2e8f0)', paddingTop: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Custom CSS Class
                   </label>
+                  <input
+                    type="text"
+                    value={element.props.cssClass || ''}
+                    onChange={(e) => handleUpdateProps({ cssClass: e.target.value })}
+                    placeholder="e.g. custom-widget"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
                 </div>
               </div>
             )}

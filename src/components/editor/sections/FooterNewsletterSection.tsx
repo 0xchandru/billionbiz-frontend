@@ -91,16 +91,13 @@ export const FooterNewsletterSection: React.FC<FooterNewsletterSectionProps> = (
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-newsletter',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });
       return;
     }
     executeSelect();
-  };
-
-  const handleElementClick = (e: React.MouseEvent) => {
-    handleRowClick(e);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -150,8 +147,8 @@ export const FooterNewsletterSection: React.FC<FooterNewsletterSectionProps> = (
         }
       >
         <div
-          onClick={handleElementClick}
-          className={`${styles.newsletterHeroCard} ${isEditorInteractive ? styles.elementEditable : ''}`}
+          onClick={handleRowClick}
+          className={styles.newsletterHeroCard}
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.04)',
             border: `1px solid ${borderColor}`,

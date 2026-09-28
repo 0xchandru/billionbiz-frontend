@@ -296,8 +296,10 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     navigation: 'FooterMain',
     brand: 'FooterMain',
     social: 'FooterSocial',
+    app: 'FooterApp',
+    contact: 'FooterContact',
+    payment: 'FooterPayment',
     legal: 'FooterBottom',
-    payment: 'FooterBottom',
     custom: 'FooterMain',
   };
 
@@ -388,6 +390,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     if (selectedPageId !== 'header-global') {
       requestEditorSwitch({
         targetPageId: 'header-global',
+        targetSectionId: section?.id || 'header-main',
         targetName: 'Header Editor',
         onConfirm: executeSwitch,
       });
@@ -410,6 +413,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: section?.id || 'footer-main',
         targetName: 'Footer Editor',
         onConfirm: executeSwitch,
       });
@@ -425,7 +429,10 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
         (section.type === 'FooterTrust' && r.type === 'trust') ||
         (section.type === 'FooterNewsletter' && r.type === 'newsletter') ||
         (section.type === 'FooterSocial' && r.type === 'social') ||
-        (section.type === 'FooterBottom' && (r.type === 'legal' || r.type === 'payment')) ||
+        (section.type === 'FooterApp' && r.type === 'app') ||
+        (section.type === 'FooterContact' && r.type === 'contact') ||
+        (section.type === 'FooterPayment' && r.type === 'payment') ||
+        (section.type === 'FooterBottom' && r.type === 'legal') ||
         (section.type === 'FooterMain' && (r.type === 'navigation' || r.type === 'brand'))
     );
     const rowId = targetRow ? targetRow.id : (section.id || 'row-main-nav');
@@ -464,6 +471,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     if (selectedPageId !== targetPageId && pagesNavLevel === 'page-detail') {
       requestEditorSwitch({
         targetPageId,
+        targetSectionId: section?.id,
         targetName: targetPageId === 'landing-page' ? 'Landing Page Editor' : page.name,
         onConfirm: executeSelect,
       });

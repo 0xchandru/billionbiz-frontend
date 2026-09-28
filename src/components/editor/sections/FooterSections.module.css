@@ -52,6 +52,12 @@
   cursor: pointer;
 }
 
+.elementEditable:hover:not(.elementSelected) {
+  outline: 2px dashed #3b82f6 !important;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
 .elementHovered {
   outline: 2px dashed #2563eb !important;
   outline-offset: 3px;
@@ -345,3 +351,27 @@
     transform: translateY(0);
   }
 }
+
+/* ── Modular Column Child Newsletter Input ── */
+.columnNewsletterInput {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  font-size: 13.5px;
+  background-color: var(--footer-input-bg, #f8fafc);
+  border: 1px solid var(--footer-input-border, var(--footer-border, #cbd5e1));
+  color: var(--footer-input-text, var(--footer-heading, #0f172a));
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.columnNewsletterInput::placeholder {
+  color: var(--footer-muted-text, #64748b);
+  opacity: 0.75;
+}
+
+.columnNewsletterInput:focus {
+  border-color: var(--footer-accent, #2563eb) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+

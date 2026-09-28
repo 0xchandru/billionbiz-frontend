@@ -114,7 +114,7 @@ export type CuratedPresetId =
   | 'food-beverage'
   | 'sports-outdoors'
   | (string & {});
-export type AnnouncementVariant = 'single' | 'carousel' | 'marquee' | 'split' | 'countdown' | 'multi-slot';
+export type AnnouncementVariant = 'single' | 'carousel' | 'marquee' | 'split' | 'countdown' | 'multi-slot' | 'single_cta' | 'slider';
 
 export interface AnnouncementVariantConfig {
   id: AnnouncementVariant;

@@ -79,11 +79,11 @@ export function createDefaultFooterStack(): FooterRow[] {
       },
     },
 
-    // 2. Main Navigation & Newsletter Multi-Column Row
+    // 2. Footer Directory (Permanently Locked)
     {
       id: 'row-main-nav',
       type: 'navigation',
-      name: 'Footer',
+      name: 'Footer Directory',
       isVisible: true,
       isLocked: true,
       layout: {
@@ -94,6 +94,7 @@ export function createDefaultFooterStack(): FooterRow[] {
         verticalAlignment: 'top',
         paddingX: 32,
         paddingY: 64,
+        variantId: 'classic_4_col',
       },
       styling: {
         bgType: 'theme',
@@ -108,7 +109,7 @@ export function createDefaultFooterStack(): FooterRow[] {
         fontSize: 14,
       },
       columns: [
-        // Col 1: Brand & Contact
+        // Col 1: Store Logo, Brand Bio, Brand Links
         {
           id: 'col-brand',
           width: '1.4fr',
@@ -117,10 +118,10 @@ export function createDefaultFooterStack(): FooterRow[] {
               id: 'el-footer-logo',
               type: 'logo',
               name: 'Store Logo',
-              isLocked: true,
+              isLocked: false,
               capabilities: ['style', 'content', 'link', 'responsive', 'advanced'],
               props: {
-                sourceType: 'theme',
+                sourceType: 'text',
                 text: 'BillionBiz',
                 fontSize: 24,
                 fontWeight: 800,
@@ -142,28 +143,28 @@ export function createDefaultFooterStack(): FooterRow[] {
               },
             },
             {
-              id: 'el-social-links',
-              type: 'social-links',
-              name: 'Social Profiles',
-              capabilities: ['style', 'links', 'design', 'responsive', 'advanced'],
+              id: 'el-brand-links',
+              type: 'link-group',
+              name: 'Footer Link Group',
+              capabilities: ['style', 'menu', 'design', 'responsive', 'advanced'],
               props: {
-                variant: 'minimal',
-                size: 18,
-                color: '#64748b',
-                hoverColor: '#4f46e5',
-                gap: 16,
-                platforms: [
-                  { platform: 'twitter', url: 'https://twitter.com', enabled: true },
-                  { platform: 'instagram', url: 'https://instagram.com', enabled: true },
-                  { platform: 'linkedin', url: 'https://linkedin.com', enabled: true },
-                  { platform: 'youtube', url: 'https://youtube.com', enabled: true },
+                heading: 'Explore',
+                headingSize: 14,
+                headingColor: '#0f172a',
+                links: [
+                  { label: 'Merchant Stories', href: '/stories' },
+                  { label: 'Workshops & Live Demo', href: '/demo' },
                 ],
+                gap: 10,
+                fontSize: 13,
+                textColor: '#64748b',
+                hoverColor: '#2563eb',
               },
             },
           ],
         },
 
-        // Col 2: Products / Shop
+        // Col 2: Products / Shop Links
         {
           id: 'col-shop',
           width: '1fr',
@@ -171,11 +172,10 @@ export function createDefaultFooterStack(): FooterRow[] {
             {
               id: 'el-shop-links',
               type: 'link-group',
-              name: 'Shop Directory',
-              isLocked: true,
+              name: 'Shop Links',
               capabilities: ['style', 'menu', 'design', 'responsive', 'advanced'],
               props: {
-                heading: 'Products',
+                heading: 'Shop',
                 headingSize: 14,
                 headingColor: '#0f172a',
                 links: [
@@ -188,13 +188,13 @@ export function createDefaultFooterStack(): FooterRow[] {
                 gap: 12,
                 fontSize: 13,
                 textColor: '#64748b',
-                hoverColor: '#4f46e5',
+                hoverColor: '#2563eb',
               },
             },
           ],
         },
 
-        // Col 3: Customer Support
+        // Col 3: Support Links
         {
           id: 'col-support',
           width: '1fr',
@@ -202,7 +202,7 @@ export function createDefaultFooterStack(): FooterRow[] {
             {
               id: 'el-support-links',
               type: 'link-group',
-              name: 'Support Directory',
+              name: 'Support Links',
               capabilities: ['style', 'menu', 'design', 'responsive', 'advanced'],
               props: {
                 heading: 'Support',
@@ -218,31 +218,37 @@ export function createDefaultFooterStack(): FooterRow[] {
                 gap: 12,
                 fontSize: 13,
                 textColor: '#64748b',
-                hoverColor: '#4f46e5',
+                hoverColor: '#2563eb',
               },
             },
           ],
         },
 
-        // Col 4: Newsletter Signup
+        // Col 4: Company Links
         {
-          id: 'col-newsletter',
-          width: '1.2fr',
+          id: 'col-company',
+          width: '1fr',
           elements: [
             {
-              id: 'el-newsletter',
-              type: 'newsletter-form',
-              name: 'Newsletter Signup',
-              capabilities: ['style', 'content', 'form', 'behavior', 'design', 'responsive', 'advanced'],
+              id: 'el-company-links',
+              type: 'link-group',
+              name: 'Company Links',
+              capabilities: ['style', 'menu', 'design', 'responsive', 'advanced'],
               props: {
-                title: 'Join the community',
-                subtitle: 'Get early access to drops, member discounts, and weekly retail trends.',
-                placeholder: 'Enter your email address...',
-                buttonText: 'Join',
-                buttonVariant: 'primary',
-                showConsent: true,
-                consentText: 'By joining you agree to receive communications.',
-                radius: 8,
+                heading: 'Company',
+                headingSize: 14,
+                headingColor: '#0f172a',
+                links: [
+                  { label: 'About Our Brand', href: '/about' },
+                  { label: 'Careers & Team', href: '/careers' },
+                  { label: 'Press & Media', href: '/press' },
+                  { label: 'Sustainability', href: '/sustainability' },
+                  { label: 'Store Locations', href: '/stores' },
+                ],
+                gap: 12,
+                fontSize: 13,
+                textColor: '#64748b',
+                hoverColor: '#2563eb',
               },
             },
           ],
@@ -257,11 +263,315 @@ export function createDefaultFooterStack(): FooterRow[] {
       },
     },
 
-    // 3. Legal & Payment Bottom Bar
+    // 3. Newsletter / Email Signup Row
+    {
+      id: 'row-newsletter',
+      type: 'newsletter',
+      name: 'Newsletter / Email Signup',
+      isVisible: true,
+      layout: {
+        container: 'constrained',
+        columns: 1,
+        gap: 20,
+        alignment: 'center',
+        verticalAlignment: 'center',
+        paddingX: 32,
+        paddingY: 48,
+        variantId: 'centered-signup',
+      },
+      styling: {
+        bgType: 'theme',
+        bgColor: '#f8fafc',
+        textColor: '#0f172a',
+        borderTop: false,
+        borderBottom: true,
+        borderColor: '#e2e8f0',
+        dividerStyle: 'solid',
+        shadow: 'none',
+        radius: 0,
+        fontSize: 14,
+      },
+      columns: [
+        {
+          id: 'col-newsletter-full',
+          width: '1fr',
+          elements: [
+            {
+              id: 'el-newsletter-form',
+              type: 'newsletter-form',
+              name: 'Newsletter Form',
+              capabilities: ['style', 'content', 'form', 'design', 'responsive', 'advanced'],
+              props: {
+                title: 'Stay in the Loop',
+                subtitle: 'Subscribe for weekly releases, member stories, and exclusive store rewards.',
+                placeholder: 'Enter your email address...',
+                buttonText: 'Subscribe',
+                buttonStyle: 'solid',
+                layout: 'inline',
+                buttonBg: '#2563eb',
+                buttonColor: '#ffffff',
+                showDisclaimer: true,
+                disclaimerText: 'By subscribing you agree to our Privacy Policy.',
+              },
+            },
+          ],
+        },
+      ],
+      responsive: {
+        showOnDesktop: true,
+        showOnTablet: true,
+        showOnMobile: true,
+        mobileLayout: 'stack',
+      },
+    },
+
+    // 4. Social / Community Row
+    {
+      id: 'row-social-1',
+      type: 'social',
+      name: 'Social / Community',
+      isVisible: true,
+      layout: {
+        container: 'constrained',
+        columns: 1,
+        gap: 20,
+        alignment: 'center',
+        verticalAlignment: 'center',
+        paddingX: 32,
+        paddingY: 24,
+        variantId: 'icon-row',
+      },
+      styling: {
+        bgType: 'theme',
+        bgColor: '#ffffff',
+        textColor: '#0f172a',
+        borderTop: false,
+        borderBottom: true,
+        borderColor: '#e2e8f0',
+        dividerStyle: 'solid',
+        shadow: 'none',
+        radius: 0,
+        fontSize: 13,
+      },
+      columns: [
+        {
+          id: 'col-social-full',
+          width: '1fr',
+          elements: [
+            {
+              id: 'el-social-links',
+              type: 'social-links',
+              name: 'Social Profiles',
+              capabilities: ['style', 'links', 'design', 'responsive', 'advanced'],
+              props: {
+                variant: 'minimal',
+                size: 20,
+                color: '#64748b',
+                hoverColor: '#2563eb',
+                gap: 16,
+                platforms: [
+                  { platform: 'twitter', url: 'https://twitter.com', enabled: true },
+                  { platform: 'instagram', url: 'https://instagram.com', enabled: true },
+                  { platform: 'linkedin', url: 'https://linkedin.com', enabled: true },
+                  { platform: 'youtube', url: 'https://youtube.com', enabled: true },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      responsive: {
+        showOnDesktop: true,
+        showOnTablet: true,
+        showOnMobile: true,
+        mobileLayout: 'stack',
+      },
+    },
+
+    // 5. App Download Row
+    {
+      id: 'row-app',
+      type: 'app',
+      name: 'App Download',
+      isVisible: true,
+      layout: {
+        container: 'constrained',
+        columns: 1,
+        gap: 24,
+        alignment: 'center',
+        verticalAlignment: 'center',
+        paddingX: 32,
+        paddingY: 36,
+        variantId: 'simple-app-cta',
+      },
+      styling: {
+        bgType: 'theme',
+        bgColor: '#f8fafc',
+        textColor: '#0f172a',
+        borderTop: false,
+        borderBottom: true,
+        borderColor: '#e2e8f0',
+        dividerStyle: 'solid',
+        shadow: 'none',
+        radius: 0,
+        fontSize: 14,
+      },
+      columns: [
+        {
+          id: 'col-app-full',
+          width: '1fr',
+          elements: [
+            {
+              id: 'el-app-download',
+              type: 'app-download',
+              name: 'App Download Badges',
+              capabilities: ['style', 'links', 'design', 'responsive', 'advanced'],
+              props: {
+                heading: 'Get the BillionBiz App',
+                subtitle: 'Shop anytime, track orders in real time, and enjoy 1-click mobile checkout.',
+                appStoreUrl: '#',
+                googlePlayUrl: '#',
+                qrEnabled: true,
+              },
+            },
+          ],
+        },
+      ],
+      responsive: {
+        showOnDesktop: true,
+        showOnTablet: true,
+        showOnMobile: true,
+        mobileLayout: 'stack',
+      },
+    },
+
+    // 6. Contact / Store Information Row
+    {
+      id: 'row-contact',
+      type: 'contact',
+      name: 'Contact / Store Information',
+      isVisible: true,
+      layout: {
+        container: 'constrained',
+        columns: 1,
+        gap: 24,
+        alignment: 'center',
+        verticalAlignment: 'center',
+        paddingX: 32,
+        paddingY: 32,
+        variantId: 'contact-list',
+      },
+      styling: {
+        bgType: 'theme',
+        bgColor: '#ffffff',
+        textColor: '#0f172a',
+        borderTop: false,
+        borderBottom: true,
+        borderColor: '#e2e8f0',
+        dividerStyle: 'solid',
+        shadow: 'none',
+        radius: 0,
+        fontSize: 13,
+      },
+      columns: [
+        {
+          id: 'col-contact-full',
+          width: '1fr',
+          elements: [
+            {
+              id: 'el-contact-info',
+              type: 'contact-info',
+              name: 'Contact Information',
+              capabilities: ['style', 'content', 'design', 'responsive', 'advanced'],
+              props: {
+                heading: 'Store Contact Desk',
+                phone: '+1 (800) 555-0199',
+                email: 'support@billionbiz.com',
+                address: '742 Evergreen Terrace, San Francisco, CA 94107',
+                hours: 'Mon – Fri: 9:00 AM – 7:00 PM EST',
+              },
+            },
+          ],
+        },
+      ],
+      responsive: {
+        showOnDesktop: true,
+        showOnTablet: true,
+        showOnMobile: true,
+        mobileLayout: 'stack',
+      },
+    },
+
+    // 7. Payment & Security Row
+    {
+      id: 'row-payment',
+      type: 'payment',
+      name: 'Payment & Security',
+      isVisible: true,
+      layout: {
+        container: 'constrained',
+        columns: 1,
+        gap: 16,
+        alignment: 'center',
+        verticalAlignment: 'center',
+        paddingX: 32,
+        paddingY: 22,
+        variantId: 'payment-logos',
+      },
+      styling: {
+        bgType: 'theme',
+        bgColor: '#f8fafc',
+        textColor: '#0f172a',
+        borderTop: false,
+        borderBottom: true,
+        borderColor: '#e2e8f0',
+        dividerStyle: 'solid',
+        shadow: 'none',
+        radius: 0,
+        fontSize: 12,
+      },
+      columns: [
+        {
+          id: 'col-payment-full',
+          width: '1fr',
+          elements: [
+            {
+              id: 'el-payment-security',
+              type: 'payment-methods',
+              name: 'Payment & Security',
+              capabilities: ['style', 'methods', 'design', 'responsive', 'advanced'],
+              props: {
+                variant: 'color',
+                size: 'small',
+                methods: [
+                  { id: 'visa', name: 'Visa', enabled: true },
+                  { id: 'mastercard', name: 'Mastercard', enabled: true },
+                  { id: 'apple-pay', name: 'Apple Pay', enabled: true },
+                  { id: 'google-pay', name: 'Google Pay', enabled: true },
+                  { id: 'paypal', name: 'PayPal', enabled: true },
+                ],
+                grayscale: false,
+                opacity: 0.85,
+                showSecurity: true,
+                showCOD: true,
+              },
+            },
+          ],
+        },
+      ],
+      responsive: {
+        showOnDesktop: true,
+        showOnTablet: true,
+        showOnMobile: true,
+        mobileLayout: 'stack',
+      },
+    },
+
+    // 8. Legal & Bottom Bar
     {
       id: 'row-bottom-legal',
       type: 'legal',
-      name: 'Legal, Compliance & Payments Bar',
+      name: 'Legal & Bottom Bar',
       isVisible: true,
       layout: {
         container: 'constrained',

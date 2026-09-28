@@ -11,6 +11,7 @@ import { useSiteStore, type PageData } from '../../store/siteStore';
 import type { EditorPanelType } from '../../store/landingEditorStore';
 import { useEditorContextStore } from '../../store/editorContextStore';
 import { EditorSwitchConfirmModal } from '../../components/editor/ui/EditorSwitchConfirmModal';
+import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection, scrollPreviewToSection } from '../../components/editor/utils/previewScroll';
 
 const resolveHeaderRowIdFromSection = resolveHeaderRowId;
 const resolveFooterRowIdFromSection = resolveFooterRowId;
@@ -307,8 +308,17 @@ const EditorLayout: React.FC = () => {
           onCancel={() => setPendingEditorSwitch(null)}
           onConfirm={() => {
             const confirmAction = pendingEditorSwitch.onConfirm;
+            const targetPage = pendingEditorSwitch.targetPageId;
+            const targetSection = pendingEditorSwitch.targetSectionId;
             setPendingEditorSwitch(null);
             confirmAction();
+            if (targetPage === 'footer-global') {
+              scrollPreviewToFooterSection(targetSection || 'footer-main');
+            } else if (targetPage === 'header-global') {
+              scrollPreviewToHeaderSection(targetSection || 'header-main');
+            } else if (targetSection) {
+              scrollPreviewToSection(targetSection);
+            }
           }}
         />
       )}

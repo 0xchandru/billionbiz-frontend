@@ -168,6 +168,7 @@ export const FooterBottomSection: React.FC<FooterBottomSectionProps> = ({
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-bottom',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });

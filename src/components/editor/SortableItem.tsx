@@ -166,6 +166,10 @@ export const SortableItem: React.FC<SortableItemProps> = ({
                       top: menuPos.top, 
                       bottom: menuPos.bottom,
                       left: menuPos.left, 
+                      right: 'auto',
+                      width: '200px',
+                      minWidth: '200px',
+                      zIndex: 999999, 
                       margin: 0,
                       maxHeight: menuPos.maxHeight ? `${menuPos.maxHeight}px` : 'calc(100vh - 20px)',
                       overflowY: 'auto'

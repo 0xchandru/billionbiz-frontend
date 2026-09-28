@@ -751,6 +751,29 @@ export const useEditorContextStore = create<EditorContextState>()(
           };
           siteState.updateSectionProps(landingPage.id, headerSection.id, updatedProps);
         }
+
+        // Also sync AnnouncementBar section to siteStore
+        const announcementRow = headerRows.find((r) => r.type === 'announcement' || r.id.includes('announcement'));
+        const announcementSection = landingPage.sections.find((s) => s.type === 'AnnouncementBar' || s.id === 'announcement-bar');
+        if (announcementRow && announcementSection) {
+          const el = announcementRow.elements?.[0];
+          const elProps = el?.props || {};
+          const currentBar = elProps.announcementBar;
+          siteState.updateSectionProps(landingPage.id, announcementSection.id, {
+            ...announcementSection.props,
+            announcementBar: currentBar || announcementSection.props?.announcementBar,
+            variant: currentBar?.look || elProps.variant || announcementRow.layout?.variantId || 'single',
+            stylePreset: currentBar?.look || elProps.stylePreset || 'single',
+            showCountdown: (currentBar?.look || elProps.variant) === 'countdown',
+            text: currentBar?.content?.message || elProps.text,
+            ctaText: currentBar?.content?.ctaLabel || elProps.ctaText,
+            ctaLink: currentBar?.content?.ctaLink || elProps.ctaLink,
+            announcements: currentBar?.content?.marqueeItems || elProps.announcements,
+            slides: currentBar?.content?.slides || elProps.slides,
+            bgColor: currentBar?.design?.bgColor || announcementRow.styling?.bgColor,
+            textColor: currentBar?.design?.textColor || announcementRow.styling?.textColor,
+          });
+        }
       },
 
       // ──────────────────────────────────────────────────────────
@@ -832,10 +855,10 @@ export const useEditorContextStore = create<EditorContextState>()(
       addFooterRow: (type, name) => {
         // Enforce single Footer directory constraint & single-instance row types
         const state = get();
-        if (type === 'navigation' || name === 'Footer' || state.footerRows.some((r) => r.type === 'navigation' || r.id === 'row-main-nav')) {
-          if (type === 'navigation' || name === 'Footer') return;
+        if (type === 'navigation' || name === 'Footer' || name === 'Footer Directory' || state.footerRows.some((r) => r.type === 'navigation' || r.id === 'row-main-nav')) {
+          if (type === 'navigation' || name === 'Footer' || name === 'Footer Directory') return;
         }
-        if (state.footerRows.some((r) => r.type === type && (type === 'trust' || type === 'newsletter' || type === 'payment' || type === 'social' || type === 'legal' || type === 'brand'))) {
+        if (state.footerRows.some((r) => r.type === type && (type === 'trust' || type === 'newsletter' || type === 'payment' || type === 'social' || type === 'legal' || type === 'brand' || type === 'app' || type === 'contact'))) {
           return;
         }
 
@@ -964,6 +987,49 @@ export const useEditorContextStore = create<EditorContextState>()(
                       { platform: 'instagram', url: 'https://instagram.com', enabled: true },
                       { platform: 'youtube', url: 'https://youtube.com', enabled: true },
                     ],
+                  },
+                },
+              ],
+            },
+          ];
+        } else if (type === 'app') {
+          defaultColumns = [
+            {
+              id: `col-app-${Date.now().toString(36)}`,
+              width: '1fr',
+              elements: [
+                {
+                  id: `el-ftr-app-${Date.now().toString(36)}`,
+                  type: 'app-download',
+                  name: 'App Download Badges',
+                  capabilities: ['style', 'content', 'responsive'],
+                  props: {
+                    heading: 'Get the BillionBiz App',
+                    subtitle: 'Shop anytime, track orders in real time, and enjoy 1-click mobile checkout.',
+                    appStoreUrl: '#',
+                    googlePlayUrl: '#',
+                    qrEnabled: true,
+                  },
+                },
+              ],
+            },
+          ];
+        } else if (type === 'contact') {
+          defaultColumns = [
+            {
+              id: `col-contact-${Date.now().toString(36)}`,
+              width: '1fr',
+              elements: [
+                {
+                  id: `el-ftr-contact-${Date.now().toString(36)}`,
+                  type: 'contact-info',
+                  name: 'Contact Information',
+                  capabilities: ['style', 'content', 'responsive'],
+                  props: {
+                    phone: '+1 (800) 555-0199',
+                    email: 'care@billionbiz.com',
+                    address: '742 Evergreen Terrace, San Francisco, CA 94107',
+                    hours: 'Mon – Fri: 9:00 AM – 7:00 PM EST',
                   },
                 },
               ],

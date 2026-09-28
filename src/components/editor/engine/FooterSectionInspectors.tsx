@@ -1,0 +1,1424 @@
+// ============================================================
+// MASTER FOOTER ARCHITECTURE — FOOTER SECTION INSPECTORS
+// Reusable Look-driven right sidebar inspectors for all 7
+// independent Footer Stack sections:
+// 1. Trust & Guarantees
+// 2. Newsletter / Email Signup
+// 3. Social / Community
+// 4. App Download
+// 5. Contact / Store Information
+// 6. Payment & Security
+// 7. Legal & Bottom Bar
+// Tabs: Look | Content | Layout | Behavior* | Design | Responsive | Visibility | Advanced
+// Chevrons only scroll the tab bar horizontally.
+// ============================================================
+
+import React, { useState, useRef } from 'react';
+import {
+  ChevronRight,
+  ChevronLeft,
+  Eye,
+  Sparkles,
+  Layout as LayoutIcon,
+  Palette,
+  Smartphone,
+  Sliders,
+  Code,
+  Plus,
+  Trash2,
+  Calendar,
+  ShieldCheck,
+  CreditCard,
+  FileText,
+  Monitor,
+  Tablet,
+} from 'lucide-react';
+import { useEditorContextStore } from '../../../store/editorContextStore';
+import type { FooterRow } from './types';
+import {
+  FOOTER_STACK_SECTION_REGISTRY,
+  switchSectionLook,
+  getSectionSupportedTabs,
+  type SectionLookDefinition,
+} from './footerSectionsModel';
+import styles from '../../../pages/editor/EditorLayout.module.css';
+
+// ─── Shared Horizontal Scrolling Tab Navigation ─────────────
+interface SectionTabsHeaderProps {
+  title: string;
+  activeTab: string;
+  supportedTabs: string[];
+  onSelectTab: (tab: any) => void;
+  onClose: () => void;
+}
+
+export const SectionTabsHeader: React.FC<SectionTabsHeaderProps> = ({
+  title,
+  activeTab,
+  supportedTabs,
+  onSelectTab,
+  onClose,
+}) => {
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollLeft = () => {
+    if (tabsScrollRef.current) {
+      tabsScrollRef.current.scrollBy({ left: -140, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (tabsScrollRef.current) {
+      tabsScrollRef.current.scrollBy({ left: 140, behavior: 'smooth' });
+    }
+  };
+
+  const TAB_LABELS: Record<string, { label: string; icon: any }> = {
+    look: { label: 'Look', icon: Sparkles },
+    content: { label: 'Content', icon: FileText },
+    layout: { label: 'Layout', icon: LayoutIcon },
+    behavior: { label: 'Behavior', icon: Sliders },
+    design: { label: 'Design', icon: Palette },
+    responsive: { label: 'Responsive', icon: Smartphone },
+    visibility: { label: 'Visibility', icon: Eye },
+    advanced: { label: 'Advanced', icon: Code },
+  };
+
+  return (
+    <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+      {/* Title Bar */}
+      <div className={styles.panelHeader} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className={styles.phLeft} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button className={styles.iconBtn} onClick={onClose} title="Collapse sidebar">
+            <ChevronRight size={20} className={styles.backIcon} />
+          </button>
+          <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px' }}>{title}</h3>
+        </div>
+      </div>
+
+      {/* Tabs with explicit left/right horizontal scroll buttons */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', backgroundColor: '#f8fafc', padding: '0 4px' }}>
+        <button
+          type="button"
+          onClick={handleScrollLeft}
+          title="Scroll tabs left"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '6px 4px',
+            cursor: 'pointer',
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <div
+          ref={tabsScrollRef}
+          style={{
+            display: 'flex',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            flex: 1,
+            gap: '2px',
+          }}
+        >
+          {supportedTabs.map((tabId) => {
+            const meta = TAB_LABELS[tabId] || { label: tabId, icon: Sparkles };
+            const Icon = meta.icon;
+            const isActive = activeTab === tabId;
+            return (
+              <button
+                key={tabId}
+                type="button"
+                onClick={() => onSelectTab(tabId)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 12px',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? '#2563eb' : '#64748b',
+                  backgroundColor: isActive ? '#ffffff' : 'transparent',
+                  border: 'none',
+                  borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.12s ease',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={13} color={isActive ? '#2563eb' : '#64748b'} />
+                <span>{meta.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleScrollRight}
+          title="Scroll tabs right"
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '6px 4px',
+            cursor: 'pointer',
+            color: '#64748b',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+          }}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── Shared Look Picker Component ───────────────────────────
+interface LookPickerGridProps {
+  looks: SectionLookDefinition[];
+  currentLookId: string;
+  onSelectLook: (lookId: string) => void;
+}
+
+export const LookPickerGrid: React.FC<LookPickerGridProps> = ({
+  looks,
+  currentLookId,
+  onSelectLook,
+}) => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b', letterSpacing: '0.04em' }}>
+        Select Section Look ({looks.length} Presets Available)
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {looks.map((look) => {
+          const isSelected = look.id === currentLookId;
+          return (
+            <div
+              key={look.id}
+              onClick={() => onSelectLook(look.id)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                boxShadow: isSelected ? '0 2px 8px rgba(37,99,235,0.1)' : 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: isSelected ? '#1d4ed8' : '#0f172a' }}>
+                  {look.name}
+                </span>
+                {isSelected && (
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: '#2563eb', backgroundColor: '#dbeafe', padding: '2px 8px', borderRadius: '12px' }}>
+                    Active
+                  </span>
+                )}
+              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: isSelected ? '#3b82f6' : '#64748b', lineHeight: 1.4 }}>
+                {look.description}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ─── Shared Generic Tabs (Design, Responsive, Visibility, Advanced)
+interface SharedTabProps {
+  row: FooterRow;
+  updateRow: (patch: Record<string, any>) => void;
+}
+
+export const SharedDesignTab: React.FC<SharedTabProps> = ({ row, updateRow }) => {
+  const styling = row.styling || ({} as any);
+
+  const handleUpdate = (patch: Record<string, any>) => {
+    updateRow({ styling: { ...styling, ...patch } });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ padding: '10px 12px', backgroundColor: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0', fontSize: '12px', color: '#166534', lineHeight: 1.4 }}>
+        <strong>Global Palette Linked:</strong> Colors inherit from <code style={{ fontSize: '11px' }}>--footer-section-*</code> variables unless a custom color override is chosen below.
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Background Color
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="color"
+            value={styling.bgColor || '#ffffff'}
+            onChange={(e) => handleUpdate({ bgColor: e.target.value, bgType: 'custom' })}
+            style={{ width: '36px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          />
+          <input
+            type="text"
+            value={styling.bgColor || '#ffffff'}
+            onChange={(e) => handleUpdate({ bgColor: e.target.value, bgType: 'custom' })}
+            style={{ flex: 1, padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Text & Heading Color
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="color"
+            value={styling.textColor || '#0f172a'}
+            onChange={(e) => handleUpdate({ textColor: e.target.value })}
+            style={{ width: '36px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          />
+          <input
+            type="text"
+            value={styling.textColor || '#0f172a'}
+            onChange={(e) => handleUpdate({ textColor: e.target.value })}
+            style={{ flex: 1, padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Divider Border Color
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="color"
+            value={styling.borderColor || '#e2e8f0'}
+            onChange={(e) => handleUpdate({ borderColor: e.target.value })}
+            style={{ width: '36px', height: '36px', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          />
+          <input
+            type="text"
+            value={styling.borderColor || '#e2e8f0'}
+            onChange={(e) => handleUpdate({ borderColor: e.target.value })}
+            style={{ flex: 1, padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+          />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={styling.borderTop !== false}
+            onChange={(e) => handleUpdate({ borderTop: e.target.checked })}
+          />
+          <span>Show Top Border</span>
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={styling.borderBottom === true}
+            onChange={(e) => handleUpdate({ borderBottom: e.target.checked })}
+          />
+          <span>Show Bottom Border</span>
+        </label>
+      </div>
+    </div>
+  );
+};
+
+export const SharedResponsiveTab: React.FC<SharedTabProps> = ({ row, updateRow }) => {
+  const resp = row.responsive || {};
+
+  const handleUpdate = (patch: Record<string, any>) => {
+    updateRow({ responsive: { ...resp, ...patch } });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+        Device Visibility & Layout Modes
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={resp.showOnDesktop !== false}
+            onChange={(e) => handleUpdate({ showOnDesktop: e.target.checked })}
+          />
+          <Monitor size={15} color="#2563eb" />
+          <span>Show on Desktop</span>
+        </label>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={resp.showOnTablet !== false}
+            onChange={(e) => handleUpdate({ showOnTablet: e.target.checked })}
+          />
+          <Tablet size={15} color="#0ea5e9" />
+          <span>Show on Tablet</span>
+        </label>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={resp.showOnMobile !== false}
+            onChange={(e) => handleUpdate({ showOnMobile: e.target.checked })}
+          />
+          <Smartphone size={15} color="#10b981" />
+          <span>Show on Mobile</span>
+        </label>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Mobile Layout Format
+        </label>
+        <select
+          value={resp.mobileLayout || 'stack'}
+          onChange={(e) => handleUpdate({ mobileLayout: e.target.value })}
+          style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+        >
+          <option value="stack">Vertical Stack (Stacked items)</option>
+          <option value="accordion">Accordion / Collapsible</option>
+          <option value="horizontal-scroll">Horizontal Carousel / Scroll</option>
+          <option value="compact">Compact Condensed Strip</option>
+        </select>
+      </div>
+    </div>
+  );
+};
+
+export const SharedVisibilityTab: React.FC<SharedTabProps> = () => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+        Page & Scheduling Rules
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Display Pages
+        </label>
+        <select
+          defaultValue="all"
+          style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+        >
+          <option value="all">All Pages (Global Storewide)</option>
+          <option value="homepage">Homepage Only</option>
+          <option value="shop">Product & Catalog Pages Only</option>
+          <option value="checkout">Cart & Checkout Only</option>
+        </select>
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Audience Segment
+        </label>
+        <select
+          defaultValue="all"
+          style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+        >
+          <option value="all">Everyone (Guests + Logged-in)</option>
+          <option value="guest">First-Time Visitors Only</option>
+          <option value="registered">Registered Customers Only</option>
+        </select>
+      </div>
+
+      <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+          <Calendar size={14} color="#6366f1" />
+          <span>Promotional Schedule Window</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>Start Date</span>
+            <input type="date" style={{ width: '100%', padding: '6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+          </div>
+          <div>
+            <span style={{ fontSize: '10px', color: '#64748b' }}>End Date</span>
+            <input type="date" style={{ width: '100%', padding: '6px', fontSize: '11px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const SharedAdvancedTab: React.FC<SharedTabProps> = ({ row }) => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+        Developer & Accessibility Metadata
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Custom Section HTML ID
+        </label>
+        <input
+          type="text"
+          defaultValue={row.id}
+          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace' }}
+        />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          ARIA Landmark Role
+        </label>
+        <input
+          type="text"
+          defaultValue="region"
+          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace' }}
+        />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Custom CSS Classes
+        </label>
+        <input
+          type="text"
+          placeholder="e.g. custom-trust-banner-dark"
+          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 1. TRUST & GUARANTEES INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const TrustSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'horizontal-benefits';
+  const supportedTabs = getSectionSupportedTabs('trust', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const trustElement = primaryCol?.elements?.[0];
+  const items: any[] = trustElement?.props?.items || [
+    { icon: 'shield-check', title: 'Bank-Grade Security', description: '256-bit SSL encrypted payments' },
+    { icon: 'truck', title: 'Fast Free Delivery', description: 'Orders shipped within 24 hours' },
+    { icon: 'rotate-ccw', title: '30-Day Guarantees', description: 'Zero question return policy' },
+    { icon: 'headphones', title: '24/7 Priority Support', description: 'Direct access to specialists' },
+  ];
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'trust', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateItems = (newItems: any[]) => {
+    if (trustElement) {
+      updateFooterElement(row.id, trustElement.id, {
+        props: { ...trustElement.props, items: newItems },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Trust & Guarantees"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.trust.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                Trust Items ({items.length})
+              </span>
+              <button
+                type="button"
+                onClick={() => handleUpdateItems([...items, { icon: 'award', title: 'New Guarantee', description: 'Description text' }])}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <Plus size={12} /> Add Item
+              </button>
+            </div>
+
+            {items.map((item, idx) => (
+              <div key={idx} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700 }}>Item {idx + 1}</span>
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateItems(items.filter((_, i) => i !== idx))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={item.title}
+                  placeholder="Guarantee Title"
+                  onChange={(e) => {
+                    const next = [...items];
+                    next[idx].title = e.target.value;
+                    handleUpdateItems(next);
+                  }}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+                <input
+                  type="text"
+                  value={item.description}
+                  placeholder="Short Description"
+                  onChange={(e) => {
+                    const next = [...items];
+                    next[idx].description = e.target.value;
+                    handleUpdateItems(next);
+                  }}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Items Per Row ({row.layout?.itemsPerRow || 4})
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="6"
+                value={row.layout?.itemsPerRow || 4}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, itemsPerRow: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 28}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="80"
+                value={row.layout?.paddingY ?? 28}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'behavior' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+              Micro-Animations & Scroll
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" defaultChecked />
+              <span>Enable card hover lift animation</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" />
+              <span>Auto-scroll carousel items</span>
+            </label>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 2. NEWSLETTER / EMAIL SIGNUP INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const NewsletterSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'centered-signup';
+  const supportedTabs = getSectionSupportedTabs('newsletter', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const newsElement = primaryCol?.elements?.[0];
+  const elProps = newsElement?.props || {};
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'newsletter', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (patch: Record<string, any>) => {
+    if (newsElement) {
+      updateFooterElement(row.id, newsElement.id, {
+        props: { ...newsElement.props, ...patch },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Newsletter / Email Signup"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.newsletter.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Heading Title
+              </label>
+              <input
+                type="text"
+                value={elProps.title || 'Stay in the loop'}
+                onChange={(e) => handleUpdateProps({ title: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Subtitle / Description
+              </label>
+              <textarea
+                rows={2}
+                value={elProps.subtitle || 'Subscribe for weekly releases, member stories & exclusive offers.'}
+                onChange={(e) => handleUpdateProps({ subtitle: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Button Text
+              </label>
+              <input
+                type="text"
+                value={elProps.buttonText || 'Subscribe'}
+                onChange={(e) => handleUpdateProps({ buttonText: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Input Placeholder
+              </label>
+              <input
+                type="text"
+                value={elProps.placeholder || 'Enter your email...'}
+                onChange={(e) => handleUpdateProps({ placeholder: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Max Form Width ({row.layout?.formWidth || 480}px)
+              </label>
+              <input
+                type="range"
+                min="320"
+                max="800"
+                value={row.layout?.formWidth || 480}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, formWidth: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'behavior' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+              Submission & Consent Behavior
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" defaultChecked />
+              <span>Show inline checkmark success state</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" defaultChecked />
+              <span>Prevent duplicate email submissions</span>
+            </label>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 3. SOCIAL / COMMUNITY INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const SocialSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'icon-row';
+  const supportedTabs = getSectionSupportedTabs('social', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const socialEl = primaryCol?.elements?.[0];
+  const platforms: any[] = socialEl?.props?.platforms || [
+    { platform: 'twitter', url: 'https://twitter.com', enabled: true },
+    { platform: 'instagram', url: 'https://instagram.com', enabled: true },
+    { platform: 'linkedin', url: 'https://linkedin.com', enabled: true },
+    { platform: 'youtube', url: 'https://youtube.com', enabled: true },
+  ];
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'social', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleTogglePlatform = (idx: number) => {
+    const next = [...platforms];
+    next[idx].enabled = !next[idx].enabled;
+    if (socialEl) {
+      updateFooterElement(row.id, socialEl.id, {
+        props: { ...socialEl.props, platforms: next },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Social / Community"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.social.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+              Active Social Profiles
+            </div>
+
+            {platforms.map((p, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, textTransform: 'capitalize' }}>{p.platform}</span>
+                <input
+                  type="checkbox"
+                  checked={p.enabled}
+                  onChange={() => handleTogglePlatform(idx)}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Icon Gap ({row.layout?.gap ?? 16}px)
+              </label>
+              <input
+                type="range"
+                min="8"
+                max="40"
+                value={row.layout?.gap ?? 16}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, gap: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'behavior' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" defaultChecked />
+              <span>Glow & elevate icon on hover</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input type="checkbox" defaultChecked />
+              <span>Open social link in external tab</span>
+            </label>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 4. APP DOWNLOAD INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const AppSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'simple-app-cta';
+  const supportedTabs = getSectionSupportedTabs('app', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const appEl = primaryCol?.elements?.[0];
+  const elProps = appEl?.props || {};
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'app', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (patch: Record<string, any>) => {
+    if (appEl) {
+      updateFooterElement(row.id, appEl.id, {
+        props: { ...appEl.props, ...patch },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="App Download"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.app.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Heading
+              </label>
+              <input
+                type="text"
+                value={elProps.heading || 'Get the Mobile Experience'}
+                onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                App Store URL
+              </label>
+              <input
+                type="text"
+                value={elProps.appStoreUrl || '#'}
+                onChange={(e) => handleUpdateProps({ appStoreUrl: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Google Play URL
+              </label>
+              <input
+                type="text"
+                value={elProps.googlePlayUrl || '#'}
+                onChange={(e) => handleUpdateProps({ googlePlayUrl: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={elProps.qrEnabled !== false}
+                onChange={(e) => handleUpdateProps({ qrEnabled: e.target.checked })}
+              />
+              <span>Display Instant QR Code</span>
+            </label>
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 36}px)
+              </label>
+              <input
+                type="range"
+                min="16"
+                max="80"
+                value={row.layout?.paddingY ?? 36}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 5. CONTACT / STORE INFORMATION INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const ContactSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'contact-list';
+  const supportedTabs = getSectionSupportedTabs('contact', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const contactEl = primaryCol?.elements?.[0];
+  const elProps = contactEl?.props || {};
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'contact', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (patch: Record<string, any>) => {
+    if (contactEl) {
+      updateFooterElement(row.id, contactEl.id, {
+        props: { ...contactEl.props, ...patch },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Contact / Store Information"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.contact.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Phone Number
+              </label>
+              <input
+                type="text"
+                value={elProps.phone || '+1 (800) 555-0199'}
+                onChange={(e) => handleUpdateProps({ phone: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Support Email Address
+              </label>
+              <input
+                type="email"
+                value={elProps.email || 'support@billionbiz.com'}
+                onChange={(e) => handleUpdateProps({ email: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Store Physical Address
+              </label>
+              <input
+                type="text"
+                value={elProps.address || '742 Evergreen Terrace, San Francisco, CA 94107'}
+                onChange={(e) => handleUpdateProps({ address: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Business Hours
+              </label>
+              <input
+                type="text"
+                value={elProps.hours || 'Mon – Fri: 9:00 AM – 7:00 PM EST'}
+                onChange={(e) => handleUpdateProps({ hours: e.target.value })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 32}px)
+              </label>
+              <input
+                type="range"
+                min="16"
+                max="80"
+                value={row.layout?.paddingY ?? 32}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 6. PAYMENT & SECURITY INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const PaymentSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'payment-logos';
+  const supportedTabs = getSectionSupportedTabs('payment', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const primaryCol = row.columns?.[0];
+  const paymentEl = primaryCol?.elements?.[0];
+  const elProps = paymentEl?.props || {};
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'payment', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (patch: Record<string, any>) => {
+    if (paymentEl) {
+      updateFooterElement(row.id, paymentEl.id, {
+        props: { ...paymentEl.props, ...patch },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Payment & Security"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.payment.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+              Badges & Trust Assurances
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={elProps.showSecurity !== false}
+                onChange={(e) => handleUpdateProps({ showSecurity: e.target.checked })}
+              />
+              <ShieldCheck size={16} color="#10b981" />
+              <span>Show 256-Bit SSL Protection Badge</span>
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={elProps.showCOD === true}
+                onChange={(e) => handleUpdateProps({ showCOD: e.target.checked })}
+              />
+              <CreditCard size={16} color="#0ea5e9" />
+              <span>Highlight Cash on Delivery (COD)</span>
+            </label>
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 22}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="60"
+                value={row.layout?.paddingY ?? 22}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+// ────────────────────────────────────────────────────────────
+// 7. LEGAL & BOTTOM BAR INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const LegalSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'classic-bottom-bar';
+  const supportedTabs = getSectionSupportedTabs('legal', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+
+  const elements = (row.columns || []).flatMap((c) => c.elements) || [];
+  const copyrightEl: any = elements.find((e) => e.type === 'copyright') || elements[0];
+  const policyEl: any = elements.find((e) => e.type === 'policy-links');
+
+  const copyrightText = copyrightEl?.props?.text || '© {year} BillionBiz Technologies Inc. Built with BillionBiz Engine.';
+  const policyLinks: any[] = policyEl?.props?.links || [
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Cookie Settings', href: '#cookies' },
+    { label: 'Security', href: '/security' },
+  ];
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'legal', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateCopyright = (text: string) => {
+    if (copyrightEl) {
+      updateFooterElement(row.id, copyrightEl.id, {
+        props: { ...copyrightEl.props, text },
+      });
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Legal & Bottom Bar"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.legal.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Copyright Statement (Use {'{year}'} for dynamic year)
+              </label>
+              <textarea
+                rows={2}
+                value={copyrightText}
+                onChange={(e) => handleUpdateCopyright(e.target.value)}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+            </div>
+
+            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+              Policy Links ({policyLinks.length})
+            </div>
+            {policyLinks.map((link, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  type="text"
+                  value={link.label}
+                  readOnly
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', backgroundColor: '#f8fafc' }}
+                />
+                <input
+                  type="text"
+                  value={link.href}
+                  readOnly
+                  style={{ width: '100px', padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', backgroundColor: '#f8fafc', color: '#64748b' }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 24}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="60"
+                value={row.layout?.paddingY ?? 24}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};

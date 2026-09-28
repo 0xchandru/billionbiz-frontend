@@ -5,16 +5,24 @@ import {
   Phone,
   Mail,
   MapPin,
-  Clock,
   Sparkles,
   ArrowUpRight,
   Download,
   Smartphone,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Lock,
+  Award,
+  Heart,
+  Star,
+  Check,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import { getEditorPath } from '../utils/editorNavigation';
 import type { FooterColumn, FooterElement } from '../engine/types';
+import { computeFooterPaletteVariables, isColorDark } from '../engine/footerDirectoryModel';
 import styles from './FooterSections.module.css';
 
 interface FooterMainSectionProps {
@@ -23,6 +31,85 @@ interface FooterMainSectionProps {
   isEditorInteractive?: boolean;
   useEditorModel?: boolean;
 }
+
+// Payment method badge SVG icons
+const PaymentBadgeIcon: React.FC<{ provider: string }> = ({ provider }) => {
+  const p = (provider || '').toLowerCase();
+  switch (p) {
+    case 'visa':
+      return (
+        <span style={{ fontWeight: 800, fontStyle: 'italic', fontSize: '12px', color: '#1a1f71', letterSpacing: '0.04em' }}>
+          VISA
+        </span>
+      );
+    case 'mastercard':
+      return (
+        <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#eb001b', display: 'inline-block' }} />
+          <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#f79e1b', display: 'inline-block', marginLeft: '-5px', opacity: 0.9 }} />
+        </div>
+      );
+    case 'amex':
+    case 'american-express':
+      return (
+        <span style={{ fontWeight: 800, fontSize: '9.5px', color: '#006fcf', letterSpacing: '0.05em' }}>
+          AMEX
+        </span>
+      );
+    case 'paypal':
+      return (
+        <span style={{ fontWeight: 800, fontSize: '11px', color: '#003087', letterSpacing: '-0.02em' }}>
+          Pay<span style={{ color: '#0079c1' }}>Pal</span>
+        </span>
+      );
+    case 'apple-pay':
+    case 'applepay':
+      return (
+        <span style={{ fontWeight: 700, fontSize: '10.5px', color: '#000000', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+          Pay
+        </span>
+      );
+    case 'google-pay':
+    case 'googlepay':
+      return (
+        <span style={{ fontWeight: 700, fontSize: '10.5px', color: '#5f6368' }}>
+          G<span style={{ color: '#ea4335' }}>P</span>ay
+        </span>
+      );
+    case 'klarna':
+      return (
+        <span style={{ fontWeight: 800, fontSize: '10px', color: '#ffb3c7', padding: '1px 3px', borderRadius: '3px', background: '#0a0a0a' }}>
+          Klarna.
+        </span>
+      );
+    case 'shop-pay':
+    case 'shoppay':
+      return (
+        <span style={{ fontWeight: 800, fontSize: '10.5px', color: '#5a31f4' }}>
+          shop<span style={{ color: '#000' }}>Pay</span>
+        </span>
+      );
+    default:
+      return (
+        <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#334155' }}>
+          {provider}
+        </span>
+      );
+  }
+};
+
+// Trust badge icon map
+const TRUST_ICON_MAP: Record<string, React.FC<any>> = {
+  'shield-check': ShieldCheck,
+  truck: Truck,
+  'rotate-ccw': RotateCcw,
+  'refresh-cw': RotateCcw,
+  lock: Lock,
+  award: Award,
+  heart: Heart,
+  star: Star,
+  sparkles: Sparkles,
+};
 
 // Social platform icon helper
 const renderSocialIcon = (platform: string, size = 16) => {
@@ -98,12 +185,16 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
     }));
   };
 
+  // Column newsletter form local state
+  const [newsletterEmails, setNewsletterEmails] = useState<Record<string, string>>({});
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState<Record<string, boolean>>({});
+
   const isMobile = device === 'mobile';
   const isTablet = device === 'tablet';
 
-  const bgColor = styling.bgColor || 'var(--theme-footer-bg, #0f172a)';
-  const textColor = styling.textColor || 'var(--theme-footer-text, #ffffff)';
-  const borderColor = styling.borderColor || 'rgba(255, 255, 255, 0.12)';
+  const bgColor = styling.bgColor || 'var(--footer-bg, #ffffff)';
+  const textColor = styling.textColor || 'var(--footer-text, #334155)';
+  const borderColor = styling.borderColor || 'var(--footer-border, #e2e8f0)';
   const containerMode = layout.container || 'constrained';
 
   const isRowSelected =
@@ -134,6 +225,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-main',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });
@@ -168,6 +260,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-main',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });
@@ -179,14 +272,72 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
   const isCentered = layout.variantId === 'centered-brand';
   const isBento = layout.variantId === 'bento-grid';
 
-  // Compute CSS grid template columns
-  const getGridTemplate = () => {
-    if (isMobile) return '1fr';
-    if (isCentered) return '1fr';
-    if (isTablet) return 'repeat(2, 1fr)';
-    if (columns.length === 0) return 'repeat(4, 1fr)';
-    return columns.map((c) => c.width || '1fr').join(' ');
+  // Dynamic flexbox column styling supporting auto width, custom widths, and responsive wrapping
+  const getColumnStyle = (widthStr?: string): React.CSSProperties => {
+    if (isMobile) {
+      return {
+        flex: '1 1 100%',
+        width: '100%',
+        minWidth: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+    if (isTablet) {
+      return {
+        flex: '1 1 calc(50% - 20px)',
+        minWidth: '200px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+
+    const w = (widthStr || 'auto').trim().toLowerCase();
+
+    if (w === 'auto') {
+      return {
+        flex: '1 1 180px',
+        minWidth: '160px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+    if (w.endsWith('%')) {
+      return {
+        flex: `0 0 ${w}`,
+        width: w,
+        minWidth: '140px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+    if (w.endsWith('px')) {
+      return {
+        flex: `0 0 ${w}`,
+        width: w,
+        minWidth: '140px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+    if (w.endsWith('fr')) {
+      const frVal = parseFloat(w) || 1;
+      return {
+        flex: `${frVal} 1 0px`,
+        minWidth: frVal >= 1.5 ? '220px' : '160px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
+    return {
+      flex: '1 1 180px',
+      minWidth: '160px',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+    };
   };
+
+  const paletteVars = computeFooterPaletteVariables(styling);
 
   return (
     <footer
@@ -198,6 +349,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
       }`}
       onClick={handleRowClick}
       style={{
+        ...paletteVars as any,
         backgroundColor: bgColor,
         color: textColor,
         borderTop: styling.borderTop ? `1px solid ${borderColor}` : 'none',
@@ -222,8 +374,15 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
         <div
           className={styles.mainFooterGrid}
           style={{
-            gridTemplateColumns: getGridTemplate(),
+            display: 'flex',
+            flexWrap: (layout.flexWrap ?? 'wrap') as any,
+            justifyContent: layout.justifyContent || (isCentered ? 'center' : (layout.alignment === 'center' ? 'center' : layout.alignment === 'right' ? 'flex-end' : 'space-between')),
+            alignItems: layout.alignItems || 'flex-start',
             gap: isMobile ? '28px' : `${layout.gap ?? 40}px`,
+            rowGap: isMobile ? '28px' : `${layout.gapY ?? layout.gap ?? 40}px`,
+            maxWidth: isCentered && columns.length === 1 ? '680px' : '100%',
+            margin: isCentered && columns.length === 1 ? '0 auto' : undefined,
+            width: '100%',
           }}
         >
           {columns.map((col, colIdx) => {
@@ -233,7 +392,12 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
               <div
                 key={col.id || colIdx}
                 className={styles.columnCard}
+                onClick={(e) => {
+                  // Column container clicks do not open right sidebar (Spec #3, #8)
+                  e.stopPropagation();
+                }}
                 style={{
+                  ...getColumnStyle(col.width),
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: isCentered ? 'center' : 'flex-start',
@@ -258,7 +422,15 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
 
                   // ─── 1. Brand Logo ───
                   if (el.type === 'logo') {
-                    const isImage = elProps.sourceType === 'image' || Boolean(elProps.imageUrl);
+                    const logoType = elProps.logoType || (elProps.sourceType === 'image' ? 'image' : (elProps.imageUrl || elProps.image ? 'both' : 'text'));
+                    const logoImgUrl = elProps.imageUrl || elProps.image;
+                    const showImg = (logoType === 'image' || logoType === 'both') && Boolean(logoImgUrl);
+                    const showTxt = logoType === 'text' || logoType === 'both' || !logoImgUrl;
+                    const isTwoLines = Boolean(elProps.isTwoLines);
+                    const upperText = elProps.upperText || elProps.text || 'BillionBiz';
+                    const lowerText = elProps.lowerText || '';
+                    const tagline = elProps.tagline;
+
                     return (
                       <div
                         key={el.id}
@@ -267,36 +439,77 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                           isElSelected ? styles.elementSelected : ''
                         }`}
                         style={{
-                          marginBottom: '4px',
-                          display: isCentered ? 'flex' : 'block',
+                          marginBottom: '6px',
+                          display: isCentered ? 'flex' : 'inline-flex',
+                          flexDirection: isCentered ? 'column' : 'row',
+                          alignItems: isCentered ? 'center' : 'center',
+                          gap: '10px',
                           justifyContent: isCentered ? 'center' : 'flex-start',
                           width: isCentered ? '100%' : 'auto',
+                          cursor: isEditorInteractive ? 'pointer' : 'default',
                         }}
                       >
-                        {isImage && elProps.imageUrl ? (
+                        {showImg && (
                           <img
-                            src={elProps.imageUrl}
+                            src={logoImgUrl}
                             alt={elProps.text || 'Store Logo'}
                             style={{
                               height: `${elProps.height ?? 36}px`,
-                              width: 'auto',
+                              width: elProps.width ? `${elProps.width}px` : 'auto',
+                              maxWidth: '100%',
                               objectFit: 'contain',
                               display: 'block',
                             }}
                           />
-                        ) : (
-                          <h3
-                            style={{
-                              margin: 0,
-                              fontSize: `${elProps.fontSize ?? 24}px`,
-                              fontWeight: elProps.fontWeight ?? 800,
-                              color: elProps.textColor || textColor,
-                              letterSpacing: '-0.03em',
-                              textAlign: isCentered ? 'center' : 'left',
-                            }}
-                          >
-                            {elProps.text || 'BillionBiz'}
-                          </h3>
+                        )}
+                        {showTxt && (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isCentered ? 'center' : 'flex-start' }}>
+                            {isTwoLines ? (
+                              <div style={{ lineHeight: 1.15 }}>
+                                <div
+                                  style={{
+                                    fontSize: `${elProps.fontSize ?? 20}px`,
+                                    fontWeight: elProps.fontWeight ?? 800,
+                                    color: elProps.textColor || textColor,
+                                    letterSpacing: '-0.02em',
+                                  }}
+                                >
+                                  {upperText}
+                                </div>
+                                {lowerText && (
+                                  <div
+                                    style={{
+                                      fontSize: `${Math.round((elProps.fontSize ?? 20) * 0.65)}px`,
+                                      fontWeight: 700,
+                                      color: elProps.textColor || textColor,
+                                      letterSpacing: '0.08em',
+                                      opacity: 0.85,
+                                    }}
+                                  >
+                                    {lowerText}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <h3
+                                style={{
+                                  margin: 0,
+                                  fontSize: `${elProps.fontSize ?? 22}px`,
+                                  fontWeight: elProps.fontWeight ?? 800,
+                                  color: elProps.textColor || textColor,
+                                  letterSpacing: '-0.03em',
+                                  textAlign: isCentered ? 'center' : 'left',
+                                }}
+                              >
+                                {elProps.text || 'BillionBiz'}
+                              </h3>
+                            )}
+                            {tagline && (
+                              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', marginTop: '2px', fontWeight: 500 }}>
+                                {tagline}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -329,8 +542,11 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                     );
                   }
 
+                  const isElVisible = elProps.isVisible !== false;
+                  if (!isEditorInteractive && !isElVisible) return null;
+
                   // ─── 3. Contact Information ───
-                  if (el.type === 'contact' || el.type === 'address' || el.type === 'business-hours') {
+                  if (el.type === 'contact' || el.type === 'address') {
                     return (
                       <div
                         key={el.id}
@@ -338,7 +554,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                         className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
                         }`}
-                        style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', opacity: isElVisible ? 1 : 0.45 }}
                       >
                         {elProps.phone && (
                           <a
@@ -383,7 +599,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                             <span>{elProps.address}</span>
                           </div>
                         )}
-                        {elProps.hours && (
+                        {elProps.whatsapp && (
                           <div
                             style={{
                               display: 'inline-flex',
@@ -392,10 +608,39 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                               color: 'rgba(255,255,255,0.75)',
                             }}
                           >
-                            <Clock size={14} color="#10b981" />
-                            <span>{elProps.hours}</span>
+                            <Phone size={14} color="#10b981" />
+                            <span>{elProps.whatsapp}</span>
                           </div>
                         )}
+                      </div>
+                    );
+                  }
+
+                  // ─── 3b. Business Hours ───
+                  if (el.type === 'business-hours') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', width: '100%', opacity: isElVisible ? 1 : 0.45 }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCentered ? 'center' : 'space-between', gap: '8px' }}>
+                          <span style={{ fontWeight: 700, color: elProps.headingColor || textColor, fontSize: `${elProps.headingSize ?? 13.5}px` }}>
+                            {elProps.heading || 'Business Hours'}
+                          </span>
+                          {elProps.showLiveStatus !== false && (
+                            <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '12px', backgroundColor: '#dcfce7', color: '#15803d' }}>
+                              Open Now
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: 'rgba(255,255,255,0.72)', fontSize: '12.5px' }}>
+                          <div>{elProps.weekdayHours || 'Mon – Fri: 9:00 AM – 7:00 PM EST'}</div>
+                          <div>{elProps.weekendHours || 'Saturday: 10:00 AM – 5:00 PM EST'}</div>
+                        </div>
                       </div>
                     );
                   }
@@ -408,40 +653,86 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                       { platform: 'linkedin', url: 'https://linkedin.com', enabled: true },
                       { platform: 'youtube', url: 'https://youtube.com', enabled: true },
                     ];
+                    const variant = elProps.variant || 'circles';
+                    const iconSize = elProps.size || 15;
+                    const gap = elProps.gap ?? 8;
+                    const showHeading = elProps.showHeading && Boolean(elProps.heading);
 
                     return (
                       <div
                         key={el.id}
                         onClick={(e) => handleElementClick(e, el)}
-                        className={`${styles.socialIconRow} ${isEditorInteractive ? styles.elementEditable : ''} ${
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
                         }`}
                         style={{
-                          marginTop: '8px',
+                          marginTop: '6px',
                           display: 'flex',
-                          justifyContent: isCentered ? 'center' : 'flex-start',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          alignItems: isCentered ? 'center' : 'flex-start',
                           width: isCentered ? '100%' : 'auto',
                         }}
                       >
-                        {platforms
-                          .filter((p: any) => p.enabled !== false)
-                          .map((p: any, pIdx: number) => (
-                            <a
-                              key={pIdx}
-                              href={p.url || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.socialIconBtn}
-                              style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                color: textColor,
-                              }}
-                              title={p.platform}
-                            >
-                              {renderSocialIcon(p.platform, 15)}
-                            </a>
-                          ))}
+                        {showHeading && (
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              color: elProps.headingColor || textColor,
+                            }}
+                          >
+                            {elProps.heading}
+                          </div>
+                        )}
+                        <div
+                          className={styles.socialIconRow}
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: `${gap}px`,
+                            justifyContent: isCentered ? 'center' : 'flex-start',
+                          }}
+                        >
+                          {platforms
+                            .filter((p: any) => p.enabled !== false)
+                            .map((p: any, pIdx: number) => {
+                              const isMinimal = variant === 'minimal';
+                              const isPill = variant === 'pills';
+                              const isRounded = variant === 'rounded';
+                              const borderRadius = isMinimal ? '4px' : isRounded ? '8px' : isPill ? '20px' : '50%';
+                              const bg = isMinimal ? 'transparent' : 'rgba(255, 255, 255, 0.08)';
+                              const border = isMinimal ? 'none' : '1px solid rgba(255, 255, 255, 0.15)';
+
+                              return (
+                                <a
+                                  key={pIdx}
+                                  href={p.url || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.socialIconBtn}
+                                  style={{
+                                    backgroundColor: bg,
+                                    border: border,
+                                    borderRadius: borderRadius,
+                                    color: elProps.iconColor && elProps.iconColor !== 'currentColor' ? elProps.iconColor : textColor,
+                                    width: isMinimal ? 'auto' : `${iconSize + 18}px`,
+                                    height: isMinimal ? 'auto' : `${iconSize + 18}px`,
+                                    padding: isMinimal ? '4px' : undefined,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  title={p.platform}
+                                >
+                                  {renderSocialIcon(p.platform, iconSize)}
+                                </a>
+                              );
+                            })}
+                        </div>
                       </div>
                     );
                   }
@@ -507,7 +798,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                               paddingTop: isMobile ? '10px' : '0',
                               gap: isCentered ? '18px' : `${elProps.gap ?? 11}px`,
                               display: 'flex',
-                              flexDirection: isCentered && !isMobile ? 'row' : 'column',
+                              flexDirection: isCentered && columns.length <= 1 && !isMobile ? 'row' : 'column',
                               flexWrap: 'wrap',
                               justifyContent: isCentered ? 'center' : 'flex-start',
                               alignItems: isCentered ? 'center' : 'flex-start',
@@ -559,6 +850,95 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
 
                   // ─── 6. Newsletter Form in Column ───
                   if (el.type === 'newsletter-form') {
+                    const formLayout = elProps.layout || 'stacked';
+                    const isStacked = formLayout === 'stacked';
+                    const isJoined = formLayout === 'joined';
+                    const btnStyle = elProps.buttonStyle || 'solid';
+                    const title = elProps.title || elProps.headline || 'Newsletter';
+                    const subtitle = elProps.subtitle || elProps.subheadline || elProps.description;
+                    const placeholder = elProps.placeholder || 'Enter your email address...';
+                    const buttonText = elProps.buttonText || 'Subscribe';
+                    const buttonBg = elProps.buttonBg || 'var(--footer-accent, var(--primary, #2563eb))';
+                    const buttonColor = elProps.buttonColor || '#ffffff';
+                    const showDisclaimer = elProps.showDisclaimer !== false && Boolean(elProps.disclaimerText);
+                    const disclaimerText = elProps.disclaimerText || 'By subscribing you agree to our Privacy Policy.';
+
+                    const isWhiteOrLight = (c?: string) => {
+                      if (!c) return false;
+                      const lower = c.trim().toLowerCase();
+                      return lower === '#fff' || lower === '#ffffff' || lower === 'white' || lower.startsWith('rgba(255, 255, 255') || lower.startsWith('rgb(255, 255, 255');
+                    };
+
+                    const isDarkTheme = styling?.bgType === 'dark';
+                    const isDarkCanvas = isColorDark(styling?.bgColor || (isDarkTheme ? '#0f172a' : '#ffffff'));
+
+                    // All colors cleanly inherited from CSS palette variables
+                    const headingColor = (elProps.headingColor && (isDarkCanvas || !isWhiteOrLight(elProps.headingColor)))
+                      ? elProps.headingColor
+                      : 'var(--footer-heading, currentColor)';
+                    const subtitleColor = (elProps.textColor && (isDarkCanvas || !isWhiteOrLight(elProps.textColor)))
+                      ? elProps.textColor
+                      : 'var(--footer-muted-text, var(--footer-text, #475569))';
+                    const inputBg = 'var(--footer-input-bg, #f8fafc)';
+                    const inputBorder = '1px solid var(--footer-input-border, var(--footer-border, #cbd5e1))';
+                    const inputTextColor = 'var(--footer-input-text, var(--footer-heading, #0f172a))';
+                    const disclaimerColor = 'var(--footer-muted-text, #64748b)';
+
+                    const handleNewsletterSubmit = (e: React.FormEvent | React.MouseEvent) => {
+                      e.preventDefault();
+                      if (isEditorInteractive) {
+                        handleElementClick(e as any, el);
+                        return;
+                      }
+                      e.stopPropagation();
+                      setNewsletterSubscribed((prev) => ({ ...prev, [el.id]: true }));
+                      setTimeout(() => {
+                        setNewsletterSubscribed((prev) => ({ ...prev, [el.id]: false }));
+                      }, 3000);
+                    };
+
+                    const renderButton = (customStyle?: React.CSSProperties) => (
+                      <button
+                        type="button"
+                        onClick={handleNewsletterSubmit}
+                        style={{
+                          height: '42px',
+                          padding: isStacked ? '10px 18px' : '10px 18px',
+                          borderRadius: btnStyle === 'pill' ? '24px' : '8px',
+                          backgroundColor: newsletterSubscribed[el.id]
+                            ? '#10b981'
+                            : btnStyle === 'outline'
+                            ? 'transparent'
+                            : buttonBg,
+                          color:
+                            btnStyle === 'outline' && !newsletterSubscribed[el.id]
+                              ? buttonBg
+                              : buttonColor,
+                          border: btnStyle === 'outline' ? `1.5px solid ${buttonBg}` : 'none',
+                          fontWeight: 700,
+                          fontSize: '13.5px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          flexShrink: 0,
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap',
+                          boxShadow: btnStyle === 'solid' ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+                          ...customStyle,
+                        }}
+                      >
+                        {newsletterSubscribed[el.id] ? (
+                          <>
+                            <Check size={15} /> Subscribed!
+                          </>
+                        ) : (
+                          buttonText
+                        )}
+                      </button>
+                    );
+
                     return (
                       <div
                         key={el.id}
@@ -566,51 +946,209 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                         className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
                         }`}
-                        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
+                          width: '100%',
+                          maxWidth: isCentered ? '440px' : '380px',
+                          alignItems: isCentered ? 'center' : 'stretch',
+                          textAlign: isCentered ? 'center' : 'left',
+                          marginTop: '4px',
+                        }}
                       >
-                        <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: textColor }}>
-                          {elProps.title || 'Newsletter'}
-                        </h4>
-                        <p style={{ margin: 0, fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                          {elProps.subtitle || 'Get weekly product drops & promotions.'}
-                        </p>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <input
-                            type="email"
-                            placeholder={elProps.placeholder || 'Email address'}
+                        {title && (
+                          <h4
                             style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: '6px',
-                              backgroundColor: 'rgba(255,255,255,0.08)',
-                              border: '1px solid rgba(255,255,255,0.2)',
-                              color: textColor,
-                              fontSize: '12.5px',
-                              outline: 'none',
-                            }}
-                          />
-                          <button
-                            type="button"
-                            style={{
-                              padding: '8px 14px',
-                              borderRadius: '6px',
-                              backgroundColor: '#6366f1',
-                              color: '#fff',
-                              border: 'none',
-                              fontWeight: 600,
-                              fontSize: '12.5px',
-                              cursor: 'pointer',
+                              margin: 0,
+                              fontSize: '16px',
+                              fontWeight: 700,
+                              color: headingColor,
+                              lineHeight: 1.3,
+                              letterSpacing: '-0.01em',
                             }}
                           >
-                            {elProps.buttonText || 'Join'}
-                          </button>
+                            {title}
+                          </h4>
+                        )}
+                        {subtitle && (
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: '13.5px',
+                              color: subtitleColor,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {subtitle}
+                          </p>
+                        )}
+
+                        {isJoined ? (
+                          /* Joined Capsule layout */
+                          <form
+                            onSubmit={handleNewsletterSubmit}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              width: '100%',
+                              backgroundColor: inputBg,
+                              border: inputBorder,
+                              borderRadius: btnStyle === 'pill' ? '28px' : '10px',
+                              padding: '3px 4px 3px 14px',
+                              transition: 'all 0.2s ease',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            <input
+                              type="email"
+                              placeholder={placeholder}
+                              value={newsletterEmails[el.id] || ''}
+                              onChange={(e) => setNewsletterEmails((prev) => ({ ...prev, [el.id]: e.target.value }))}
+                              onClick={(e) => isEditorInteractive && e.stopPropagation()}
+                              className={styles.columnNewsletterInput}
+                              style={{
+                                flex: 1,
+                                minWidth: 0,
+                                height: '36px',
+                                background: 'transparent',
+                                border: 'none',
+                                outline: 'none',
+                                color: inputTextColor,
+                                fontSize: '13.5px',
+                                padding: 0,
+                              }}
+                            />
+                            {renderButton({ height: '36px', padding: '8px 16px', borderRadius: btnStyle === 'pill' ? '24px' : '7px' })}
+                          </form>
+                        ) : (
+                          /* Stacked or Inline row layout */
+                          <form
+                            onSubmit={handleNewsletterSubmit}
+                            style={{
+                              display: 'flex',
+                              flexDirection: isStacked ? 'column' : 'row',
+                              gap: '8px',
+                              width: '100%',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            <input
+                              type="email"
+                              placeholder={placeholder}
+                              value={newsletterEmails[el.id] || ''}
+                              onChange={(e) => setNewsletterEmails((prev) => ({ ...prev, [el.id]: e.target.value }))}
+                              onClick={(e) => isEditorInteractive && e.stopPropagation()}
+                              className={styles.columnNewsletterInput}
+                              style={{
+                                height: '42px',
+                                padding: '10px 14px',
+                                borderRadius: btnStyle === 'pill' ? '24px' : '8px',
+                                backgroundColor: inputBg,
+                                border: inputBorder,
+                                color: inputTextColor,
+                              }}
+                            />
+                            {renderButton(isStacked ? { width: '100%' } : undefined)}
+                          </form>
+                        )}
+
+                        {showDisclaimer && (
+                          <span
+                            style={{
+                              fontSize: '11.5px',
+                              color: disclaimerColor,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {disclaimerText}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // ─── 7. Payment Methods Badges in Column ───
+                  if (el.type === 'payment-methods') {
+                    const providers = elProps.providers || ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'];
+                    const showHeading = elProps.showHeading !== false && Boolean(elProps.heading);
+                    const gap = elProps.gap ?? 6;
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          alignItems: isCentered ? 'center' : 'flex-start',
+                          width: '100%',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {showHeading && (
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              color: elProps.headingColor || textColor,
+                            }}
+                          >
+                            {elProps.heading || 'Payment Options'}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: `${gap}px`,
+                            alignItems: 'center',
+                            justifyContent: isCentered ? 'center' : 'flex-start',
+                          }}
+                        >
+                          {providers.map((provider: string, pIdx: number) => (
+                            <div
+                              key={pIdx}
+                              style={{
+                                padding: '4px 8px',
+                                minWidth: '40px',
+                                height: '26px',
+                                backgroundColor: '#ffffff',
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                borderRadius: '5px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                              }}
+                              title={provider}
+                            >
+                              <PaymentBadgeIcon provider={provider} />
+                            </div>
+                          ))}
                         </div>
                       </div>
                     );
                   }
 
-                  // ─── 7. App Download & QR Code ───
-                  if (el.type === 'app-download' || el.type === 'qr-code') {
+                  // ─── 8. Trust Badges in Column ───
+                  if (el.type === 'trust-badges') {
+                    const items = elProps.items || [
+                      { icon: 'shield-check', title: '256-Bit SSL Protection' },
+                      { icon: 'truck', title: 'Express Tracked Shipping' },
+                      { icon: 'rotate-ccw', title: '30-Day Free Returns' },
+                    ];
+                    const showHeading = elProps.showHeading && Boolean(elProps.heading);
+                    const iconColor = elProps.iconColor || '#10b981';
+                    const fontSize = elProps.fontSize ?? 12.5;
+                    const gap = elProps.gap ?? 8;
+
                     return (
                       <div
                         key={el.id}
@@ -618,50 +1156,300 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                         className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
                         }`}
-                        style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: `${gap}px`,
+                          width: '100%',
+                          alignItems: isCentered ? 'center' : 'flex-start',
+                          marginTop: '4px',
+                        }}
                       >
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: textColor, textTransform: 'uppercase' }}>
-                          {elProps.title || 'Get Our App'}
-                        </span>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
+                        {showHeading && (
+                          <div
                             style={{
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              backgroundColor: 'rgba(255,255,255,0.08)',
-                              border: '1px solid rgba(255,255,255,0.15)',
-                              color: textColor,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
                               fontSize: '12px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              color: elProps.headingColor || textColor,
                             }}
                           >
-                            <Smartphone size={14} /> App Store
-                          </button>
-                          <button
-                            type="button"
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              backgroundColor: 'rgba(255,255,255,0.08)',
-                              border: '1px solid rgba(255,255,255,0.15)',
-                              color: textColor,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Download size={14} /> Google Play
-                          </button>
+                            {elProps.heading}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '7px',
+                            width: '100%',
+                          }}
+                        >
+                          {items.map((item: any, itIdx: number) => {
+                            const IconCmp = TRUST_ICON_MAP[item.icon] || ShieldCheck;
+                            return (
+                              <div
+                                key={itIdx}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  justifyContent: isCentered ? 'center' : 'flex-start',
+                                  fontSize: `${fontSize}px`,
+                                  color: elProps.textColor || 'rgba(255,255,255,0.85)',
+                                }}
+                              >
+                                <IconCmp size={15} color={iconColor} style={{ flexShrink: 0 }} />
+                                <span style={{ fontWeight: 500 }}>{item.title}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
+                    );
+                  }
+
+                  // ─── 9. App Download & QR Code ───
+                  if (el.type === 'app-download' || el.type === 'qr-code') {
+                    const heading = elProps.heading || elProps.title || 'Get Our App';
+                    const showHeading = elProps.showHeading !== false;
+                    const showAppStore = elProps.showAppStore !== false;
+                    const showGooglePlay = elProps.showGooglePlay !== false;
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          alignItems: isCentered ? 'center' : 'flex-start',
+                          width: '100%',
+                          marginTop: '4px',
+                        }}
+                      >
+                        {showHeading && (
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: elProps.headingColor || textColor, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {heading}
+                          </span>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isCentered ? 'center' : 'flex-start' }}>
+                          {showAppStore && (
+                            <a
+                              href={elProps.appStoreUrl || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => isEditorInteractive && e.preventDefault()}
+                              style={{
+                                padding: '7px 12px',
+                                borderRadius: '6px',
+                                backgroundColor: 'rgba(255,255,255,0.08)',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                color: textColor,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Smartphone size={14} /> App Store
+                            </a>
+                          )}
+                          {showGooglePlay && (
+                            <a
+                              href={elProps.googlePlayUrl || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => isEditorInteractive && e.preventDefault()}
+                              style={{
+                                padding: '7px 12px',
+                                borderRadius: '6px',
+                                backgroundColor: 'rgba(255,255,255,0.08)',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                color: textColor,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <Download size={14} /> Google Play
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 10. Copyright Notice in Column ───
+                  if (el.type === 'copyright') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          marginTop: '6px',
+                          display: 'flex',
+                          justifyContent: isCentered ? 'center' : 'flex-start',
+                          width: '100%',
+                        }}
+                      >
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: `${elProps.fontSize ?? 12}px`,
+                            color: elProps.textColor || 'rgba(255,255,255,0.6)',
+                            lineHeight: 1.5,
+                            textAlign: isCentered ? 'center' : 'left',
+                          }}
+                        >
+                          {elProps.text || '© 2026 BillionBiz, Inc. All rights reserved.'}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  // ─── 8. Rich Text ───
+                  if (el.type === 'rich-text') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          fontSize: `${elProps.fontSize ?? 13}px`,
+                          color: elProps.textColor || 'rgba(255,255,255,0.75)',
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      >
+                        {elProps.heading && (
+                          <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: textColor }}>
+                            {elProps.heading}
+                          </h4>
+                        )}
+                        <p style={{ margin: 0, lineHeight: 1.6 }}>{elProps.content || ''}</p>
+                      </div>
+                    );
+                  }
+
+                  // ─── 9. Image ───
+                  if (el.type === 'image') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          justifyContent: isCentered ? 'center' : 'flex-start',
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      >
+                        {elProps.imageUrl ? (
+                          <img
+                            src={elProps.imageUrl}
+                            alt={elProps.altText || ''}
+                            style={{
+                              maxWidth: `${elProps.width ?? 220}px`,
+                              maxHeight: `${elProps.height ?? 120}px`,
+                              borderRadius: `${elProps.radius ?? 6}px`,
+                              objectFit: elProps.objectFit || 'cover',
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: '180px',
+                              height: '90px',
+                              border: '1px dashed rgba(255,255,255,0.2)',
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'rgba(255,255,255,0.4)',
+                              fontSize: '12px',
+                            }}
+                          >
+                            Image Placeholder
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // ─── 10. Divider ───
+                  if (el.type === 'divider') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          width: elProps.width || '100%',
+                          marginTop: `${elProps.marginTop ?? 12}px`,
+                          marginBottom: `${elProps.marginBottom ?? 12}px`,
+                          borderTop: `${elProps.thickness ?? 1}px ${elProps.style || 'solid'} ${
+                            elProps.color || 'rgba(255,255,255,0.12)'
+                          }`,
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      />
+                    );
+                  }
+
+                  // ─── 11. Spacer ───
+                  if (el.type === 'spacer') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          height: `${elProps.height ?? 20}px`,
+                          width: '100%',
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      />
+                    );
+                  }
+
+                  // ─── 12. Custom HTML ───
+                  if (el.type === 'custom-html') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        } ${elProps.cssClass || ''}`}
+                        dangerouslySetInnerHTML={{ __html: elProps.html || '' }}
+                        style={{ opacity: isElVisible ? 1 : 0.45 }}
+                      />
                     );
                   }
 

@@ -6,6 +6,7 @@
 // ============================================================
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Eye,
   EyeOff,
@@ -35,7 +36,14 @@ import {
   ShoppingBag,
   MousePointerClick,
   Lock,
+  ChevronUp,
+  ChevronDown,
+  Clock,
+  Smartphone,
+  Monitor,
+  Bookmark,
 } from 'lucide-react';
+import styles from '../../../pages/editor/EditorLayout.module.css';
 import {
   DndContext,
   closestCenter,
@@ -56,6 +64,7 @@ import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection } from '../utils/previewScroll';
 import { resolveFooterRowId } from '../utils/editorNavigation';
+import { FooterComponentPickerModal } from './FooterComponentPickerModal';
 
 // ─── Shared Sortable Row Component ──────────────────────────
 
@@ -76,10 +85,13 @@ interface SortableRowProps {
   isLocked?: boolean;
   childMenuItems?: ChildMenuItem[];
   onAddChildItem?: (item: ChildMenuItem) => void;
+  onManageComponents?: () => void;
   onSelect: () => void;
   onToggleVisibility: (e: React.MouseEvent) => void;
   onDuplicate: () => void;
   onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   children?: React.ReactNode;
 }
 
@@ -92,10 +104,13 @@ const SortableRow: React.FC<SortableRowProps> = ({
   isLocked,
   childMenuItems,
   onAddChildItem,
+  onManageComponents,
   onSelect,
   onToggleVisibility,
   onDuplicate,
   onDelete,
+  onMoveUp,
+  onMoveDown,
   children,
 }) => {
   const isDraggable = true;
@@ -104,6 +119,10 @@ const SortableRow: React.FC<SortableRowProps> = ({
     disabled: !isDraggable,
   });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; left: number; maxHeight: number }>({
+    left: 0,
+    maxHeight: 360,
+  });
 
   const style: React.CSSProperties = {
     transform: isDraggable ? CSS.Transform.toString(transform) : undefined,
@@ -154,7 +173,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
   const hasExpandedChildren = Boolean(children);
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={{ ...style, width: '100%', boxSizing: 'border-box' }}>
       <div
         onClick={onSelect}
         style={{
@@ -199,135 +218,259 @@ const SortableRow: React.FC<SortableRowProps> = ({
             >
               {name}
             </span>
+            {isLocked && (
+              <span
+                title="Default core section (always visible, cannot be deleted)"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  gap: '3px',
+                  flexShrink: 0,
+                }}
+              >
+                <Lock size={10} /> Core
+              </span>
+            )}
           </div>
         </div>
 
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+          {/* Visibility toggle button */}
+          <button
+            type="button"
+            onClick={isLocked ? undefined : onToggleVisibility}
+            title={isLocked ? 'Core section (always visible)' : (isVisible ? 'Hide row' : 'Show row')}
+            disabled={isLocked}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: isLocked ? 'default' : 'pointer',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              opacity: isLocked ? 0.45 : 1,
+            }}
+          >
+            {isVisible ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#ef4444" />}
+          </button>
 
-          {isLocked ? (
-            <div
-              title="Locked default section"
+          {/* 3-dot More Options Button: ALWAYS AVAILABLE ON ALL ITEMS */}
+          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!menuOpen) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const spaceBelow = window.innerHeight - rect.bottom;
+                  const openUpward = spaceBelow < 280 && rect.top > 280;
+
+                  if (openUpward) {
+                    setMenuPos({
+                      top: undefined,
+                      bottom: Math.max(8, window.innerHeight - rect.top + 4),
+                      left: Math.max(10, Math.min(window.innerWidth - 215, rect.right - 190)),
+                      maxHeight: Math.min(380, rect.top - 16),
+                    });
+                  } else {
+                    setMenuPos({
+                      top: rect.bottom + 4,
+                      bottom: undefined,
+                      left: Math.max(10, Math.min(window.innerWidth - 215, rect.right - 190)),
+                      maxHeight: Math.min(380, Math.max(180, spaceBelow - 16)),
+                    });
+                  }
+                }
+                setMenuOpen(!menuOpen);
+              }}
+              title="More options"
               style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
                 padding: '4px',
+                borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
-                color: '#94a3b8',
-                cursor: 'default',
+                color: '#64748b',
               }}
             >
-              <Lock size={13} />
-            </div>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={onToggleVisibility}
-                title={isVisible ? 'Hide row' : 'Show row'}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {isVisible ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#ef4444" />}
-              </button>
+              <MoreVertical size={13} />
+            </button>
 
-              <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  title="More options"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: '#64748b',
+            {menuOpen && createPortal(
+              <>
+                <div
+                  style={{ position: 'fixed', inset: 0, zIndex: 999998 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(false);
                   }}
+                />
+                <div
+                  className={styles.dropdownMenu}
+                  style={{
+                    position: 'fixed',
+                    top: menuPos.top !== undefined ? `${menuPos.top}px` : 'auto',
+                    bottom: menuPos.bottom !== undefined ? `${menuPos.bottom}px` : 'auto',
+                    left: `${menuPos.left}px`,
+                    right: 'auto',
+                    margin: 0,
+                    zIndex: 999999,
+                    maxHeight: `${menuPos.maxHeight}px`,
+                    overflowY: 'auto',
+                    width: '200px',
+                    minWidth: '200px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.22)',
+                    padding: '4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxSizing: 'border-box',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical size={13} />
-                </button>
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onMoveUp?.();
+                    }}
+                    disabled={!onMoveUp}
+                    style={!onMoveUp ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    <ChevronUp size={14} /> Move Up
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onMoveDown?.();
+                    }}
+                    disabled={!onMoveDown}
+                    style={!onMoveDown ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    <ChevronDown size={14} /> Move Down
+                  </button>
 
-                {menuOpen && (
-                  <>
-                    <div
-                      style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
-                      onClick={() => setMenuOpen(false)}
-                    />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 'calc(100% + 4px)',
-                        right: 0,
-                        zIndex: 9999,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
-                        minWidth: '165px',
-                        padding: '4px',
+                  {onManageComponents && (
+                    <button
+                      type="button"
+                      className={styles.dropdownItem}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onManageComponents();
                       }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onDuplicate();
-                          setMenuOpen(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '7px 10px',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '12px',
-                          color: '#334155',
-                          cursor: 'pointer',
-                          borderRadius: '6px',
-                          textAlign: 'left',
-                        }}
-                      >
-                        <Copy size={13} /> Duplicate Row
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onDelete();
-                          setMenuOpen(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '7px 10px',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '12px',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          borderRadius: '6px',
-                          textAlign: 'left',
-                        }}
-                      >
-                        <Trash2 size={13} /> Delete Row
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </>
-          )}
+                      <SlidersHorizontal size={14} /> Manage Components
+                    </button>
+                  )}
+
+                  <div className={styles.dropdownDivider} />
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDuplicate();
+                    }}
+                    disabled={isLocked}
+                    title={isLocked ? 'Core section cannot be duplicated' : undefined}
+                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    <Copy size={14} /> Duplicate {isLocked ? '(Locked)' : ''}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => setMenuOpen(false)}
+                    disabled={isLocked}
+                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    <Clock size={14} /> Schedule visibility
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      onToggleVisibility(e);
+                    }}
+                    disabled={isLocked}
+                    title={isLocked ? 'Core section is always visible' : undefined}
+                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {isVisible ? 'Hide' : 'Show'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Smartphone size={14} /> Hide on mobile
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Monitor size={14} /> Hide on desktop
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Code size={14} /> Copy as code
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.dropdownItem}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Bookmark size={14} /> Save as snippet
+                  </button>
+
+                  <div className={styles.dropdownDivider} />
+
+                  <button
+                    type="button"
+                    className={`${styles.dropdownItem} ${styles.dangerText}`}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete();
+                    }}
+                    disabled={isLocked}
+                    title={isLocked ? 'Core section cannot be deleted' : undefined}
+                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  >
+                    <Trash2 size={14} /> Delete {isLocked ? '(Locked)' : ''}
+                  </button>
+                </div>
+              </>,
+              document.body
+            )}
+          </div>
         </div>
       </div>
 
@@ -342,6 +485,9 @@ const SortableRow: React.FC<SortableRowProps> = ({
             display: 'flex',
             flexDirection: 'column',
             gap: '2px',
+            width: '100%',
+            boxSizing: 'border-box',
+            overflow: 'hidden',
           }}
         >
           {children}
@@ -349,7 +495,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
             <div style={{ marginTop: '6px' }}>
               <button
                 type="button"
-                onClick={(event) => { event.stopPropagation(); onAddChildItem?.(childMenuItems[0]); }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (onManageComponents) {
+                    onManageComponents();
+                  } else {
+                    onAddChildItem?.(childMenuItems[0]);
+                  }
+                }}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '6px', border: '1px dashed #93c5fd', borderRadius: '5px', background: '#eff6ff', color: '#2563eb', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
               >
                 <Plus size={12} /> Manage components
@@ -412,48 +565,97 @@ const FOOTER_CHILD_OPTIONS: ChildMenuItem[] = [
   },
   {
     type: 'social-links',
-    name: 'Social Profiles',
+    name: 'Social Links',
     icon: <Share2 size={13} color="#f59e0b" />,
-    desc: 'Instagram, Twitter/X, YouTube',
+    desc: 'Instagram, Twitter/X, Facebook, YouTube',
     defaults: {
+      heading: 'Connect With Us',
+      showHeading: true,
+      variant: 'circles',
+      size: 16,
+      gap: 8,
       platforms: [
         { platform: 'twitter', url: 'https://twitter.com', enabled: true },
         { platform: 'instagram', url: 'https://instagram.com', enabled: true },
+        { platform: 'facebook', url: 'https://facebook.com', enabled: true },
+        { platform: 'youtube', url: 'https://youtube.com', enabled: true },
       ],
     },
   },
   {
     type: 'newsletter-form',
-    name: 'Newsletter Form',
+    name: 'Small Newsletter Signup',
     icon: <Mail size={13} color="#ec4899" />,
     desc: 'Inline email signup input & button',
-    defaults: { headline: 'Subscribe to our newsletter', placeholder: 'Enter your email...' },
+    defaults: {
+      title: 'Stay in the loop',
+      subtitle: 'Subscribe for weekly releases, stories & member perks.',
+      placeholder: 'Enter your email address...',
+      buttonText: 'Subscribe',
+      buttonStyle: 'solid',
+      layout: 'inline',
+      buttonBg: '#2563eb',
+      buttonColor: '#ffffff',
+      showDisclaimer: true,
+      disclaimerText: 'By subscribing you agree to our Privacy Policy.',
+    },
   },
   {
     type: 'trust-badges',
-    name: 'Trust Guarantees',
-    icon: <ShieldCheck size={13} color="#6366f1" />,
+    name: 'Trust Badges & Guarantees',
+    icon: <ShieldCheck size={13} color="#10b981" />,
     desc: 'Security seals & guarantee badges',
     defaults: {
+      heading: 'Guaranteed Safe Checkout',
+      showHeading: false,
       items: [
-        { icon: 'shield-check', title: 'Secure Payment' },
-        { icon: 'truck', title: 'Fast Delivery' },
+        { icon: 'shield-check', title: '256-Bit SSL Protection' },
+        { icon: 'truck', title: 'Express Tracked Shipping' },
+        { icon: 'rotate-ccw', title: '30-Day Free Returns' },
       ],
+      iconColor: '#10b981',
+      fontSize: 12.5,
+      gap: 8,
     },
   },
   {
     type: 'payment-methods',
-    name: 'Payment Icons',
+    name: 'Payment Methods',
     icon: <CreditCard size={13} color="#0ea5e9" />,
     desc: 'Accepted payment credit card icons',
-    defaults: { providers: ['visa', 'mastercard', 'amex', 'paypal'] },
+    defaults: {
+      heading: 'Payment Options',
+      showHeading: true,
+      providers: ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'],
+      iconStyle: 'badge',
+      iconSize: 20,
+      gap: 6,
+    },
+  },
+  {
+    type: 'app-download',
+    name: 'Mobile App Badges',
+    icon: <Smartphone size={13} color="#8b5cf6" />,
+    desc: 'App Store and Google Play download badges',
+    defaults: {
+      heading: 'Download Mobile App',
+      showHeading: true,
+      showAppStore: true,
+      showGooglePlay: true,
+      appStoreUrl: '#',
+      googlePlayUrl: '#',
+    },
   },
   {
     type: 'copyright',
     name: 'Copyright Notice',
     icon: <FileText size={13} color="#64748b" />,
     desc: 'Legal copyright statement',
-    defaults: { text: '© 2026 BillionBiz, Inc. All rights reserved.' },
+    defaults: {
+      text: '© 2026 BillionBiz, Inc. All rights reserved.',
+      fontSize: 12,
+      textColor: '#94a3b8',
+    },
   },
 ];
 
@@ -465,6 +667,17 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
   const headerRows = store.headerRows;
   const [addHeaderMenuOpen, setAddHeaderMenuOpen] = useState(false);
   const [addFooterMenuOpen, setAddFooterMenuOpen] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<{
+    isOpen: boolean;
+    rowId: string;
+    columnId: string;
+    columnIdx: number;
+  }>({
+    isOpen: false,
+    rowId: '',
+    columnId: '',
+    columnIdx: 0,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -491,7 +704,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, width: '100%', overflowX: 'hidden' }}>
 
       {/* Stack Header Title */}
       <div
@@ -512,14 +725,14 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
       </div>
 
       {/* Header and Footer Stack List */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 16px' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '0 16px', width: '100%', boxSizing: 'border-box' }}>
         {editorType === 'header' ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext
               items={headerRows.map((r) => r.id)}
               strategy={verticalListSortingStrategy}
             >
-              {headerRows.map((row) => {
+              {headerRows.map((row, rIdx) => {
                 const isLockedRow = row.type === 'primary-nav';
                 const rowDisplayName =
                   row.type === 'announcement'
@@ -582,6 +795,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     }}
                     onDuplicate={() => store.duplicateHeaderRow(row.id)}
                     onDelete={() => store.deleteHeaderRow(row.id)}
+                    onMoveUp={rIdx > 0 ? () => store.reorderHeaderRows(rIdx, rIdx - 1) : undefined}
+                    onMoveDown={rIdx < headerRows.length - 1 ? () => store.reorderHeaderRows(rIdx, rIdx + 1) : undefined}
                   >
                     {/* Navbar children remain in the component tab and can be reordered from their drag handles. */}
                     {row.type === 'primary-nav' ? row.elements.filter((el) => {
@@ -790,18 +1005,21 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
               items={store.footerRows.map((r) => r.id)}
               strategy={verticalListSortingStrategy}
             >
-              {store.footerRows.map((row) => {
+              {store.footerRows.map((row, fIdx) => {
                 const isMainFooter = Boolean(
                   row.type === 'navigation' ||
                   row.id === 'row-main-nav' ||
                   row.isLocked
                 );
                 const rowDisplayName = isMainFooter
-                  ? 'Footer'
+                  ? 'Footer Directory'
                   : (row.type === 'trust' ? 'Trust & Guarantees' :
-                     row.type === 'newsletter' ? 'Newsletter' :
-                     row.type === 'social' ? 'Social Media' :
-                     (row.type === 'legal' || row.type === 'payment') ? 'Legal & Bottom Bar' :
+                     row.type === 'newsletter' ? 'Newsletter / Email Signup' :
+                     row.type === 'social' ? 'Social / Community' :
+                     row.type === 'app' ? 'App Download' :
+                     row.type === 'contact' ? 'Contact / Store Information' :
+                     row.type === 'payment' ? 'Payment & Security' :
+                     row.type === 'legal' ? 'Legal & Bottom Bar' :
                      row.name || 'Footer Section');
 
                 const isSelected =
@@ -838,16 +1056,32 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     onSelect={handleSelect}
                     onToggleVisibility={(e) => {
                       e.stopPropagation();
+                      if (isMainFooter) return; // Permanently locked & visible
                       store.toggleFooterRowVisibility(row.id);
                     }}
-                    onDuplicate={() => store.duplicateFooterRow(row.id)}
-                    onDelete={() => store.deleteFooterRow(row.id)}
+                    onDuplicate={() => {
+                      if (isMainFooter) return; // Cannot duplicate Footer Directory
+                      store.duplicateFooterRow(row.id);
+                    }}
+                    onDelete={() => {
+                      if (isMainFooter) return; // Cannot delete Footer Directory
+                      store.deleteFooterRow(row.id);
+                    }}
+                    onManageComponents={() => {
+                      store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
+                      store.setActiveTab('columns');
+                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
+                      useLandingEditorStore.getState().setRightSidebarOpen(true);
+                      scrollPreviewToFooterSection(row.id);
+                    }}
+                    onMoveUp={!isMainFooter && fIdx > 0 ? () => store.reorderFooterRows(fIdx, fIdx - 1) : undefined}
+                    onMoveDown={!isMainFooter && fIdx < store.footerRows.length - 1 ? () => store.reorderFooterRows(fIdx, fIdx + 1) : undefined}
                   >
                     {/* Columns & Elements with Tree Branch Lines — ONLY rendered for the Main Footer Section */}
                     {isMainFooter ? row.columns.map((col, cIdx) => {
                       const isLastCol = cIdx === row.columns.length - 1;
                       return (
-                        <div key={col.id} style={{ position: 'relative', margin: '2px 0' }}>
+                        <div key={col.id} style={{ position: 'relative', margin: '2px 0', width: '100%', boxSizing: 'border-box' }}>
                           {/* Column level connector line */}
                           <div
                             style={{
@@ -871,32 +1105,87 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                             }}
                           />
 
-                          {/* Column Header */}
+                          {/* Column Header: clicking focuses Footer Directory Columns tab (no column overlay) */}
                           <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
+                              store.setActiveTab('columns');
+                              useLandingEditorStore.getState().setSelectedSectionId(row.id);
+                              useLandingEditorStore.getState().setRightSidebarOpen(true);
+                            }}
                             style={{
                               paddingLeft: '22px',
+                              paddingRight: '4px',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              paddingTop: '3px',
-                              paddingBottom: '3px',
+                              justifyContent: 'space-between',
+                              paddingTop: '4px',
+                              paddingBottom: '4px',
+                              cursor: 'pointer',
+                              borderRadius: '4px',
+                              width: '100%',
+                              boxSizing: 'border-box',
                             }}
+                            title="Manage column in Columns tab"
                           >
                             <span
                               style={{
-                                fontSize: '10px',
+                                fontSize: '10.5px',
                                 fontWeight: 700,
                                 color: '#64748b',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.04em',
+                                flex: 1,
+                                minWidth: 0,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                marginRight: '6px',
                               }}
                             >
                               Column {cIdx + 1} ({col.width})
                             </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPickerTarget({
+                                  isOpen: true,
+                                  rowId: row.id,
+                                  columnId: col.id,
+                                  columnIdx: cIdx,
+                                });
+                              }}
+                              title={`Add child item to Column ${cIdx + 1}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                padding: '2px 7px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                color: '#2563eb',
+                                backgroundColor: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                flexShrink: 0,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#dbeafe';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#eff6ff';
+                              }}
+                            >
+                              <Plus size={10} /> Add Item
+                            </button>
                           </div>
 
                           {/* Nested Elements in Column with sub-branch lines */}
-                          <div style={{ position: 'relative', paddingLeft: '18px' }}>
+                          <div style={{ position: 'relative', paddingLeft: '14px', width: '100%', boxSizing: 'border-box' }}>
                             {col.elements.map((el, elIdx) => {
                               const isLastEl = elIdx === col.elements.length - 1;
                               const isElSelected =
@@ -905,10 +1194,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                 store.selectedTarget.rowId === row.id &&
                                 store.selectedTarget.elementId === el.id;
 
-                              const isLockedEl = Boolean(
-                                el.isLocked ||
-                                (row.isLocked && (el.id === 'el-footer-logo' || el.id === 'el-shop-links'))
-                              );
+                              const isVisible = el.props?.isVisible !== false;
 
                               return (
                                 <div
@@ -918,15 +1204,17 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                     display: 'flex',
                                     alignItems: 'center',
                                     minHeight: '28px',
-                                    paddingLeft: '18px',
+                                    paddingLeft: '14px',
                                     margin: '1px 0',
+                                    width: '100%',
+                                    boxSizing: 'border-box',
                                   }}
                                 >
                                   {/* Sub-branch vertical connector */}
                                   <div
                                     style={{
                                       position: 'absolute',
-                                      left: '6px',
+                                      left: '4px',
                                       top: 0,
                                       bottom: isLastEl ? '50%' : 0,
                                       width: '1.5px',
@@ -937,16 +1225,16 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                   <div
                                     style={{
                                       position: 'absolute',
-                                      left: '6px',
+                                      left: '4px',
                                       top: '50%',
-                                      width: '9px',
+                                      width: '8px',
                                       height: '1.5px',
                                       backgroundColor: '#cbd5e1',
                                       borderBottomLeftRadius: isLastEl ? '3px' : 0,
                                     }}
                                   />
 
-                                  {/* Element Card — NO separate border, seamless highlight */}
+                                  {/* Element Card */}
                                   <div
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -962,10 +1250,11 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                     }}
                                     style={{
                                       flex: 1,
+                                      minWidth: 0,
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'space-between',
-                                      padding: '5px 8px',
+                                      padding: '4px 6px',
                                       borderRadius: '6px',
                                       backgroundColor: isElSelected ? '#eff6ff' : 'transparent',
                                       color: isElSelected ? '#1d4ed8' : '#334155',
@@ -974,6 +1263,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                       cursor: 'pointer',
                                       transition: 'all 0.12s ease',
                                       border: isElSelected ? '1px solid #bfdbfe' : '1px solid transparent',
+                                      opacity: isVisible ? 1 : 0.6,
+                                      boxSizing: 'border-box',
                                     }}
                                     onMouseEnter={(e) => {
                                       if (!isElSelected) {
@@ -986,26 +1277,74 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                       }
                                     }}
                                   >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                                      <Box size={13} color={isElSelected ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />
-                                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
+                                      <GripVertical size={11} color="#94a3b8" style={{ cursor: 'grab', flexShrink: 0 }} />
+                                      {(() => {
+                                        const c = isElSelected ? '#2563eb' : '#64748b';
+                                        switch (el.type) {
+                                          case 'logo':
+                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
+                                          case 'brand-description':
+                                          case 'brand-mission':
+                                            return <Box size={13} color={isElSelected ? '#2563eb' : '#3b82f6'} style={{ flexShrink: 0 }} />;
+                                          case 'contact':
+                                          case 'address':
+                                            return <Phone size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
+                                          case 'business-hours':
+                                            return <Clock size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
+                                          case 'social-links':
+                                          case 'social-icons':
+                                          case 'social-follow':
+                                            return <Share2 size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
+                                          case 'newsletter-form':
+                                            return <Mail size={13} color={isElSelected ? '#2563eb' : '#ec4899'} style={{ flexShrink: 0 }} />;
+                                          case 'payment-methods':
+                                            return <CreditCard size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
+                                          case 'trust-badges':
+                                            return <ShieldCheck size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
+                                          case 'app-download':
+                                          case 'qr-code':
+                                            return <Smartphone size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
+                                          case 'copyright':
+                                            return <FileText size={13} color={isElSelected ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />;
+                                          case 'link-group':
+                                          case 'navigation-menu':
+                                            return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
+                                          default:
+                                            return <Box size={13} color={c} style={{ flexShrink: 0 }} />;
+                                        }
+                                      })()}
+                                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
                                         {el.name}
                                       </span>
                                     </div>
-                                    {isLockedEl ? (
-                                      <div
-                                        title="Locked"
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0, marginLeft: '4px' }}>
+                                      {/* Visibility Toggle 👁 */}
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          store.updateFooterElement(row.id, el.id, {
+                                            props: { ...el.props, isVisible: !isVisible },
+                                          });
+                                        }}
+                                        title={isVisible ? 'Hide element' : 'Show element'}
                                         style={{
-                                          padding: '2px 4px',
-                                          color: '#94a3b8',
+                                          background: 'none',
+                                          border: 'none',
+                                          padding: '2px',
+                                          cursor: 'pointer',
+                                          color: isVisible ? '#64748b' : '#ef4444',
                                           display: 'flex',
                                           alignItems: 'center',
-                                          cursor: 'default',
+                                          flexShrink: 0,
                                         }}
                                       >
-                                        <Lock size={11} />
-                                      </div>
-                                    ) : (
+                                        {isVisible ? <Eye size={12} /> : <EyeOff size={12} />}
+                                      </button>
+
+                                      {/* Delete Element */}
                                       <button
                                         type="button"
                                         onClick={(e) => {
@@ -1016,17 +1355,18 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                         style={{
                                           background: 'none',
                                           border: 'none',
-                                          padding: '2px 4px',
+                                          padding: '2px',
                                           cursor: 'pointer',
                                           color: '#94a3b8',
                                           borderRadius: '4px',
                                           display: 'flex',
                                           alignItems: 'center',
+                                          flexShrink: 0,
                                         }}
                                       >
-                                        <Trash2 size={11} />
+                                        <Trash2 size={12} />
                                       </button>
-                                    )}
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -1098,9 +1438,11 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
           }}>
             {[
               { type: 'trust', name: 'Trust & Guarantees' },
-              { type: 'newsletter', name: 'Newsletter Signup' },
-              { type: 'navigation', name: 'Footer' },
-              { type: 'social', name: 'Social Media' },
+              { type: 'newsletter', name: 'Newsletter / Email Signup' },
+              { type: 'social', name: 'Social / Community' },
+              { type: 'app', name: 'App Download' },
+              { type: 'contact', name: 'Contact / Store Information' },
+              { type: 'payment', name: 'Payment & Security' },
               { type: 'legal', name: 'Legal & Bottom Bar' },
             ].map((option) => {
               const exists = store.footerRows.some((row) =>
@@ -1160,6 +1502,15 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
           <Plus size={15} /> Add Footer Section
         </button>
       </div>}
+
+      {/* Centered Add Component Modal for Columns */}
+      <FooterComponentPickerModal
+        isOpen={pickerTarget.isOpen}
+        rowId={pickerTarget.rowId}
+        columnId={pickerTarget.columnId}
+        columnIdx={pickerTarget.columnIdx}
+        onClose={() => setPickerTarget({ isOpen: false, rowId: '', columnId: '', columnIdx: 0 })}
+      />
     </div>
   );
 };

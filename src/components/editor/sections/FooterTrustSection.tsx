@@ -102,16 +102,13 @@ export const FooterTrustSection: React.FC<FooterTrustSectionProps> = ({
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-trust',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });
       return;
     }
     executeSelect();
-  };
-
-  const handleElementClick = (e: React.MouseEvent) => {
-    handleRowClick(e);
   };
 
   const isMobile = device === 'mobile';
@@ -154,8 +151,8 @@ export const FooterTrustSection: React.FC<FooterTrustSectionProps> = ({
         }
       >
         <div
-          onClick={handleElementClick}
-          className={`${styles.trustGrid} ${isEditorInteractive ? styles.elementEditable : ''}`}
+          onClick={handleRowClick}
+          className={styles.trustGrid}
           style={{
             gridTemplateColumns: gridColumns,
             gap: isMobile ? '16px' : `${layout.gap ?? 24}px`,

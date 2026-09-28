@@ -120,3 +120,17 @@ export const scrollPreviewToFooterSection = (target: string) => {
   }, 60);
 };
 
+export const scrollPreviewToSection = (target: string) => {
+  setTimeout(() => {
+    let targetEl: HTMLElement | null =
+      document.getElementById(`section-${target}`) ||
+      document.getElementById(target) ||
+      document.querySelector(`[data-section-id="${target}"]`);
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 70);
+};
+
+

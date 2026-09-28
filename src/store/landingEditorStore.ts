@@ -4,6 +4,7 @@ import { useEditorContextStore } from './editorContextStore';
 
 export interface PendingEditorSwitch {
   targetPageId: string;
+  targetSectionId?: string | null;
   targetName: string;
   currentName: string;
   onConfirm: () => void;
@@ -158,6 +159,7 @@ interface LandingEditorState {
   setPendingEditorSwitch: (pending: PendingEditorSwitch | null) => void;
   requestEditorSwitch: (params: {
     targetPageId: string;
+    targetSectionId?: string | null;
     targetName?: string;
     onConfirm: () => void;
   }) => void;
@@ -316,7 +318,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set, get) => ({
 
   setPendingEditorSwitch: (pending) => set({ pendingEditorSwitch: pending }),
 
-  requestEditorSwitch: ({ targetPageId, targetName, onConfirm }) => {
+  requestEditorSwitch: ({ targetPageId, targetSectionId, targetName, onConfirm }) => {
     const state = get();
     // If we are already on this page or in list view, proceed immediately without confirmation
     if (state.selectedPageId === targetPageId || state.pagesNavLevel !== 'page-detail') {
@@ -345,6 +347,7 @@ export const useLandingEditorStore = create<LandingEditorState>((set, get) => ({
     set({
       pendingEditorSwitch: {
         targetPageId,
+        targetSectionId,
         targetName: targetName || defaultTargetName,
         currentName,
         onConfirm,

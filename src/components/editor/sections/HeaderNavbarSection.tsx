@@ -137,6 +137,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
     if (selectedPageId !== 'header-global') {
       requestEditorSwitch({
         targetPageId: 'header-global',
+        targetSectionId: 'header-main',
         targetName: 'Header Editor',
         onConfirm: executeSelect,
       });
@@ -167,6 +168,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
     if (selectedPageId !== 'header-global') {
       requestEditorSwitch({
         targetPageId: 'header-global',
+        targetSectionId: 'header-main',
         targetName: 'Header Editor',
         onConfirm: executeSelect,
       });

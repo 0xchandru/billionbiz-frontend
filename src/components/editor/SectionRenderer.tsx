@@ -11,6 +11,9 @@ import FooterNewsletterSection from './sections/FooterNewsletterSection';
 import FooterMainSection from './sections/FooterMainSection';
 import FooterSocialSection from './sections/FooterSocialSection';
 import FooterBottomSection from './sections/FooterBottomSection';
+import { FooterAppSection } from './sections/FooterAppSection';
+import { FooterContactSection } from './sections/FooterContactSection';
+import { FooterPaymentSection } from './sections/FooterPaymentSection';
 
 // Import all section components
 import HeroBannerSection from './sections/HeroBannerSection';
@@ -191,6 +194,33 @@ const FooterBottom: React.FC<{ props: any }> = ({ props }) => (
   />
 );
 
+const FooterApp: React.FC<{ props: any }> = ({ props }) => (
+  <FooterAppSection
+    props={props}
+    device={props.device}
+    isEditorInteractive={props.isEditorInteractive === true}
+    useEditorModel={props.useEditorModel === true}
+  />
+);
+
+const FooterContact: React.FC<{ props: any }> = ({ props }) => (
+  <FooterContactSection
+    props={props}
+    device={props.device}
+    isEditorInteractive={props.isEditorInteractive === true}
+    useEditorModel={props.useEditorModel === true}
+  />
+);
+
+const FooterPayment: React.FC<{ props: any }> = ({ props }) => (
+  <FooterPaymentSection
+    props={props}
+    device={props.device}
+    isEditorInteractive={props.isEditorInteractive === true}
+    useEditorModel={props.useEditorModel === true}
+  />
+);
+
 const Footer: React.FC<{ props: any }> = ({ props }) => (
   <FooterMainSection
     props={props}
@@ -227,6 +257,9 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
   FooterNewsletter,
   FooterMain,
   FooterSocial,
+  FooterApp,
+  FooterContact,
+  FooterPayment,
   FooterBottom,
   Footer,
   FooterMenu: FooterMain,

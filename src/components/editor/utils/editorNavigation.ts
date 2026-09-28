@@ -41,7 +41,14 @@ export const resolveFooterRowId = (sectionId: string | null | undefined, footerR
     const main = footerRows?.find(r => r.type === 'navigation' || r.id === 'row-main-nav');
     return main ? main.id : 'row-main-nav';
   }
+
+  // 1. Direct match by exact row ID has top priority
+  const directMatch = footerRows?.find(r => r.id === sectionId);
+  if (directMatch) return directMatch.id;
+
   const lower = sectionId.toLowerCase();
+
+  // 2. Specific footer row type matches
   if (lower.includes('trust')) {
     const found = footerRows?.find(r => r.type === 'trust' || r.id?.includes('trust'));
     return found ? found.id : 'row-trust-1';
@@ -52,18 +59,30 @@ export const resolveFooterRowId = (sectionId: string | null | undefined, footerR
   }
   if (lower.includes('social')) {
     const found = footerRows?.find(r => r.type === 'social' || r.id?.includes('social'));
-    return found ? found.id : 'row-social';
+    return found ? found.id : 'row-social-1';
   }
-  if (lower.includes('legal') || lower.includes('bottom') || lower.includes('payment')) {
-    const found = footerRows?.find(r => r.type === 'legal' || r.type === 'payment' || r.id?.includes('bottom') || r.id?.includes('legal'));
+  if (lower.includes('app')) {
+    const found = footerRows?.find(r => r.type === 'app' || r.id?.includes('app'));
+    return found ? found.id : 'row-app';
+  }
+  if (lower.includes('contact')) {
+    const found = footerRows?.find(r => r.type === 'contact' || r.id?.includes('contact'));
+    return found ? found.id : 'row-contact';
+  }
+  if (lower.includes('payment')) {
+    const found = footerRows?.find(r => r.type === 'payment' || r.id?.includes('payment'));
+    return found ? found.id : 'row-payment';
+  }
+  if (lower.includes('legal') || lower.includes('bottom')) {
+    const found = footerRows?.find(r => r.type === 'legal' || r.id?.includes('bottom') || r.id?.includes('legal'));
     return found ? found.id : 'row-bottom-legal';
   }
-  if (lower.includes('main') || lower.includes('navigation') || lower.includes('menu') || lower.includes('footer')) {
-    const found = footerRows?.find(r => r.type === 'navigation' || r.id?.includes('main'));
+  if (lower.includes('main') || lower.includes('navigation') || lower.includes('directory')) {
+    const found = footerRows?.find(r => r.type === 'navigation' || r.id?.includes('main') || r.id?.includes('nav'));
     return found ? found.id : 'row-main-nav';
   }
-  const directMatch = footerRows?.find(r => r.id === sectionId);
-  if (directMatch) return directMatch.id;
+
+  // 3. Fallback to navigation (Footer Directory)
   const main = footerRows?.find(r => r.type === 'navigation');
   return main ? main.id : 'row-main-nav';
 };

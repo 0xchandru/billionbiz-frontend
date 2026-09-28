@@ -407,12 +407,12 @@ export const EditorLeftSidebar: React.FC = () => {
       if (selectedPageId === 'header-global' || selectedPageId === 'footer-global') {
         const isHeaderEditor = selectedPageId === 'header-global';
         return (
-          <div className={styles.contextPanelInner} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <div className={styles.contextPanelInner} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
             {renderEditorDetailHeader(
               isHeaderEditor ? 'Header Editor' : 'Footer Editor',
               isHeaderEditor ? 'Universal Storefront Header' : 'Universal Storefront Footer'
             )}
-            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
               <ComponentTreePanel editorType={isHeaderEditor ? 'header' : 'footer'} />
             </div>
           </div>
@@ -795,6 +795,7 @@ export const EditorLeftSidebar: React.FC = () => {
                         section={section}
                         isSelected={selectedSectionId === section.id && isRightSidebarOpen}
                         onSelect={() => {
+                          useEditorContextStore.getState().selectTarget({ type: 'none' });
                           setSelectedSectionId(section.id);
                           setRightSidebarOpen(true);
                           navigate(getEditorPath(activePage.id, section.id), { replace: true });

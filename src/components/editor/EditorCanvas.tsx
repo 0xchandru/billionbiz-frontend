@@ -12,6 +12,9 @@ const SeoGrowthRenderer = lazy(() => import('./SeoGrowthRenderer').then(m => ({ 
 import { AddComponentModal } from './engine/AddComponentModal';
 import { PresetModal } from './engine/PresetModal';
 
+import { useEditorContextStore } from '../../store/editorContextStore';
+import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection, scrollPreviewToSection } from './utils/previewScroll';
+
 export const EditorCanvas: React.FC = () => {
    const { 
      isRightSidebarOpen, 
@@ -22,9 +25,11 @@ export const EditorCanvas: React.FC = () => {
      device, 
      setDevice,
      selectedPageId, 
+     selectedSectionId,
      designSection, 
      pagesNavLevel 
    } = useLandingEditorStore();
+   const { selectedTarget } = useEditorContextStore();
    const { pages, theme, settings } = useSiteStore();
    const containerRef = useRef<HTMLDivElement>(null);
    const [containerSize, setContainerSize] = useState({ 
@@ -50,8 +55,22 @@ export const EditorCanvas: React.FC = () => {
       return () => resizeObserver.disconnect();
    }, []);
 
-   // Reset preview scroll to top whenever switching or opening a particular page editor
+   // Scroll preview intelligently when switching or opening a particular page editor
    useEffect(() => {
+      if (selectedPageId === 'footer-global') {
+         const targetId = selectedSectionId || (selectedTarget?.type === 'row' ? selectedTarget.rowId : undefined);
+         scrollPreviewToFooterSection(targetId || 'footer-main');
+         return;
+      }
+      if (selectedPageId === 'header-global') {
+         const targetId = selectedSectionId || (selectedTarget?.type === 'row' ? selectedTarget.rowId : undefined);
+         scrollPreviewToHeaderSection(targetId || 'header-main');
+         return;
+      }
+      if (selectedSectionId && selectedPageId === 'landing-page') {
+         scrollPreviewToSection(selectedSectionId);
+         return;
+      }
       const wrappers = document.querySelectorAll(`.${styles.canvasWrapper}`);
       wrappers.forEach((el) => {
          el.scrollTop = 0;
@@ -125,6 +144,13 @@ export const EditorCanvas: React.FC = () => {
                      id="editor-preview-scroll-container"
                      data-preview-scroll-container="true"
                      className={`${styles.canvasWrapper} ${isScrolled ? styles.isScrolled : ''}`}
+                     onClickCapture={(e) => {
+                        const target = e.target as HTMLElement;
+                        const link = target.closest('a');
+                        if (link) {
+                           e.preventDefault();
+                        }
+                     }}
                      onScroll={(e) => {
                         const target = e.target as HTMLDivElement;
                         const scrolled = target.scrollTop > 10;

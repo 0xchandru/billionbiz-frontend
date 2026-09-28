@@ -15,6 +15,7 @@ import {
   GripVertical,
   Box,
   Menu,
+  EyeOff,
 } from 'lucide-react';
 import {
   HEADER_VARIANTS,
@@ -2746,6 +2747,15 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
           </div>
         </div>
       )}
+
+      {row.isVisible === false && (
+        <div style={{ margin: '16px', padding: '12px', backgroundColor: '#fff3cd', color: '#856404', borderRadius: '8px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #ffeeba' }}>
+          <EyeOff size={16} style={{ flexShrink: 0 }} />
+          <span>This section is currently hidden.</span>
+        </div>
+      )}
     </div>
   );
 };
+
+

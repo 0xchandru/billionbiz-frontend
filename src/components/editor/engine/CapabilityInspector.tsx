@@ -35,6 +35,7 @@ import {
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import styles from '../../../pages/editor/EditorLayout.module.css';
+import { AnnouncementBarRightEditor, UtilityBarRightEditor, FooterDirectoryRightEditor } from '../EditorRightSidebar';
 import {
   COMPONENT_REGISTRY,
   CAPABILITY_LABELS,
@@ -48,8 +49,6 @@ import {
 import { TemplatesRightInspector } from './TemplatesRightInspector';
 import { HeaderSectionInspector } from './HeaderSectionInspector';
 import { ChildItemOverlayInspector } from './ChildItemOverlayInspector';
-import { FooterSectionInspector } from './FooterSectionInspector';
-import { FooterChildItemInspector } from './FooterChildItemInspector';
 import { resolveFooterRowId } from '../utils/editorNavigation';
 import type {
   ComponentCapability,
@@ -186,7 +185,7 @@ export const CapabilityInspector: React.FC = () => {
     } else {
       const mainFooterRow = footerRows.find((r) => r.type === 'navigation') || footerRows[0];
       if (mainFooterRow) {
-        return <FooterSectionInspector row={mainFooterRow} onClose={closeRightSidebar} />;
+        return <FooterDirectoryRightEditor row={mainFooterRow} onClose={closeRightSidebar} />;
       }
     }
 
@@ -1104,6 +1103,22 @@ export const CapabilityInspector: React.FC = () => {
       : undefined;
 
     if (isHeader && headerRow) {
+      if (
+        headerRow.type === 'announcement' ||
+        headerRow.id === 'row-announcement' ||
+        headerRow.id.includes('announcement') ||
+        selectedTarget.rowId === 'announcement-bar'
+      ) {
+        return <AnnouncementBarRightEditor onClose={closeRightSidebar} />;
+      }
+      if (
+        headerRow.type === 'utility' ||
+        headerRow.id === 'row-utility' ||
+        headerRow.id.includes('utility') ||
+        selectedTarget.rowId === 'utility-bar'
+      ) {
+        return <UtilityBarRightEditor onClose={closeRightSidebar} />;
+      }
       return <HeaderSectionInspector row={headerRow} onClose={closeRightSidebar} />;
     }
 
@@ -1116,7 +1131,7 @@ export const CapabilityInspector: React.FC = () => {
       : undefined;
 
     if (!isHeader && footerRow) {
-      return <FooterSectionInspector row={footerRow} onClose={closeRightSidebar} />;
+      return <FooterDirectoryRightEditor row={footerRow} onClose={closeRightSidebar} />;
     }
     const row = headerRow || footerRow;
 
@@ -2201,6 +2216,27 @@ export const CapabilityInspector: React.FC = () => {
         element = containingRow.elements[0];
       }
       if (element && containingRow) {
+        if (
+          containingRow.type === 'announcement' ||
+          containingRow.id?.includes('announcement') ||
+          selectedTarget.elementType === 'announcement-bar' ||
+          selectedTarget.elementId === 'el-announcement-content' ||
+          element.type === 'announcement-bar' ||
+          element.type === 'promo-text'
+        ) {
+          return <AnnouncementBarRightEditor onClose={closeRightSidebar} />;
+        }
+        if (
+          containingRow.type === 'utility' ||
+          containingRow.id?.includes('utility') ||
+          selectedTarget.elementType === 'utility-bar' ||
+          selectedTarget.elementType === 'utility-nav' ||
+          selectedTarget.elementId === 'el-utility-content' ||
+          element.type === 'utility-bar' ||
+          element.type === 'utility-nav'
+        ) {
+          return <UtilityBarRightEditor onClose={closeRightSidebar} />;
+        }
         if (containingRow.type !== 'primary-nav') {
           return <HeaderSectionInspector row={containingRow} onClose={closeRightSidebar} />;
         }
@@ -2241,16 +2277,17 @@ export const CapabilityInspector: React.FC = () => {
       }
       if (element && row) {
         return (
-          <FooterChildItemInspector
+          <ChildItemOverlayInspector
             element={element}
             row={row}
+            editorType="footer"
             onClose={() => {
               useEditorContextStore.getState().selectTarget({
                 type: 'row',
                 editorType: 'footer',
                 rowId: row!.id,
               });
-              useEditorContextStore.getState().setActiveTab('content');
+              useEditorContextStore.getState().setActiveTab('columns');
             }}
           />
         );
@@ -2262,7 +2299,7 @@ export const CapabilityInspector: React.FC = () => {
         return <HeaderSectionInspector row={effectiveHeaderRows[0]} onClose={closeRightSidebar} />;
       }
       if (!isHeader && footerRows[0]) {
-        return <FooterSectionInspector row={footerRows[0]} onClose={closeRightSidebar} />;
+        return <FooterDirectoryRightEditor row={footerRows[0]} onClose={closeRightSidebar} />;
       }
       return null;
     }

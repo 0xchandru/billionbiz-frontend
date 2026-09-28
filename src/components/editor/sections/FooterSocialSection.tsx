@@ -77,16 +77,13 @@ export const FooterSocialSection: React.FC<FooterSocialSectionProps> = ({
     if (selectedPageId !== 'footer-global') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
+        targetSectionId: activeRow?.id || 'footer-social',
         targetName: 'Footer Editor',
         onConfirm: executeSelect,
       });
       return;
     }
     executeSelect();
-  };
-
-  const handleElementClick = (e: React.MouseEvent) => {
-    handleRowClick(e);
   };
 
   const isMobile = device === 'mobile';
@@ -124,8 +121,7 @@ export const FooterSocialSection: React.FC<FooterSocialSectionProps> = ({
         }
       >
         <div
-          onClick={handleElementClick}
-          className={isEditorInteractive ? styles.elementEditable : ''}
+          onClick={handleRowClick}
           style={{
             display: 'flex',
             flexDirection: isMobile || isTablet ? 'column' : 'row',

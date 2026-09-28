@@ -7,9 +7,10 @@ export const announcementBarConfig: SectionConfig = {
   description: 'Display an important message at the top of your site.',
   layouts: [
     { id: 'single', label: 'Single Message', description: 'A single static announcement' },
-    { id: 'marquee', label: 'Marquee', description: 'Scrolling text animation' },
-    { id: 'carousel', label: 'Carousel', description: 'Multiple messages sliding' },
-    { id: 'with-cta', label: 'With Button', description: 'Message alongside a button' },
+    { id: 'single_cta', label: 'Single Message + CTA', description: 'Message alongside a button' },
+    { id: 'countdown', label: 'Message + Countdown', description: 'Urgency countdown timer' },
+    { id: 'marquee', label: 'Marquee', description: 'Continuous scrolling text' },
+    { id: 'slider', label: 'Slide Messages', description: 'Rotating slide announcements' },
   ],
   getTabs: (_selectedLayout = 'single') => {
     return [

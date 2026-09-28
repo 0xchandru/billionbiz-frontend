@@ -230,6 +230,7 @@ export interface HeaderResponsiveArrangement {
 export interface HeaderRowStyling {
   bgType: 'theme' | 'custom' | 'inherit' | 'color' | 'gradient' | 'image' | 'video';
   bgColor: string;
+  bgColorMode?: 'inherit' | 'custom' | 'color';
   bgGradient?: string;
   bgGlass?: boolean;
   bgImage?: string;
@@ -284,6 +285,8 @@ export type FooterRowType =
   | 'social'
   | 'legal'
   | 'utility'
+  | 'app'
+  | 'contact'
   | 'custom';
 
 export type FooterElementType =
@@ -291,6 +294,7 @@ export type FooterElementType =
   | 'brand-description'
   | 'brand-mission'
   | 'contact'
+  | 'contact-info'
   | 'address'
   | 'business-hours'
   | 'link-group'
@@ -335,7 +339,12 @@ export type FooterElementType =
   | 'custom-html'
   | 'custom-app-block'
   | 'dynamic-data'
-  | 'embed';
+  | 'embed'
+  | 'brand-story'
+  | 'rich-text'
+  | 'image'
+  | 'divider'
+  | 'spacer';
 
 export interface FooterElement {
   id: string;
@@ -357,12 +366,24 @@ export interface FooterRowLayout {
   container: 'full' | 'constrained' | 'boxed' | 'custom';
   columns: number;
   gap: number;
+  gapY?: number;
   alignment: 'left' | 'center' | 'right' | 'stretch' | 'space-between';
   verticalAlignment: 'top' | 'center' | 'bottom' | 'stretch';
   paddingX: number;
   paddingY: number;
   maxWidth?: number;
   variantId?: string;
+  justifyContent?: 'space-between' | 'space-around' | 'space-evenly' | 'flex-start' | 'center' | 'flex-end';
+  flexWrap?: 'wrap' | 'nowrap';
+  alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  itemsPerRow?: number;
+  formWidth?: number;
+  cardPadding?: number;
+  qrSize?: number;
+  splitRatio?: string;
+  feedColumns?: number;
+  direction?: string;
+  badgeSize?: string;
 }
 
 export interface FooterRowStyling {
@@ -390,6 +411,7 @@ export interface FooterRow {
   columns: FooterColumn[];
   layout: FooterRowLayout;
   styling: FooterRowStyling;
+  behavior?: Record<string, any>;
   responsive?: {
     showOnDesktop?: boolean;
     showOnTablet?: boolean;
