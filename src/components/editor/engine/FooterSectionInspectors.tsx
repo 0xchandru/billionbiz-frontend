@@ -17,19 +17,12 @@ import React, { useState, useRef } from 'react';
 import {
   ChevronRight,
   ChevronLeft,
-  Eye,
-  Sparkles,
-  Layout as LayoutIcon,
-  Palette,
-  Smartphone,
-  Sliders,
-  Code,
   Plus,
   Trash2,
   Calendar,
   ShieldCheck,
   CreditCard,
-  FileText,
+  Smartphone,
   Monitor,
   Tablet,
 } from 'lucide-react';
@@ -63,55 +56,61 @@ export const SectionTabsHeader: React.FC<SectionTabsHeaderProps> = ({
 
   const handleScrollLeft = () => {
     if (tabsScrollRef.current) {
-      tabsScrollRef.current.scrollBy({ left: -140, behavior: 'smooth' });
+      tabsScrollRef.current.scrollBy({ left: -100, behavior: 'smooth' });
     }
   };
 
   const handleScrollRight = () => {
     if (tabsScrollRef.current) {
-      tabsScrollRef.current.scrollBy({ left: 140, behavior: 'smooth' });
+      tabsScrollRef.current.scrollBy({ left: 100, behavior: 'smooth' });
     }
   };
 
-  const TAB_LABELS: Record<string, { label: string; icon: any }> = {
-    look: { label: 'Look', icon: Sparkles },
-    content: { label: 'Content', icon: FileText },
-    layout: { label: 'Layout', icon: LayoutIcon },
-    behavior: { label: 'Behavior', icon: Sliders },
-    design: { label: 'Design', icon: Palette },
-    responsive: { label: 'Responsive', icon: Smartphone },
-    visibility: { label: 'Visibility', icon: Eye },
-    advanced: { label: 'Advanced', icon: Code },
+  const TAB_LABELS: Record<string, string> = {
+    look: 'Look',
+    content: 'Content',
+    layout: 'Layout',
+    behavior: 'Behavior',
+    design: 'Design',
+    responsive: 'Responsive',
+    visibility: 'Visibility',
+    advanced: 'Advanced',
   };
 
   return (
-    <div style={{ flexShrink: 0, backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+    <div style={{ flexShrink: 0, backgroundColor: '#ffffff' }}>
       {/* Title Bar */}
-      <div className={styles.panelHeader} style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div className={styles.phLeft} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className={styles.panelHeader}>
+        <div className={styles.phLeft}>
           <button className={styles.iconBtn} onClick={onClose} title="Collapse sidebar">
             <ChevronRight size={20} className={styles.backIcon} />
           </button>
-          <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px' }}>{title}</h3>
+          <h3 className={styles.fw600} style={{ margin: 0 }}>{title}</h3>
         </div>
       </div>
 
-      {/* Tabs with explicit left/right horizontal scroll buttons */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', backgroundColor: '#f8fafc', padding: '0 4px' }}>
+      {/* Tabs — text-only, matching other editors */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          borderBottom: '1px solid var(--border-color, #e2e8f0)',
+          background: '#f8fafc',
+        }}
+      >
         <button
           type="button"
           onClick={handleScrollLeft}
           title="Scroll tabs left"
           style={{
-            background: 'none',
+            padding: '8px',
+            background: 'transparent',
             border: 'none',
-            padding: '6px 4px',
             cursor: 'pointer',
-            color: '#64748b',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2,
+            color: 'var(--text-muted, #64748b)',
+            flexShrink: 0,
           }}
         >
           <ChevronLeft size={16} />
@@ -119,46 +118,32 @@ export const SectionTabsHeader: React.FC<SectionTabsHeaderProps> = ({
 
         <div
           ref={tabsScrollRef}
+          className={styles.propTabs}
           style={{
-            display: 'flex',
             overflowX: 'auto',
+            flexWrap: 'nowrap',
+            borderBottom: 'none',
+            flex: 1,
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
-            flex: 1,
-            gap: '2px',
           }}
         >
-          {supportedTabs.map((tabId) => {
-            const meta = TAB_LABELS[tabId] || { label: tabId, icon: Sparkles };
-            const Icon = meta.icon;
-            const isActive = activeTab === tabId;
-            return (
-              <button
-                key={tabId}
-                type="button"
-                onClick={() => onSelectTab(tabId)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 12px',
-                  fontSize: '12px',
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#2563eb' : '#64748b',
-                  backgroundColor: isActive ? '#ffffff' : 'transparent',
-                  border: 'none',
-                  borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.12s ease',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={13} color={isActive ? '#2563eb' : '#64748b'} />
-                <span>{meta.label}</span>
-              </button>
-            );
-          })}
+          {supportedTabs.map((tabId) => (
+            <div
+              key={tabId}
+              className={`${styles.propTab} ${activeTab === tabId ? styles.activePropTab : ''}`}
+              onClick={() => onSelectTab(tabId)}
+              style={{
+                flex: '0 0 auto',
+                padding: '12px 14px',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                fontSize: '13px',
+              }}
+            >
+              {TAB_LABELS[tabId] || tabId}
+            </div>
+          ))}
         </div>
 
         <button
@@ -166,15 +151,14 @@ export const SectionTabsHeader: React.FC<SectionTabsHeaderProps> = ({
           onClick={handleScrollRight}
           title="Scroll tabs right"
           style={{
-            background: 'none',
+            padding: '8px',
+            background: 'transparent',
             border: 'none',
-            padding: '6px 4px',
             cursor: 'pointer',
-            color: '#64748b',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2,
+            color: 'var(--text-muted, #64748b)',
+            flexShrink: 0,
           }}
         >
           <ChevronRight size={16} />
