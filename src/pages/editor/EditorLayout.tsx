@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getEditorPath, resolveHeaderRowId, resolveFooterRowId } from '../../components/editor/utils/editorNavigation';
 import styles from './EditorLayout.module.css';
@@ -81,9 +81,17 @@ const EditorLayout: React.FC = () => {
   const tabParam = (searchParams.get('tab') || tab || 'pages').toLowerCase().replace(/\/+$/, '');
 
   const { setActivePanel, setSelectedPageId, setRightSidebarOpen, isFullPageMode, navigateToPage, pendingEditorSwitch, setPendingEditorSwitch } = useLandingEditorStore();
-  const { pages } = useSiteStore();
+  const lastProcessedUrlRef = useRef<string>('');
 
   useEffect(() => {
+    const currentUrlKey = `${tabParam}|${pageIdParam || ''}|${sectionIdParam || ''}`;
+    if (lastProcessedUrlRef.current === currentUrlKey) {
+      return;
+    }
+    lastProcessedUrlRef.current = currentUrlKey;
+
+    const pages = useSiteStore.getState().pages;
+
     // Map legacy and new tab names to canonical tabs
     const tabAliases: Record<string, EditorPanelType> = {
       'editor': 'pages',
@@ -291,7 +299,7 @@ const EditorLayout: React.FC = () => {
         }
       }
     }
-  }, [tabParam, pageIdParam, sectionIdParam, pages, setActivePanel, setSelectedPageId, setRightSidebarOpen, navigateToPage, navigate]);
+  }, [tabParam, pageIdParam, sectionIdParam, setActivePanel, setSelectedPageId, setRightSidebarOpen, navigateToPage, navigate]);
 
   return (
     <div className={`${styles.editorWrapper} ${isFullPageMode ? styles.focusMode : ''}`}>

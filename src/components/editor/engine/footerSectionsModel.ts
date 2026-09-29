@@ -11,7 +11,8 @@ export type FooterStackSectionType =
   | 'app'
   | 'contact'
   | 'payment'
-  | 'legal';
+  | 'legal'
+  | 'seo';
 
 export interface SectionLookDefinition {
   id: string;
@@ -906,6 +907,134 @@ export const LEGAL_LOOKS: SectionLookDefinition[] = [
 ];
 
 // ────────────────────────────────────────────────────────────
+// 8. SEO / RICH CONTENT LOOKS (10 LOOKS)
+// ────────────────────────────────────────────────────────────
+export const SEO_LOOKS: SectionLookDefinition[] = [
+  {
+    id: 'keyword-story',
+    name: '1. Keyword Story & Brand Bio',
+    description: 'Rich editorial narrative optimized for search visibility with highlighted keywords and brand mission.',
+    capabilities: { links: true, badges: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, alignment: 'left', maxWidth: 960 },
+      design: { bgType: 'theme', bgColor: '#ffffff', textColor: '#475569', fontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'category-cloud',
+    name: '2. Category & Keyword Cloud',
+    description: 'Pill-shaped indexed taxonomy tags for rapid indexing of top product categories and collections.',
+    capabilities: { badges: true, links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 28, alignment: 'center', gap: 10 },
+      design: { bgType: 'theme', bgColor: '#f8fafc', textColor: '#334155', borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'expandable-seo',
+    name: '3. Expandable Read More SEO Block',
+    description: 'High-density commercial search text with smooth truncated "Read More / Show Less" toggle.',
+    capabilities: { animation: true, links: true },
+    supportedTabs: ['look', 'content', 'layout', 'behavior', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 32, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', textColor: '#64748b', fontSize: 12.5, borderTop: true, borderColor: '#e2e8f0' },
+      behavior: { defaultCollapsed: true, collapsedHeight: 70 },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'faq-accordion',
+    name: '4. Rich FAQ SEO Accordion',
+    description: 'Frequently Asked Questions with JSON-LD schema compatibility for search engine rich results.',
+    capabilities: { animation: true, links: true },
+    supportedTabs: ['look', 'content', 'layout', 'behavior', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 40, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#f8fafc', textColor: '#0f172a', borderTop: true, borderColor: '#e2e8f0' },
+      behavior: { accordionMode: true, allowMultipleOpen: false },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'two-column-rich',
+    name: '5. Two-Column Rich Overview',
+    description: 'Split architecture: Store introduction & certifications on the left, popular searches on the right.',
+    capabilities: { cards: true, links: true, badges: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', columns: 2, paddingX: 32, paddingY: 36, gap: 40, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', textColor: '#334155', borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { desktopColumns: 2, tabletColumns: 1, mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'dense-links-grid',
+    name: '6. Dense SEO Link Directory',
+    description: 'Shopify / Amazon style multi-category link grid maximizing organic page-rank distribution.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', columns: 5, paddingX: 32, paddingY: 32, gap: 20, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#f8fafc', textColor: '#475569', fontSize: 11.5, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { desktopColumns: 5, tabletColumns: 3, mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'breadcrumb-seo',
+    name: '7. Breadcrumb Taxonomy & Cities',
+    description: 'Geographical store presence & regional search index for local and international SEO.',
+    capabilities: { links: true, badges: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 24, alignment: 'left', gap: 12 },
+      design: { bgType: 'theme', bgColor: '#ffffff', textColor: '#64748b', fontSize: 12, borderTop: true, borderColor: '#cbd5e1' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'minimal-seo-bar',
+    name: '8. Minimal SEO Disclaimer',
+    description: 'Subtle, low-contrast footer text band for legal and organic search compliance without visual clutter.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 18, alignment: 'center' },
+      design: { bgType: 'theme', bgColor: 'transparent', textColor: '#94a3b8', fontSize: 11, borderTop: true, borderColor: '#f1f5f9' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'rich-snippet-summary',
+    name: '9. Rich Snippet & Certifications',
+    description: 'Google Rich Snippet trust cards, customer star ratings, and certified organic merchant verification.',
+    capabilities: { badges: true, cards: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 28, alignment: 'center', gap: 24 },
+      design: { bgType: 'theme', bgColor: '#f8fafc', textColor: '#1e293b', borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'custom-seo-html',
+    name: '10. Custom Structured Data / HTML',
+    description: 'Raw HTML & microdata script injection for custom JSON-LD schemas and advanced search optimization.',
+    capabilities: { form: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'full', paddingX: 32, paddingY: 24, alignment: 'left' },
+      design: { bgType: 'custom', bgColor: '#ffffff', textColor: '#334155', borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+];
+
+// ────────────────────────────────────────────────────────────
 // REGISTRY MAP FOR EASY LOOKUP
 // ────────────────────────────────────────────────────────────
 export const FOOTER_STACK_SECTION_REGISTRY: Record<
@@ -958,6 +1087,12 @@ export const FOOTER_STACK_SECTION_REGISTRY: Record<
     description: 'Copyright notices, legal policy links, localization pickers, and back-to-top utilities.',
     looks: LEGAL_LOOKS,
     defaultLookId: 'classic-bottom-bar'
+  },
+  seo: {
+    name: 'SEO / Rich Content',
+    description: 'Search engine optimized content, brand stories, keyword taxonomy, and rich text.',
+    looks: SEO_LOOKS,
+    defaultLookId: 'keyword-story'
   }
 };
 

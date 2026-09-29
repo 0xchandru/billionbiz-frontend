@@ -237,29 +237,67 @@ export const FOOTER_LOOKS: FooterLookDefinition[] = [
 export type FooterComponentScope = 'footer-directory';
 
 export type FooterComponentType =
+  // BRAND
   | 'logo'
   | 'brand-description'
   | 'brand-story'
+  | 'brand-rating'
+  // NAVIGATION
   | 'link-group'
+  | 'featured-link'
+  | 'legal-link-group'
+  // CONTACT
   | 'contact'
   | 'business-hours'
-  | 'rich-text'
-  | 'image'
-  | 'custom-html'
-  | 'divider'
-  | 'spacer'
-  | 'newsletter-form'
-  | 'social-links'
+  | 'store-locator'
+  | 'whatsapp-contact'
+  | 'support-cta'
+  // COMMERCE & TRUST
   | 'payment-methods'
   | 'trust-badges'
+  | 'guarantees'
+  | 'shipping-highlights'
+  | 'cod-availability'
+  | 'security-badges'
+  // ENGAGEMENT
+  | 'newsletter-form'
+  | 'social-links'
+  | 'community-cta'
+  // APP
   | 'app-download'
-  | 'copyright';
+  | 'app-store-badge'
+  | 'google-play-badge'
+  | 'qr-code'
+  // CONTENT
+  | 'rich-text'
+  | 'image'
+  | 'image-text'
+  | 'promo-card'
+  | 'custom-html'
+  // LEGAL
+  | 'copyright'
+  // LAYOUT
+  | 'group'
+  | 'column-heading'
+  | 'divider'
+  | 'spacer';
+
+export type FooterComponentCategory =
+  | 'BRAND'
+  | 'NAVIGATION'
+  | 'CONTACT'
+  | 'COMMERCE & TRUST'
+  | 'ENGAGEMENT'
+  | 'APP'
+  | 'CONTENT'
+  | 'LEGAL'
+  | 'LAYOUT';
 
 export interface ComponentPickerItem {
   id: string;
   type: FooterComponentType;
   name: string;
-  category: 'BRANDING' | 'NAVIGATION' | 'CONTACT' | 'CONTENT' | 'LAYOUT';
+  category: FooterComponentCategory;
   description: string;
   scope: FooterComponentScope;
   singleton?: boolean;
@@ -269,13 +307,15 @@ export interface ComponentPickerItem {
 }
 
 export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
-  // ── BRANDING ──
+  // ═══════════════════════════════════════════════════════
+  // ██ BRAND
+  // ═══════════════════════════════════════════════════════
   {
     id: 'store-logo',
     type: 'logo',
     name: 'Store Logo',
-    category: 'BRANDING',
-    description: 'Primary store emblem or typographic brand wordmark with sizing & link controls.',
+    category: 'BRAND',
+    description: 'Logo, Logo + Brand Name, or Brand Name only with sizing & link controls.',
     scope: 'footer-directory',
     singleton: true,
     icon: 'Sparkles',
@@ -299,8 +339,8 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     id: 'brand-bio',
     type: 'brand-description',
     name: 'Brand Bio',
-    category: 'BRANDING',
-    description: 'Concise summary of your merchant mission, value proposition, and origin.',
+    category: 'BRAND',
+    description: 'Short merchant description summarizing your brand mission and value.',
     scope: 'footer-directory',
     icon: 'FileText',
     defaults: {
@@ -319,9 +359,9 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
   {
     id: 'brand-story',
     type: 'brand-story',
-    name: 'Brand Story / Description',
-    category: 'BRANDING',
-    description: 'Extended brand paragraph highlighting craftsmanship, materials, or merchant ethos.',
+    name: 'Brand Story',
+    category: 'BRAND',
+    description: 'Long-form brand/company description highlighting craftsmanship or merchant ethos.',
     scope: 'footer-directory',
     icon: 'BookOpen',
     defaults: {
@@ -332,14 +372,38 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
       alignment: 'left',
     },
   },
+  {
+    id: 'brand-rating',
+    type: 'brand-rating',
+    name: 'Brand Rating / Trust',
+    category: 'BRAND',
+    description: 'Display rating, review count, trust message, or badge (e.g. 4.8/5 • 10,000+ Customers).',
+    scope: 'footer-directory',
+    icon: 'Star',
+    defaults: {
+      rating: 4.8,
+      maxRating: 5,
+      reviewCount: 10000,
+      trustMessage: 'Trusted by 10,000+ happy customers',
+      showStars: true,
+      showCount: true,
+      showMessage: true,
+      starColor: '#f59e0b',
+      fontSize: 13,
+      textColor: '#64748b',
+      alignment: 'left',
+    },
+  },
 
-  // ── NAVIGATION ──
+  // ═══════════════════════════════════════════════════════
+  // ██ NAVIGATION
+  // ═══════════════════════════════════════════════════════
   {
     id: 'footer-link-group',
     type: 'link-group',
     name: 'Footer Link Group',
     category: 'NAVIGATION',
-    description: 'Custom directory of links with heading, external indicators, and badges.',
+    description: 'Generic configurable navigation group with heading and links.',
     scope: 'footer-directory',
     icon: 'Menu',
     preset: 'Custom',
@@ -364,7 +428,7 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'link-group',
     name: 'Shop Links',
     category: 'NAVIGATION',
-    description: 'Curated links directed to your store catalog, new releases, and specials.',
+    description: 'Commerce-focused predefined links to products, new arrivals, sales.',
     scope: 'footer-directory',
     preset: 'Shop',
     icon: 'ShoppingBag',
@@ -390,7 +454,7 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'link-group',
     name: 'Category Links',
     category: 'NAVIGATION',
-    description: 'Structured links pointing to top merchant product categories.',
+    description: 'Product/category navigation links organized by department.',
     scope: 'footer-directory',
     preset: 'Category',
     icon: 'Layers',
@@ -411,11 +475,36 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     },
   },
   {
+    id: 'collection-links',
+    type: 'link-group',
+    name: 'Collection Links',
+    category: 'NAVIGATION',
+    description: 'Useful for Shopify-style stores to link to curated collections.',
+    scope: 'footer-directory',
+    preset: 'Collection',
+    icon: 'LayoutGrid',
+    defaults: {
+      heading: 'Collections',
+      headingSize: 14,
+      headingColor: '#0f172a',
+      links: [
+        { label: 'Summer Collection', href: '/collections/summer' },
+        { label: 'Winter Essentials', href: '/collections/winter' },
+        { label: 'Limited Edition', href: '/collections/limited', badge: 'LIMITED' },
+        { label: 'Staff Picks', href: '/collections/staff-picks' },
+      ],
+      fontSize: 13,
+      textColor: '#64748b',
+      hoverColor: '#2563eb',
+      gap: 10,
+    },
+  },
+  {
     id: 'support-links',
     type: 'link-group',
     name: 'Support Links',
     category: 'NAVIGATION',
-    description: 'Helpful customer service links: Order tracking, FAQs, returns, and hotline.',
+    description: 'Help Center, Track Order, Returns, Shipping, FAQs, Contact.',
     scope: 'footer-directory',
     preset: 'Support',
     icon: 'HelpCircle',
@@ -441,7 +530,7 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'link-group',
     name: 'Company Links',
     category: 'NAVIGATION',
-    description: 'Corporate and brand narrative links: About us, careers, press, and impact.',
+    description: 'About, Careers, Press, Our Story, Sustainability, Stores.',
     scope: 'footer-directory',
     preset: 'Company',
     icon: 'Building2',
@@ -467,7 +556,7 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'link-group',
     name: 'Resource Links',
     category: 'NAVIGATION',
-    description: 'Guides, community resources, sizing charts, and user manuals.',
+    description: 'Guides, Blog, Size Guide, Documentation, Community, Tutorials.',
     scope: 'footer-directory',
     preset: 'Resource',
     icon: 'Compass',
@@ -492,7 +581,7 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'link-group',
     name: 'Custom Link Group',
     category: 'NAVIGATION',
-    description: 'Blank link directory ready for custom headers and URLs.',
+    description: 'Completely merchant-defined navigation with custom headers and URLs.',
     scope: 'footer-directory',
     preset: 'Custom',
     icon: 'ListPlus',
@@ -510,14 +599,63 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
       gap: 10,
     },
   },
+  {
+    id: 'featured-link',
+    type: 'featured-link',
+    name: 'Featured Link / CTA',
+    category: 'NAVIGATION',
+    description: 'A visually emphasized navigation item like "New Collection →" or "Shop Now →".',
+    scope: 'footer-directory',
+    icon: 'ExternalLink',
+    defaults: {
+      label: 'Shop Now',
+      href: '/shop',
+      suffix: '→',
+      fontSize: 14,
+      fontWeight: 600,
+      textColor: '#2563eb',
+      hoverColor: '#1d4ed8',
+      openInNewTab: false,
+      showBadge: false,
+      badgeText: 'NEW',
+      badgeBg: '#ef4444',
+      badgeColor: '#ffffff',
+    },
+  },
+  {
+    id: 'legal-link-group',
+    type: 'legal-link-group',
+    name: 'Legal Link Group',
+    category: 'NAVIGATION',
+    description: 'Privacy, Terms, Cookies, Refund, Shipping — distinct styling from general navigation.',
+    scope: 'footer-directory',
+    icon: 'Shield',
+    defaults: {
+      heading: '',
+      links: [
+        { label: 'Privacy Policy', href: '/privacy' },
+        { label: 'Terms & Conditions', href: '/terms' },
+        { label: 'Refund Policy', href: '/refund-policy' },
+        { label: 'Cookie Policy', href: '/cookie-policy' },
+      ],
+      fontSize: 12,
+      textColor: '#94a3b8',
+      hoverColor: '#64748b',
+      separator: '·',
+      layout: 'inline',
+      gap: 12,
+    },
+  },
 
-  // ── CONTACT ──
+  // ═══════════════════════════════════════════════════════
+  // ██ CONTACT
+  // ═══════════════════════════════════════════════════════
   {
     id: 'contact-info',
     type: 'contact',
     name: 'Contact Information',
     category: 'CONTACT',
-    description: 'Direct communication channels: Phone hotline, email, physical store address, and WhatsApp.',
+    description: 'Phone, Email, Address, WhatsApp — direct communication channels.',
     scope: 'footer-directory',
     icon: 'PhoneCall',
     defaults: {
@@ -539,114 +677,217 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     type: 'business-hours',
     name: 'Business Hours',
     category: 'CONTACT',
-    description: 'Operating store hours, weekend schedules, and live customer service availability.',
+    description: 'Operating hours, weekend schedules, and live open/closed indicator.',
     scope: 'footer-directory',
     icon: 'Clock',
     defaults: {
       heading: 'Business Hours',
-      layout: 'column', // 'row' | 'column'
+      layout: 'column',
       schedules: [
         { days: 'Monday – Friday', hours: '9:00 AM – 7:00 PM EST' },
         { days: 'Saturday', hours: '10:00 AM – 5:00 PM EST' },
         { days: 'Sunday', hours: 'Closed' },
       ],
-      showLiveStatus: true, // "Open Now" badge
+      showLiveStatus: true,
       fontSize: 13,
       textColor: '#64748b',
       accentColor: '#10b981',
       gap: 8,
     },
   },
-
-  // ── CONTENT ──
   {
-    id: 'rich-text',
-    type: 'rich-text',
-    name: 'Rich Text',
-    category: 'CONTENT',
-    description: 'Formatted textual content supporting headings, paragraphs, bullet points, and inline links.',
+    id: 'store-locator',
+    type: 'store-locator',
+    name: 'Store Locator',
+    category: 'CONTACT',
+    description: 'Find a Store / View Locations CTA with optional zip code input.',
     scope: 'footer-directory',
-    icon: 'Type',
+    icon: 'MapPin',
     defaults: {
-      heading: 'About Our Quality',
-      content: 'Every product is hand-inspected in our workshop before dispatch to guarantee lasting satisfaction.',
-      alignment: 'left',
+      heading: 'Find a Store',
+      description: 'Visit one of our locations near you.',
+      ctaText: 'View Locations',
+      ctaHref: '/stores',
+      showSearch: false,
+      searchPlaceholder: 'Enter ZIP code',
+      fontSize: 13,
+      textColor: '#64748b',
+      ctaColor: '#2563eb',
+      iconColor: '#f97316',
+    },
+  },
+  {
+    id: 'whatsapp-contact',
+    type: 'whatsapp-contact',
+    name: 'WhatsApp Contact',
+    category: 'CONTACT',
+    description: 'Dedicated WhatsApp CTA with quick-connect button.',
+    scope: 'footer-directory',
+    icon: 'MessageCircle',
+    defaults: {
+      heading: 'Chat with us',
+      description: 'Get instant help via WhatsApp',
+      phoneNumber: '+1234567890',
+      message: 'Hi! I need help with my order.',
+      ctaText: 'Chat on WhatsApp',
+      bgColor: '#25d366',
+      textColor: '#ffffff',
+      fontSize: 13,
+    },
+  },
+  {
+    id: 'support-cta',
+    type: 'support-cta',
+    name: 'Support CTA',
+    category: 'CONTACT',
+    description: 'Need help? Talk to our support team → styled call-to-action.',
+    scope: 'footer-directory',
+    icon: 'Headphones',
+    defaults: {
+      heading: 'Need help?',
+      description: 'Our support team is here for you',
+      ctaText: 'Talk to Support →',
+      ctaHref: '/support',
+      ctaStyle: 'link',
+      fontSize: 13,
+      textColor: '#64748b',
+      ctaColor: '#2563eb',
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // ██ COMMERCE & TRUST
+  // ═══════════════════════════════════════════════════════
+  {
+    id: 'payment-methods-col',
+    type: 'payment-methods',
+    name: 'Payment Methods',
+    category: 'COMMERCE & TRUST',
+    description: 'Visa, Mastercard, Amex, UPI, PayPal, Apple Pay, Google Pay, Razorpay, COD.',
+    scope: 'footer-directory',
+    icon: 'CreditCard',
+    defaults: {
+      heading: 'Payment Options',
+      showHeading: true,
+      providers: ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'],
+      iconStyle: 'badge',
+      iconSize: 20,
+      gap: 6,
+    },
+  },
+  {
+    id: 'trust-badges-col',
+    type: 'trust-badges',
+    name: 'Trust Badges',
+    category: 'COMMERCE & TRUST',
+    description: 'Secure Checkout, SSL Secure, Verified Store — security reassurance.',
+    scope: 'footer-directory',
+    icon: 'ShieldCheck',
+    defaults: {
+      heading: 'Guaranteed Safe Checkout',
+      showHeading: false,
+      items: [
+        { icon: 'shield-check', title: '256-Bit SSL Protection' },
+        { icon: 'lock', title: 'Secure Checkout' },
+        { icon: 'badge-check', title: 'Verified Store' },
+      ],
+      iconColor: '#10b981',
+      fontSize: 12.5,
+      gap: 8,
+    },
+  },
+  {
+    id: 'guarantees',
+    type: 'guarantees',
+    name: 'Guarantees',
+    category: 'COMMERCE & TRUST',
+    description: '30-Day Guarantee, Easy Returns, Authentic Products.',
+    scope: 'footer-directory',
+    icon: 'Award',
+    defaults: {
+      items: [
+        { icon: 'rotate-ccw', title: '30-Day Money Back', description: 'No questions asked' },
+        { icon: 'refresh-cw', title: 'Easy Returns', description: 'Free return shipping' },
+        { icon: 'badge-check', title: 'Authentic Products', description: '100% genuine items' },
+      ],
+      layout: 'row',
+      showIcons: true,
+      iconColor: '#10b981',
+      fontSize: 12.5,
+      textColor: '#64748b',
+      gap: 16,
+    },
+  },
+  {
+    id: 'shipping-highlights',
+    type: 'shipping-highlights',
+    name: 'Shipping Highlights',
+    category: 'COMMERCE & TRUST',
+    description: 'Free Shipping, Fast Delivery, Worldwide Shipping.',
+    scope: 'footer-directory',
+    icon: 'Truck',
+    defaults: {
+      items: [
+        { icon: 'truck', title: 'Free Shipping', description: 'On orders over $50' },
+        { icon: 'zap', title: 'Fast Delivery', description: '2-3 business days' },
+        { icon: 'globe', title: 'Worldwide Shipping', description: 'Ship to 120+ countries' },
+      ],
+      layout: 'row',
+      showIcons: true,
+      iconColor: '#0ea5e9',
+      fontSize: 12.5,
+      textColor: '#64748b',
+      gap: 16,
+    },
+  },
+  {
+    id: 'cod-availability',
+    type: 'cod-availability',
+    name: 'COD Availability',
+    category: 'COMMERCE & TRUST',
+    description: 'Cash on Delivery Available — especially useful for Indian ecommerce.',
+    scope: 'footer-directory',
+    icon: 'Banknote',
+    defaults: {
+      heading: 'Cash on Delivery Available',
+      description: 'Pay when you receive your order. Available in select areas.',
+      showIcon: true,
+      iconColor: '#10b981',
       fontSize: 13,
       textColor: '#64748b',
     },
   },
   {
-    id: 'image-block',
-    type: 'image',
-    name: 'Image',
-    category: 'CONTENT',
-    description: 'Storefront certification badge, workshop photography, or custom illustration.',
+    id: 'security-badges',
+    type: 'security-badges',
+    name: 'Security Badges',
+    category: 'COMMERCE & TRUST',
+    description: 'Security and certification marks like PCI-DSS, McAfee Secure, Norton.',
     scope: 'footer-directory',
-    icon: 'Image',
+    icon: 'Lock',
     defaults: {
-      imageUrl: '',
-      altText: 'Footer illustration',
-      linkUrl: '',
-      width: 220,
-      height: 120,
-      radius: 6,
-      objectFit: 'cover',
-      alignment: 'left',
-    },
-  },
-  {
-    id: 'custom-html',
-    type: 'custom-html',
-    name: 'Custom HTML',
-    category: 'CONTENT',
-    description: 'Raw HTML/SVG embed for third-party widgets, trust seal snippets, or custom badges.',
-    scope: 'footer-directory',
-    icon: 'Code',
-    defaults: {
-      html: '<div class="custom-badge">Verified Merchant Guarantee</div>',
-      cssClass: '',
-      dataAttributes: '',
+      items: [
+        { icon: 'shield', title: 'PCI-DSS Compliant' },
+        { icon: 'lock', title: 'SSL Encrypted' },
+        { icon: 'shield-check', title: 'McAfee Secure' },
+      ],
+      iconSize: 18,
+      iconColor: '#64748b',
+      fontSize: 11,
+      gap: 12,
+      layout: 'inline',
     },
   },
 
-  // ── LAYOUT ──
-  {
-    id: 'divider',
-    type: 'divider',
-    name: 'Divider',
-    category: 'LAYOUT',
-    description: 'Subtle separator line to divide stacked components within a column.',
-    scope: 'footer-directory',
-    icon: 'Minus',
-    defaults: {
-      style: 'solid', // solid, dashed, dotted
-      color: '#e2e8f0',
-      thickness: 1,
-      marginTop: 12,
-      marginBottom: 12,
-      width: '100%',
-    },
-  },
-  {
-    id: 'spacer',
-    type: 'spacer',
-    name: 'Spacer',
-    category: 'LAYOUT',
-    description: 'Vertical whitespace spacer to fine-tune spacing between column components.',
-    scope: 'footer-directory',
-    icon: 'Maximize2',
-    defaults: {
-      height: 20,
-    },
-  },
-
-  // ── NEWSLETTER & SOCIAL (Column Child Items) ──
+  // ═══════════════════════════════════════════════════════
+  // ██ ENGAGEMENT
+  // ═══════════════════════════════════════════════════════
   {
     id: 'newsletter-signup-col',
     type: 'newsletter-form',
-    name: 'Small Newsletter Signup',
-    category: 'CONTENT',
-    description: 'Compact inline email signup field with heading, placeholder & subscribe button for any column.',
+    name: 'Newsletter Signup',
+    category: 'ENGAGEMENT',
+    description: 'Email signup with heading, description, button, consent, success & error messages.',
     scope: 'footer-directory',
     icon: 'Mail',
     defaults: {
@@ -658,6 +899,8 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
       layout: 'stacked',
       showDisclaimer: true,
       disclaimerText: 'By subscribing you agree to our Privacy Policy.',
+      successMessage: 'Thanks for subscribing!',
+      errorMessage: 'Something went wrong. Please try again.',
       fontSize: 14,
       buttonBg: '#2563eb',
       buttonColor: '#ffffff',
@@ -667,8 +910,8 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     id: 'social-links-col',
     type: 'social-links',
     name: 'Social Links',
-    category: 'BRANDING',
-    description: 'Icon links for Instagram, Twitter/X, Facebook, YouTube, TikTok, LinkedIn.',
+    category: 'ENGAGEMENT',
+    description: 'Instagram, Facebook, YouTube, X, TikTok, Pinterest, LinkedIn, WhatsApp, Threads.',
     scope: 'footer-directory',
     icon: 'Share2',
     defaults: {
@@ -686,76 +929,289 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
         { platform: 'youtube', url: 'https://youtube.com', enabled: true },
         { platform: 'tiktok', url: 'https://tiktok.com', enabled: false },
         { platform: 'linkedin', url: 'https://linkedin.com', enabled: false },
+        { platform: 'pinterest', url: 'https://pinterest.com', enabled: false },
+        { platform: 'whatsapp', url: 'https://wa.me/', enabled: false },
+        { platform: 'threads', url: 'https://threads.net', enabled: false },
       ],
     },
   },
   {
-    id: 'payment-methods-col',
-    type: 'payment-methods',
-    name: 'Payment Methods',
-    category: 'CONTENT',
-    description: 'Accepted credit cards and payment gateways: Visa, Mastercard, Amex, Apple Pay, PayPal.',
+    id: 'community-cta',
+    type: 'community-cta',
+    name: 'Community CTA',
+    category: 'ENGAGEMENT',
+    description: 'Join our community / Follow us for updates → engagement call-to-action.',
     scope: 'footer-directory',
-    icon: 'CreditCard',
+    icon: 'Users',
     defaults: {
-      heading: 'Payment Options',
-      showHeading: true,
-      providers: ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'],
-      iconStyle: 'badge',
-      iconSize: 20,
-      gap: 6,
+      heading: 'Join our community',
+      description: 'Follow us for the latest updates, tips, and exclusive offers.',
+      ctaText: 'Follow us →',
+      ctaHref: '#',
+      fontSize: 13,
+      textColor: '#64748b',
+      ctaColor: '#2563eb',
     },
   },
-  {
-    id: 'trust-badges-col',
-    type: 'trust-badges',
-    name: 'Trust Badges & Guarantees',
-    category: 'CONTENT',
-    description: 'Security seals, fast shipping, and guarantee reassurance badges in column.',
-    scope: 'footer-directory',
-    icon: 'ShieldCheck',
-    defaults: {
-      heading: 'Guaranteed Safe Checkout',
-      showHeading: false,
-      items: [
-        { icon: 'shield-check', title: '256-Bit SSL Protection' },
-        { icon: 'truck', title: 'Express Tracked Shipping' },
-        { icon: 'rotate-ccw', title: '30-Day Free Returns' },
-      ],
-      iconColor: '#10b981',
-      fontSize: 12.5,
-      gap: 8,
-    },
-  },
+
+  // ═══════════════════════════════════════════════════════
+  // ██ APP
+  // ═══════════════════════════════════════════════════════
   {
     id: 'app-download-col',
     type: 'app-download',
-    name: 'Mobile App Badges',
-    category: 'CONTENT',
-    description: 'App Store and Google Play download badges for your shoppers.',
+    name: 'App Download',
+    category: 'APP',
+    description: 'Heading, description, Apple App Store, Google Play, and optional QR Code.',
     scope: 'footer-directory',
     icon: 'Smartphone',
     defaults: {
-      heading: 'Download Mobile App',
+      heading: 'Download Our App',
+      description: 'Shop on the go with our mobile app.',
       showHeading: true,
       showAppStore: true,
       showGooglePlay: true,
+      showQRCode: false,
       appStoreUrl: '#',
       googlePlayUrl: '#',
+      qrCodeValue: '',
     },
   },
+  {
+    id: 'app-store-badge',
+    type: 'app-store-badge',
+    name: 'App Store Badge',
+    category: 'APP',
+    description: 'Standalone Apple App Store download badge.',
+    scope: 'footer-directory',
+    icon: 'Apple',
+    defaults: {
+      appStoreUrl: '#',
+      width: 135,
+      height: 40,
+      alignment: 'left',
+    },
+  },
+  {
+    id: 'google-play-badge',
+    type: 'google-play-badge',
+    name: 'Google Play Badge',
+    category: 'APP',
+    description: 'Standalone Google Play Store download badge.',
+    scope: 'footer-directory',
+    icon: 'Play',
+    defaults: {
+      googlePlayUrl: '#',
+      width: 135,
+      height: 40,
+      alignment: 'left',
+    },
+  },
+  {
+    id: 'qr-code',
+    type: 'qr-code',
+    name: 'QR Code',
+    category: 'APP',
+    description: 'Standalone QR code component for app download or any URL.',
+    scope: 'footer-directory',
+    icon: 'QrCode',
+    defaults: {
+      value: 'https://yourstore.com/app',
+      size: 120,
+      fgColor: '#0f172a',
+      bgColor: '#ffffff',
+      includeMargin: true,
+      alignment: 'left',
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // ██ CONTENT
+  // ═══════════════════════════════════════════════════════
+  {
+    id: 'rich-text',
+    type: 'rich-text',
+    name: 'Rich Text',
+    category: 'CONTENT',
+    description: 'Heading, paragraph, bold, italic, links, lists — formatted text content.',
+    scope: 'footer-directory',
+    icon: 'Type',
+    defaults: {
+      heading: 'About Our Quality',
+      content: 'Every product is hand-inspected in our workshop before dispatch to guarantee lasting satisfaction.',
+      alignment: 'left',
+      fontSize: 13,
+      textColor: '#64748b',
+    },
+  },
+  {
+    id: 'image-block',
+    type: 'image',
+    name: 'Image',
+    category: 'CONTENT',
+    description: 'Certification badge, brand image, workshop, store image, or trust seal.',
+    scope: 'footer-directory',
+    icon: 'Image',
+    defaults: {
+      imageUrl: '',
+      altText: 'Footer illustration',
+      linkUrl: '',
+      width: 220,
+      height: 120,
+      radius: 6,
+      objectFit: 'cover',
+      alignment: 'left',
+    },
+  },
+  {
+    id: 'image-text',
+    type: 'image-text',
+    name: 'Image + Text',
+    category: 'CONTENT',
+    description: 'Image alongside text — useful for premium editorial footers.',
+    scope: 'footer-directory',
+    icon: 'LayoutList',
+    defaults: {
+      imageUrl: '',
+      altText: 'Footer image',
+      heading: 'Made with care',
+      text: 'Each piece is crafted by hand in our studios, using only the finest materials.',
+      imagePosition: 'left',
+      imageWidth: 80,
+      imageHeight: 80,
+      imageRadius: 8,
+      fontSize: 13,
+      textColor: '#64748b',
+      gap: 16,
+    },
+  },
+  {
+    id: 'promo-card',
+    type: 'promo-card',
+    name: 'Promo Card',
+    category: 'CONTENT',
+    description: 'Card with image, eyebrow, heading, description, and CTA button.',
+    scope: 'footer-directory',
+    icon: 'Megaphone',
+    defaults: {
+      imageUrl: '',
+      eyebrow: 'Limited Time',
+      heading: 'Season Sale',
+      description: 'Up to 40% off on selected items.',
+      ctaText: 'Shop Sale',
+      ctaHref: '/sale',
+      bgColor: '#f8fafc',
+      borderRadius: 12,
+      padding: 20,
+      fontSize: 13,
+      textColor: '#0f172a',
+      ctaColor: '#2563eb',
+    },
+  },
+  {
+    id: 'custom-html',
+    type: 'custom-html',
+    name: 'Custom HTML',
+    category: 'CONTENT',
+    description: 'Raw HTML/SVG for third-party widgets, trust seals, or custom badges.',
+    scope: 'footer-directory',
+    icon: 'Code',
+    defaults: {
+      html: '<div class="custom-badge">Verified Merchant Guarantee</div>',
+      cssClass: '',
+      dataAttributes: '',
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // ██ LEGAL
+  // ═══════════════════════════════════════════════════════
   {
     id: 'copyright-col',
     type: 'copyright',
     name: 'Copyright & Notice',
-    category: 'CONTENT',
-    description: 'Legal copyright statement with current year and merchant brand.',
+    category: 'LEGAL',
+    description: '© 2026 Your Store — dynamic year, brand name, custom text.',
     scope: 'footer-directory',
     icon: 'FileText',
     defaults: {
-      text: '© 2026 BillionBiz, Inc. All rights reserved.',
+      text: '© {year} BillionBiz, Inc. All rights reserved.',
+      dynamicYear: true,
+      brandName: 'BillionBiz',
+      customText: '',
       fontSize: 12,
       textColor: '#94a3b8',
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════
+  // ██ LAYOUT
+  // ═══════════════════════════════════════════════════════
+  {
+    id: 'group',
+    type: 'group',
+    name: 'Group',
+    category: 'LAYOUT',
+    description: 'Layout helper — arrange child components in a row, column, or wrap pattern.',
+    scope: 'footer-directory',
+    icon: 'GroupIcon',
+    defaults: {
+      direction: 'row',
+      wrap: true,
+      gap: 12,
+      alignment: 'start',
+      distribution: 'start',
+      width: 'auto',
+      maxWidth: '',
+      elements: [],
+    },
+  },
+  {
+    id: 'column-heading',
+    type: 'column-heading',
+    name: 'Column Heading',
+    category: 'LAYOUT',
+    description: 'Standalone heading for a column — useful when you want a heading without a link group.',
+    scope: 'footer-directory',
+    icon: 'Heading',
+    defaults: {
+      text: 'Section Title',
+      fontSize: 14,
+      fontWeight: 700,
+      textColor: '#0f172a',
+      alignment: 'left',
+      marginBottom: 12,
+    },
+  },
+  {
+    id: 'divider',
+    type: 'divider',
+    name: 'Divider',
+    category: 'LAYOUT',
+    description: 'Horizontal or vertical separator line (solid, dashed, dotted).',
+    scope: 'footer-directory',
+    icon: 'Minus',
+    defaults: {
+      style: 'solid',
+      direction: 'horizontal',
+      color: '#e2e8f0',
+      thickness: 1,
+      marginTop: 12,
+      marginBottom: 12,
+      width: '100%',
+    },
+  },
+  {
+    id: 'spacer',
+    type: 'spacer',
+    name: 'Spacer',
+    category: 'LAYOUT',
+    description: 'Vertical whitespace — Small, Medium, Large, or Custom.',
+    scope: 'footer-directory',
+    icon: 'Maximize2',
+    defaults: {
+      height: 20,
+      size: 'medium',
     },
   },
 ];
@@ -841,16 +1297,18 @@ export function isColorDark(color?: string): boolean {
 }
 
 // ─── Look Switching With Child Preservation ──────────────────
-export function switchFooterLook(currentRow: FooterRow, newLookId: FooterLook): FooterRow {
+export function switchFooterLook(currentRow: FooterRow, newLookId: FooterLook, replaceContent: boolean = false): FooterRow {
   const lookDef = FOOTER_LOOKS.find((l) => l.id === newLookId) || FOOTER_LOOKS[0];
 
   // Collect all existing elements across all columns to preserve merchant content
   const existingElements: FooterElement[] = [];
-  (currentRow.columns || []).forEach((col) => {
-    (col.elements || []).forEach((el) => {
-      existingElements.push(el);
+  if (!replaceContent) {
+    (currentRow.columns || []).forEach((col) => {
+      (col.elements || []).forEach((el) => {
+        existingElements.push(el);
+      });
     });
-  });
+  }
 
   const newColumnCount = lookDef.columns;
   const newColumns: FooterColumn[] = [];

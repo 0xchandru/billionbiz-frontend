@@ -1406,3 +1406,284 @@ export const LegalSectionInspector: React.FC<{ row: FooterRow; onClose: () => vo
     </div>
   );
 };
+
+// ────────────────────────────────────────────────────────────
+// 8. SEO / RICH CONTENT INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const SeoSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = footerRows.find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'keyword-story';
+  const supportedTabs = getSectionSupportedTabs('seo', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+  const [newKeyword, setNewKeyword] = useState<string>('');
+
+  const elements = (row.columns || []).flatMap((c) => c.elements) || [];
+  const seoEl: any = elements.find((e) => e.type === 'rich-text' || e.type === 'custom-html') || elements[0];
+
+  const seoHeading = seoEl?.props?.heading ?? 'Discover Premium Online Shopping with BillionBiz';
+  const seoText = seoEl?.props?.text ?? 'We curate authentic, premium essentials crafted for conscious consumers. Enjoy lightning-fast doorstep shipping across India, guaranteed genuine products, hassle-free returns, and dedicated 24/7 customer concierge support.';
+  const keywords: string[] = seoEl?.props?.keywords || [
+    'Organic Skincare',
+    'Ayurvedic Products',
+    'Eco-Friendly Essentials',
+    'Pan-India Fast Delivery',
+    '100% Genuine Certified',
+  ];
+  const isExpandable = seoEl?.props?.isExpandable ?? true;
+  const enableSchema = seoEl?.props?.enableSchema ?? true;
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'seo', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (partialProps: Record<string, any>) => {
+    if (seoEl) {
+      updateFooterElement(row.id, seoEl.id, {
+        props: { ...seoEl.props, ...partialProps },
+      });
+    } else {
+      updateFooterRow(row.id, {
+        behavior: { ...row.behavior, ...partialProps },
+      });
+    }
+  };
+
+  const handleAddKeyword = () => {
+    if (!newKeyword.trim()) return;
+    const updated = [...keywords, newKeyword.trim()];
+    handleUpdateProps({ keywords: updated });
+    setNewKeyword('');
+  };
+
+  const handleRemoveKeyword = (index: number) => {
+    const updated = keywords.filter((_, idx) => idx !== index);
+    handleUpdateProps({ keywords: updated });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="SEO / Rich Content"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY.seo.looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                SEO Section Heading
+              </label>
+              <input
+                type="text"
+                value={seoHeading}
+                onChange={(e) => handleUpdateProps({ heading: e.target.value })}
+                placeholder="Section title for search engines..."
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Rich SEO Content & Keyword Story
+              </label>
+              <textarea
+                rows={5}
+                value={seoText}
+                onChange={(e) => handleUpdateProps({ text: e.target.value })}
+                placeholder="High-density, organic keyword-rich copy describing products, categories, delivery, and guarantee..."
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', lineHeight: 1.5 }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Target Keywords & Tags ({keywords.length})
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+                {keywords.map((kw, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      backgroundColor: '#eff6ff',
+                      color: '#1d4ed8',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      border: '1px solid #bfdbfe',
+                    }}
+                  >
+                    #{kw}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveKeyword(idx)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#93c5fd', display: 'flex', alignItems: 'center' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = '#93c5fd'; }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  type="text"
+                  value={newKeyword}
+                  onChange={(e) => setNewKeyword(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddKeyword(); }}
+                  placeholder="Add search keyword or phrase..."
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddKeyword}
+                  style={{ padding: '6px 12px', borderRadius: '6px', backgroundColor: '#2563eb', color: '#ffffff', border: 'none', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={isExpandable}
+                  onChange={(e) => handleUpdateProps({ isExpandable: e.target.checked })}
+                />
+                Enable "Read More / Show Less" expandable block
+              </label>
+              <p style={{ margin: '4px 0 0 22px', fontSize: '11px', color: '#64748b' }}>
+                Truncates long SEO copy on initial view to keep footer compact while preserving full search engine indexability.
+              </p>
+            </div>
+
+            <div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#1e293b', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={enableSchema}
+                  onChange={(e) => handleUpdateProps({ enableSchema: e.target.checked })}
+                />
+                Inject JSON-LD Structured Data Schema
+              </label>
+              <p style={{ margin: '4px 0 0 22px', fontSize: '11px', color: '#64748b' }}>
+                Outputs rich Organization and WebSite microdata for Google and Bing snippet optimization.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Container Width
+              </label>
+              <select
+                value={row.layout?.container || 'constrained'}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, container: e.target.value as any } })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value="constrained">Constrained (Standard)</option>
+                <option value="full">Full Width</option>
+                <option value="boxed">Boxed Container</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Text Alignment
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {(['left', 'center', 'right'] as const).map((align) => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={() => updateFooterRow(row.id, { layout: { ...row.layout, alignment: align } })}
+                    style={{
+                      flex: 1,
+                      padding: '6px',
+                      borderRadius: '5px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      textTransform: 'capitalize',
+                      border: '1px solid',
+                      borderColor: (row.layout?.alignment || 'left') === align ? '#2563eb' : '#cbd5e1',
+                      backgroundColor: (row.layout?.alignment || 'left') === align ? '#eff6ff' : '#ffffff',
+                      color: (row.layout?.alignment || 'left') === align ? '#1d4ed8' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {align}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 32}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="80"
+                value={row.layout?.paddingY ?? 32}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'behavior' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Collapsed Height ({row.behavior?.collapsedHeight ?? 70}px)
+              </label>
+              <input
+                type="range"
+                min="40"
+                max="200"
+                value={row.behavior?.collapsedHeight ?? 70}
+                onChange={(e) => updateFooterRow(row.id, { behavior: { ...row.behavior, collapsedHeight: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && <SharedDesignTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+

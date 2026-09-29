@@ -14,6 +14,7 @@ import FooterBottomSection from './sections/FooterBottomSection';
 import { FooterAppSection } from './sections/FooterAppSection';
 import { FooterContactSection } from './sections/FooterContactSection';
 import { FooterPaymentSection } from './sections/FooterPaymentSection';
+import FooterSeoSection from './sections/FooterSeoSection';
 
 // Import all section components
 import HeroBannerSection from './sections/HeroBannerSection';
@@ -221,6 +222,15 @@ const FooterPayment: React.FC<{ props: any }> = ({ props }) => (
   />
 );
 
+const FooterSeo: React.FC<{ props: any }> = ({ props }) => (
+  <FooterSeoSection
+    props={props}
+    device={props.device}
+    isEditorInteractive={props.isEditorInteractive === true}
+    useEditorModel={props.useEditorModel === true}
+  />
+);
+
 const Footer: React.FC<{ props: any }> = ({ props }) => (
   <FooterMainSection
     props={props}
@@ -260,6 +270,7 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
   FooterApp,
   FooterContact,
   FooterPayment,
+  FooterSeo,
   FooterBottom,
   Footer,
   FooterMenu: FooterMain,

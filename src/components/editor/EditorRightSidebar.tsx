@@ -166,6 +166,7 @@ import {
   ContactSectionInspector,
   PaymentSectionInspector,
   LegalSectionInspector,
+  SeoSectionInspector,
 } from './engine/FooterSectionInspectors';
 import type { FooterRow, FooterColumn, FooterElement } from './engine/types';
 import styles from '../../pages/editor/EditorLayout.module.css';
@@ -6478,17 +6479,21 @@ export const SecondaryNavRightEditor: React.FC<{ onClose: () => void }> = ({ onC
         },
       });
 
-      store.updateHeaderElement(targetRow.id, elId, {
-        props: {
-          ...el?.props,
-          secondaryNav: nextData,
-          look: nextData.look,
-          variant: nextData.look,
-          height: nextData.layout.barHeight,
-        },
-      });
+      if (el) {
+        store.updateHeaderElement(targetRow.id, elId, {
+          props: {
+            ...el?.props,
+            secondaryNav: nextData,
+            look: nextData.look,
+            variant: nextData.look,
+            height: nextData.layout.barHeight,
+          },
+        });
+      }
 
-      store.syncHeaderToSiteStore();
+      // Keep target explicitly selected on secondary navigation
+      store.selectTarget({ type: 'row', editorType: 'header', rowId: targetRow.id });
+      useLandingEditorStore.getState().setSelectedSectionId('category-bar');
     }
 
     const currentSiteStore = useSiteStore.getState();
@@ -8024,7 +8029,25 @@ const SortableFooterColumnChildItem: React.FC<{
   onToggleVisibility: (e: React.MouseEvent) => void;
   onDuplicate: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
-}> = ({ element, onOpenOverlay, onToggleVisibility, onDuplicate, onDelete }) => {
+  onAddInsideGroup?: (groupId: string) => void;
+  onUpdateGroup?: (groupId: string, updates: Record<string, any>) => void;
+  onDeleteGroupChild?: (groupId: string, childId: string) => void;
+  onDuplicateGroupChild?: (groupId: string, childId: string) => void;
+  onToggleGroupChildVisibility?: (groupId: string, childId: string) => void;
+}> = ({
+  element,
+  columnId: _columnId,
+  rowId: _rowId,
+  onOpenOverlay,
+  onToggleVisibility,
+  onDuplicate,
+  onDelete,
+  onAddInsideGroup,
+  onUpdateGroup,
+  onDeleteGroupChild,
+  onDuplicateGroupChild,
+  onToggleGroupChildVisibility,
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: element.id,
   });
@@ -8046,6 +8069,216 @@ const SortableFooterColumnChildItem: React.FC<{
     gap: '8px',
     boxShadow: isDragging ? '0 4px 12px rgba(37, 99, 235, 0.15)' : 'none',
   };
+
+  if (element.type === 'group') {
+    const children: FooterElement[] = element.props?.children || (element as any).children || [];
+    const groupDir = element.props?.direction || 'column';
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={{
+          ...style,
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          gap: '8px',
+          backgroundColor: '#f8fafc',
+          border: isDragging ? '1px dashed #2563eb' : '1px solid #cbd5e1',
+          padding: '10px',
+        }}
+      >
+        {/* Group Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              title="Drag to reorder group"
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'grab',
+                display: 'flex',
+                alignItems: 'center',
+                color: '#94a3b8',
+                touchAction: 'none',
+              }}
+            >
+              <GripVertical size={14} />
+            </button>
+            <LayoutGrid size={14} color="#6366f1" style={{ flexShrink: 0 }} />
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#1e293b',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {element.name || 'Flex Group'} ({children.length})
+            </span>
+          </div>
+
+          {/* Group quick direction switch */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', backgroundColor: '#e2e8f0', borderRadius: '4px', padding: '1px' }}>
+            {(['column', 'row', 'wrap'] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateGroup?.(element.id, { direction: d });
+                }}
+                style={{
+                  background: groupDir === d ? '#ffffff' : 'transparent',
+                  border: 'none',
+                  borderRadius: '3px',
+                  padding: '2px 5px',
+                  fontSize: '9.5px',
+                  fontWeight: groupDir === d ? 700 : 500,
+                  color: groupDir === d ? '#2563eb' : '#64748b',
+                  cursor: 'pointer',
+                  boxShadow: groupDir === d ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {d === 'column' ? 'Stack' : d}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={onOpenOverlay}
+              title="Edit group settings"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', padding: '3px' }}
+            >
+              <Edit2 size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleVisibility}
+              title={isVisible ? 'Hide group' : 'Show group'}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: isVisible ? '#64748b' : '#ef4444', padding: '3px' }}
+            >
+              {isVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+            </button>
+            <button
+              type="button"
+              onClick={onDuplicate}
+              title="Duplicate group"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '3px' }}
+            >
+              <Copy size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Delete group"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '3px' }}
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        </div>
+
+        {/* Group Children List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '12px', borderLeft: '2px solid #e2e8f0', marginTop: '4px' }}>
+          {children.length > 0 ? (
+            children.map((child: FooterElement) => {
+              const childVisible = child.props?.isVisible !== false;
+              const childMeta = getFooterComponentMeta(child.type);
+
+              return (
+                <div
+                  key={child.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '11px',
+                    opacity: childVisible ? 1 : 0.5,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                    <Box size={12} color="#6366f1" />
+                    <span style={{ fontWeight: 600, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {child.name || childMeta?.name || child.type}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <button
+                      type="button"
+                      onClick={() => onToggleGroupChildVisibility?.(element.id, child.id)}
+                      title={childVisible ? 'Hide child' : 'Show child'}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: childVisible ? '#64748b' : '#ef4444', padding: '2px' }}
+                    >
+                      {childVisible ? <Eye size={11} /> : <EyeOff size={11} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDuplicateGroupChild?.(element.id, child.id)}
+                      title="Duplicate child"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '2px' }}
+                    >
+                      <Copy size={11} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteGroupChild?.(element.id, child.id)}
+                      title="Delete child"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '2px' }}
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ fontSize: '10.5px', color: '#94a3b8', fontStyle: 'italic', padding: '4px 0' }}>
+              Empty group — click "+ Add to Group" below to add components.
+            </div>
+          )}
+
+          {/* + Add to Group button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddInsideGroup?.(element.id);
+            }}
+            style={{
+              padding: '4px 8px',
+              marginTop: '2px',
+              borderRadius: '4px',
+              border: '1px dashed #6366f1',
+              backgroundColor: '#ffffff',
+              color: '#6366f1',
+              fontSize: '10.5px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+            }}
+          >
+            <Plus size={11} /> Add to Group
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -8174,30 +8407,37 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
     setActiveTab,
   } = useEditorContextStore();
 
-  // 7 Tabs: Look | Columns | Layout | Behavior | Design | Responsive | Advanced
-  const validFooterTabs = ['look', 'columns', 'layout', 'behavior', 'design', 'responsive', 'advanced'] as const;
+  // 7 Tabs: Look | Content | Layout | Behavior | Design | Responsive | Advanced
+  const validFooterTabs = ['look', 'content', 'columns', 'layout', 'behavior', 'design', 'responsive', 'advanced'] as const;
   type FooterDirectoryTab = (typeof validFooterTabs)[number];
 
   const currentTab: FooterDirectoryTab =
     activeTab && (validFooterTabs as readonly string[]).includes(activeTab)
       ? (activeTab as FooterDirectoryTab)
-      : 'columns';
+      : 'content';
 
   const setCurrentTab = (tab: FooterDirectoryTab) => {
     setActiveTab(tab);
   };
   const [lookCategoryFilter, setLookCategoryFilter] = useState<string>('All');
   const [expandedColumnId, setExpandedColumnId] = useState<string | null>(null);
+  const [lookToApply, setLookToApply] = useState<FooterLookDefinition | null>(null);
+  const [lookContentMode, setLookContentMode] = useState<'preserve' | 'replace'>('preserve');
 
   // Add Component modal state
-  const [pickerTarget, setPickerTarget] = useState<{ isOpen: boolean; columnId: string; columnIdx: number }>({
+  const [pickerTarget, setPickerTarget] = useState<{
+    isOpen: boolean;
+    columnId: string;
+    columnIdx: number;
+    groupId?: string;
+  }>({
     isOpen: false,
     columnId: '',
     columnIdx: 0,
   });
 
-  const styling = row.styling || {};
-  const layout = row.layout || {};
+  const styling = row.styling;
+  const layout = row.layout;
   const currentLookId: FooterLook = (layout.variantId as FooterLook) || 'classic_4_col';
 
   const dndSensors = useSensors(
@@ -8247,8 +8487,7 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
   };
 
   const handleApplyLook = (look: FooterLookDefinition) => {
-    const updatedRow = switchFooterLook(row, look.id);
-    updateFooterRow(row.id, updatedRow);
+    setLookToApply(look);
   };
 
   const handleUpdateLayout = (updates: Partial<typeof row.layout>) => {
@@ -8276,7 +8515,7 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
     const newIdx = cols.length + 1;
     cols.push({
       id: `col-dir-${newIdx}-${Date.now().toString(36)}`,
-      width: '1fr',
+      width: 'auto',
       elements: [],
     });
     updateFooterRow(row.id, {
@@ -8334,6 +8573,88 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
     updateFooterRow(row.id, { columns: cols });
   };
 
+  const handleUpdateColumnDetails = (colId: string, updates: Partial<FooterColumn>) => {
+    const cols = (row.columns || []).map((c) =>
+      c.id === colId ? { ...c, ...updates } : c
+    );
+    updateFooterRow(row.id, { columns: cols });
+  };
+
+  const handleUpdateGroup = (colId: string, groupId: string, updates: Record<string, any>) => {
+    const cols = (row.columns || []).map((col) => {
+      if (col.id !== colId) return col;
+      return {
+        ...col,
+        elements: col.elements.map((el) => {
+          if (el.id !== groupId) return el;
+          return { ...el, props: { ...el.props, ...updates } };
+        }),
+      };
+    });
+    updateFooterRow(row.id, { columns: cols });
+  };
+
+  const handleDeleteGroupChild = (colId: string, groupId: string, childId: string) => {
+    const cols = (row.columns || []).map((col) => {
+      if (col.id !== colId) return col;
+      return {
+        ...col,
+        elements: col.elements.map((el) => {
+          if (el.id !== groupId) return el;
+          const curChildren = el.props?.children || (el as any).children || [];
+          return {
+            ...el,
+            props: { ...el.props, children: curChildren.filter((c: FooterElement) => c.id !== childId) },
+          };
+        }),
+      };
+    });
+    updateFooterRow(row.id, { columns: cols });
+  };
+
+  const handleDuplicateGroupChild = (colId: string, groupId: string, childId: string) => {
+    const cols = (row.columns || []).map((col) => {
+      if (col.id !== colId) return col;
+      return {
+        ...col,
+        elements: col.elements.map((el) => {
+          if (el.id !== groupId) return el;
+          const curChildren = [...(el.props?.children || (el as any).children || [])];
+          const idx = curChildren.findIndex((c: FooterElement) => c.id !== childId);
+          if (idx === -1) return el;
+          const srcChild = curChildren[idx];
+          const clonedChild: FooterElement = {
+            ...JSON.parse(JSON.stringify(srcChild)),
+            id: `el-ftr-${srcChild.type}-${Date.now().toString(36)}`,
+            name: `${srcChild.name} (Copy)`,
+          };
+          curChildren.splice(idx + 1, 0, clonedChild);
+          return { ...el, props: { ...el.props, children: curChildren } };
+        }),
+      };
+    });
+    updateFooterRow(row.id, { columns: cols });
+  };
+
+  const handleToggleGroupChildVisibility = (colId: string, groupId: string, childId: string) => {
+    const cols = (row.columns || []).map((col) => {
+      if (col.id !== colId) return col;
+      return {
+        ...col,
+        elements: col.elements.map((el) => {
+          if (el.id !== groupId) return el;
+          const curChildren = (el.props?.children || (el as any).children || []).map((c: FooterElement) => {
+            if (c.id !== childId) return c;
+            const currentVis = c.props?.isVisible !== false;
+            return { ...c, props: { ...c.props, isVisible: !currentVis } };
+          });
+          return { ...el, props: { ...el.props, children: curChildren } };
+        }),
+      };
+    });
+    updateFooterRow(row.id, { columns: cols });
+  };
+
   // Child element operations
   const handleToggleChildVisibility = (colId: string, elId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -8387,7 +8708,7 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
 
   const tabs: Array<{ id: typeof currentTab; label: string }> = [
     { id: 'look', label: 'Look' },
-    { id: 'columns', label: 'Columns' },
+    { id: 'content', label: 'Content' },
     { id: 'layout', label: 'Layout' },
     { id: 'behavior', label: 'Behavior' },
     { id: 'design', label: 'Design' },
@@ -8519,22 +8840,47 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                         Active Applied Footer Look
                       </span>
                     </div>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: '#2563eb',
-                        backgroundColor: '#eff6ff',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        border: '1px solid #bfdbfe',
-                      }}
-                    >
-                      <Check size={12} /> Applied
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const resetRow = switchFooterLook(row, currentLookId, false);
+                          updateFooterRow(row.id, resetRow);
+                        }}
+                        title="Reset overridden styling & layout properties back to this Look preset"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#475569',
+                          backgroundColor: '#f1f5f9',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <RotateCcw size={11} /> Reset to Look
+                      </button>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#2563eb',
+                          backgroundColor: '#eff6ff',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          border: '1px solid #bfdbfe',
+                        }}
+                      >
+                        <Check size={12} /> Applied
+                      </span>
+                    </div>
                   </div>
 
                   <FooterLookWireframeDiagram look={activeLook} fullWidth />
@@ -8671,7 +9017,10 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
         {/* ========================================================
             TAB 2: COLUMNS (Inline Column Management & Reordering)
             ======================================================== */}
-        {currentTab === 'columns' && (
+        {/* ========================================================
+            TAB 2: CONTENT (Inline Column Management & Reordering)
+            ======================================================== */}
+        {(currentTab === 'content' || currentTab === 'columns') && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -8853,14 +9202,15 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                         fontSize: '12px',
                       }}
                     >
+                      {/* Width Mode & Width Input */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                         <div>
                           <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Column Width
+                            Width Mode
                           </label>
                           <select
-                            value={col.width || 'auto'}
-                            onChange={(e) => handleUpdateColumnWidth(col.id, e.target.value)}
+                            value={col.widthMode || 'auto'}
+                            onChange={(e) => handleUpdateColumnDetails(col.id, { widthMode: e.target.value as any })}
                             style={{
                               width: '100%',
                               padding: '5px 8px',
@@ -8869,42 +9219,112 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                               fontSize: '11.5px',
                             }}
                           >
-                            <option value="auto">Auto (Default Content)</option>
-                            <option value="1fr">1fr (Standard)</option>
-                            <option value="1.2fr">1.2fr (Comfortable)</option>
-                            <option value="1.5fr">1.5fr (Wide)</option>
-                            <option value="1.8fr">1.8fr (Spacious)</option>
-                            <option value="2fr">2fr (Double Width)</option>
-                            <option value="2.5fr">2.5fr (Hero Width)</option>
-                            <option value="25%">25% (Quarter)</option>
-                            <option value="33.3%">33.3% (One Third)</option>
-                            <option value="50%">50% (Half Width)</option>
-                            <option value="280px">280px (Fixed)</option>
-                            <option value="320px">320px (Fixed)</option>
+                            <option value="auto">Fit Content (Auto)</option>
+                            <option value="fit-max">Fit Content + Max Width</option>
+                            <option value="fill">Fill Available Space</option>
+                            <option value="custom">Custom Width</option>
                           </select>
                         </div>
 
                         <div>
                           <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Mobile Behavior
+                            {col.widthMode === 'fit-max' ? 'Max Width (px)' : 'Column Width'}
                           </label>
-                          <select
-                            value={(col as any).layout?.alignment || 'default'}
-                            onChange={() => {}}
+                          <input
+                            type="text"
+                            value={col.widthMode === 'fit-max' ? (col.maxWidth ?? '280px') : (col.width || 'auto')}
+                            onChange={(e) => {
+                              if (col.widthMode === 'fit-max') {
+                                handleUpdateColumnDetails(col.id, { maxWidth: e.target.value });
+                              } else {
+                                handleUpdateColumnDetails(col.id, { width: e.target.value });
+                              }
+                            }}
+                            placeholder={col.widthMode === 'fit-max' ? '280px' : 'auto, 25%, 240px'}
                             style={{
                               width: '100%',
                               padding: '5px 8px',
                               borderRadius: '6px',
                               border: '1px solid #cbd5e1',
                               fontSize: '11.5px',
+                              boxSizing: 'border-box',
                             }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Flex Direction, Gap & Alignment */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                            Direction
+                          </label>
+                          <select
+                            value={col.direction || 'column'}
+                            onChange={(e) => handleUpdateColumnDetails(col.id, { direction: e.target.value as any })}
+                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
                           >
-                            <option value="default">Auto (Follow Look)</option>
-                            <option value="accordion">Accordion Header</option>
-                            <option value="stacked">Always Stacked</option>
-                            <option value="hide">Hide on Mobile</option>
+                            <option value="column">Stack (Col)</option>
+                            <option value="row">Horizontal (Row)</option>
+                            <option value="wrap">Wrap</option>
                           </select>
                         </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                            Gap
+                          </label>
+                          <select
+                            value={col.gap ?? 12}
+                            onChange={(e) => handleUpdateColumnDetails(col.id, { gap: Number(e.target.value) })}
+                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                          >
+                            <option value={0}>0px</option>
+                            <option value={8}>8px</option>
+                            <option value={12}>12px</option>
+                            <option value={16}>16px</option>
+                            <option value={24}>24px</option>
+                            <option value={32}>32px</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                            Align
+                          </label>
+                          <select
+                            value={col.alignment || 'start'}
+                            onChange={(e) => handleUpdateColumnDetails(col.id, { alignment: e.target.value as any })}
+                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                          >
+                            <option value="start">Left / Start</option>
+                            <option value="center">Center</option>
+                            <option value="end">Right / End</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Mobile Behavior */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                          Mobile Behavior
+                        </label>
+                        <select
+                          value={(col as any).layout?.alignment || 'default'}
+                          onChange={() => {}}
+                          style={{
+                            width: '100%',
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            fontSize: '11.5px',
+                          }}
+                        >
+                          <option value="default">Auto (Follow Look)</option>
+                          <option value="accordion">Accordion Header</option>
+                          <option value="stacked">Always Stacked</option>
+                          <option value="hide">Hide on Mobile</option>
+                        </select>
                       </div>
                     </div>
                   )}
@@ -8932,6 +9352,11 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                               onToggleVisibility={(e) => handleToggleChildVisibility(col.id, el.id, e)}
                               onDuplicate={(e) => handleDuplicateChildElement(col.id, el.id, e)}
                               onDelete={(e) => handleDeleteChildElement(col.id, el.id, e)}
+                              onAddInsideGroup={(groupId) => setPickerTarget({ isOpen: true, columnId: col.id, columnIdx: colIdx, groupId })}
+                              onUpdateGroup={(groupId, updates) => handleUpdateGroup(col.id, groupId, updates)}
+                              onDeleteGroupChild={(groupId, childId) => handleDeleteGroupChild(col.id, groupId, childId)}
+                              onDuplicateGroupChild={(groupId, childId) => handleDuplicateGroupChild(col.id, groupId, childId)}
+                              onToggleGroupChildVisibility={(groupId, childId) => handleToggleGroupChildVisibility(col.id, groupId, childId)}
                             />
                           ))
                         ) : (
@@ -8989,164 +9414,200 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
             TAB 3: LAYOUT (Container, Columns Flex, Justify, Wrap, Widths, Gaps)
             ======================================================== */}
         {currentTab === 'layout' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {/* 1. Container Width */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Container Width
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                {[
-                  { id: 'full' as const, label: 'Full Width' },
-                  { id: 'constrained' as const, label: 'Contained' },
-                  { id: 'boxed' as const, label: 'Boxed' },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => handleUpdateLayout({ container: c.id })}
-                    style={{
-                      padding: '8px 4px',
-                      borderRadius: '6px',
-                      border: (layout.container || 'constrained') === c.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                      backgroundColor: (layout.container || 'constrained') === c.id ? '#eff6ff' : '#ffffff',
-                      color: (layout.container || 'constrained') === c.id ? '#1d4ed8' : '#334155',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            {/* 2. Column Distribution (Justify Content) */}
+            {/* ─── 1. Container Width ──────────────────────────── */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                  Column Distribution (Justify Content)
-                </label>
-                <span style={{ fontSize: '10.5px', color: '#2563eb', fontWeight: 600 }}>
-                  {layout.justifyContent || 'space-between'}
-                </span>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                Container Width
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                {[
-                  { id: 'space-between', label: 'Space Between' },
-                  { id: 'space-around', label: 'Space Around' },
-                  { id: 'space-evenly', label: 'Space Evenly' },
-                  { id: 'flex-start', label: 'Start (Left)' },
-                  { id: 'center', label: 'Center' },
-                  { id: 'flex-end', label: 'End (Right)' },
-                ].map((item) => {
-                  const isCurrent = (layout.justifyContent || 'space-between') === item.id;
+                {([
+                  { id: 'full',        label: 'Full Width',   desc: '100% viewport' },
+                  { id: 'constrained', label: 'Contained',    desc: '~1280px max' },
+                  { id: 'boxed',       label: 'Boxed',        desc: '~1024px max' },
+                ] as const).map((c) => {
+                  const isCurrent = (layout.container || 'constrained') === c.id;
                   return (
                     <button
-                      key={item.id}
+                      key={c.id}
                       type="button"
-                      onClick={() => handleUpdateLayout({ justifyContent: item.id as any })}
+                      onClick={() => handleUpdateLayout({ container: c.id })}
+                      title={c.desc}
                       style={{
-                        padding: '8px 4px',
-                        borderRadius: '6px',
-                        border: isCurrent ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                        backgroundColor: isCurrent ? '#eff6ff' : '#ffffff',
-                        color: isCurrent ? '#1d4ed8' : '#334155',
-                        fontSize: '11px',
-                        fontWeight: 600,
+                        padding: '9px 4px',
+                        borderRadius: '8px',
+                        border: isCurrent ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        backgroundColor: isCurrent ? '#eff6ff' : '#f8fafc',
+                        color: isCurrent ? '#1d4ed8' : '#475569',
+                        fontSize: '11.5px',
+                        fontWeight: isCurrent ? 700 : 600,
                         cursor: 'pointer',
                         textAlign: 'center',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      {item.label}
+                      {c.label}
+                      <div style={{ fontSize: '10px', fontWeight: 500, color: isCurrent ? '#3b82f6' : '#94a3b8', marginTop: '2px' }}>{c.desc}</div>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* 3. Multi-Line Columns & Wrapping */}
+            <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+            {/* ─── 2. Column Alignment ────────────────────────── */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Columns Multi-Line & Wrap
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                {[
-                  { id: 'wrap', label: 'Allow Wrap (Multi-Line)' },
-                  { id: 'nowrap', label: 'Single Line (No Wrap)' },
-                ].map((item) => {
-                  const isCurrent = (layout.flexWrap || 'wrap') === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleUpdateLayout({ flexWrap: item.id as any })}
-                      style={{
-                        padding: '8px 6px',
-                        borderRadius: '6px',
-                        border: isCurrent ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                        backgroundColor: isCurrent ? '#eff6ff' : '#ffffff',
-                        color: isCurrent ? '#1d4ed8' : '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                Column Alignment
               </div>
-              <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
-                When enabled, columns wrap gracefully to a second line if width is tight or uneven, preventing horizontal cramping.
-              </p>
+
+              {/* Horizontal justify */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '6px' }}>Horizontal (Column Distribution)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+                  {([
+                    { id: 'flex-start',    label: 'Left' },
+                    { id: 'center',        label: 'Center' },
+                    { id: 'flex-end',      label: 'Right' },
+                    { id: 'space-between', label: 'Between' },
+                    { id: 'space-around',  label: 'Around' },
+                    { id: 'space-evenly',  label: 'Evenly' },
+                  ] as const).map(opt => {
+                    const currentJustify: string = layout.justifyContent || layout.alignment || 'space-between';
+                    const isCurrent = currentJustify === opt.id || (opt.id === 'flex-start' && (currentJustify === 'left' || currentJustify === 'start')) || (opt.id === 'flex-end' && (currentJustify === 'right' || currentJustify === 'end'));
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => handleUpdateLayout({ justifyContent: opt.id, alignment: opt.id })}
+                        style={{
+                          padding: '7px 4px',
+                          borderRadius: '6px',
+                          border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                          backgroundColor: isCurrent ? '#eff6ff' : '#f8fafc',
+                          color: isCurrent ? '#1d4ed8' : '#475569',
+                          fontSize: '10.5px', fontWeight: isCurrent ? 700 : 500,
+                          cursor: 'pointer', textAlign: 'center',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Vertical alignment */}
+              <div>
+                <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>Vertical (Column Items)</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {([
+                    { id: 'flex-start', label: 'Top' },
+                    { id: 'center',     label: 'Middle' },
+                    { id: 'flex-end',   label: 'Bottom' },
+                    { id: 'stretch',    label: 'Stretch' },
+                  ] as const).map(opt => {
+                    const currentVert: string = layout.alignItems || layout.verticalAlignment || 'flex-start';
+                    const isCurrent = currentVert === opt.id || (opt.id === 'flex-start' && currentVert === 'top') || (opt.id === 'flex-end' && currentVert === 'bottom');
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => handleUpdateLayout({ verticalAlignment: opt.id, alignItems: opt.id })}
+                        style={{
+                          padding: '5px 8px',
+                          borderRadius: '6px',
+                          border: isCurrent ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                          backgroundColor: isCurrent ? '#eff6ff' : '#f8fafc',
+                          color: isCurrent ? '#1d4ed8' : '#475569',
+                          fontSize: '11px', fontWeight: isCurrent ? 700 : 500,
+                          cursor: 'pointer', textAlign: 'left',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {/* 4. Cross-Axis Alignment */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Vertical Alignment (Align Items)
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-                {[
-                  { id: 'flex-start', label: 'Top' },
-                  { id: 'center', label: 'Center' },
-                  { id: 'flex-end', label: 'Bottom' },
-                ].map((item) => {
-                  const isCurrent = (layout.alignItems || 'flex-start') === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleUpdateLayout({ alignItems: item.id as any })}
-                      style={{
-                        padding: '7px 4px',
-                        borderRadius: '6px',
-                        border: isCurrent ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                        backgroundColor: isCurrent ? '#eff6ff' : '#ffffff',
-                        color: isCurrent ? '#1d4ed8' : '#334155',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
+            <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+            {/* ─── 3. Spacing Sliders ─────────────────────────── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spacing</div>
+
+              {/* Column Gap */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>Column Gap</label>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: '6px' }}>
+                    {layout.gap ?? 40}px
+                  </span>
+                </div>
+                <input
+                  type="range" min="8" max="80" step="4"
+                  value={layout.gap ?? 40}
+                  onChange={(e) => handleUpdateLayout({ gap: Number(e.target.value) })}
+                  style={{ width: '100%', accentColor: '#2563eb' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  <span>Tight (8px)</span><span>Wide (80px)</span>
+                </div>
+              </div>
+
+              {/* Vertical Padding */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>Top &amp; Bottom Padding</label>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: '6px' }}>
+                    {layout.paddingY ?? 64}px
+                  </span>
+                </div>
+                <input
+                  type="range" min="16" max="120" step="8"
+                  value={layout.paddingY ?? 64}
+                  onChange={(e) => handleUpdateLayout({ paddingY: Number(e.target.value) })}
+                  style={{ width: '100%', accentColor: '#2563eb' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  <span>Compact (16px)</span><span>Spacious (120px)</span>
+                </div>
+              </div>
+
+              {/* Horizontal Padding */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#1e293b' }}>Left &amp; Right Padding</label>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 8px', borderRadius: '6px' }}>
+                    {layout.paddingX ?? 32}px
+                  </span>
+                </div>
+                <input
+                  type="range" min="0" max="80" step="4"
+                  value={layout.paddingX ?? 32}
+                  onChange={(e) => handleUpdateLayout({ paddingX: Number(e.target.value) })}
+                  style={{ width: '100%', accentColor: '#2563eb' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                  <span>None (0px)</span><span>Wide (80px)</span>
+                </div>
               </div>
             </div>
 
-            {/* 5. Column Width Adjustments (Per Column with Auto default) */}
+            <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+            {/* ─── 4. Column Width Adjustments ──────────────────── */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                  Column Width Adjustments ({row.columns?.length || 0} Columns)
-                </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Column Widths
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -9154,16 +9615,11 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                     updateFooterRow(row.id, { columns: cols });
                   }}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#2563eb',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    padding: 0,
+                    background: 'none', border: 'none', color: '#2563eb',
+                    fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0,
                   }}
                 >
-                  Reset all to Auto
+                  Reset all to equal
                 </button>
               </div>
 
@@ -9172,34 +9628,38 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                   <div
                     key={col.id}
                     style={{
-                      padding: '8px 10px',
+                      padding: '10px 12px',
                       backgroundColor: '#f8fafc',
                       border: '1px solid #e2e8f0',
-                      borderRadius: '6px',
+                      borderRadius: '8px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '6px',
+                      gap: '8px',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1e293b' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b' }}>
                         Column {cIdx + 1}
                       </span>
-                      <span style={{ fontSize: '10.5px', fontWeight: 600, color: '#2563eb', backgroundColor: '#eff6ff', padding: '1px 6px', borderRadius: '4px' }}>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 600, color: '#64748b',
+                        backgroundColor: '#f1f5f9', padding: '2px 7px', borderRadius: '6px',
+                      }}>
                         {col.width || 'auto'}
                       </span>
                     </div>
 
-                    {/* Width Preset Buttons */}
+                    {/* Width presets — flex-friendly options */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {[
-                        { id: 'auto', label: 'Auto' },
-                        { id: '1fr', label: '1fr' },
-                        { id: '1.5fr', label: '1.5fr' },
-                        { id: '2fr', label: '2fr' },
-                        { id: '25%', label: '25%' },
+                        { id: 'auto',  label: 'Auto' },
+                        { id: '20%',   label: '20%' },
+                        { id: '25%',   label: '25%' },
+                        { id: '30%',   label: '30%' },
                         { id: '33.3%', label: '33%' },
-                        { id: '50%', label: '50%' },
+                        { id: '40%',   label: '40%' },
+                        { id: '50%',   label: '50%' },
+                        { id: '60%',   label: '60%' },
                       ].map((w) => {
                         const isSelected = (col.width || 'auto') === w.id;
                         return (
@@ -9208,14 +9668,15 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                             type="button"
                             onClick={() => handleUpdateColumnWidth(col.id, w.id)}
                             style={{
-                              padding: '2px 7px',
-                              borderRadius: '4px',
-                              fontSize: '10.5px',
-                              fontWeight: 600,
-                              border: isSelected ? '1px solid #2563eb' : '1px solid #cbd5e1',
+                              padding: '3px 9px',
+                              borderRadius: '5px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              border: isSelected ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
                               backgroundColor: isSelected ? '#2563eb' : '#ffffff',
                               color: isSelected ? '#ffffff' : '#475569',
                               cursor: 'pointer',
+                              transition: 'all 0.1s ease',
                             }}
                           >
                             {w.label}
@@ -9224,21 +9685,19 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
                       })}
                     </div>
 
-                    {/* Custom Width Input */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                      <span style={{ fontSize: '10.5px', color: '#64748b' }}>Custom:</span>
+                    {/* Custom width input */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '10.5px', color: '#94a3b8', flexShrink: 0 }}>Custom:</span>
                       <input
                         type="text"
                         value={col.width || 'auto'}
                         onChange={(e) => handleUpdateColumnWidth(col.id, e.target.value)}
-                        placeholder="e.g. auto, 1fr, 280px, 30%"
+                        placeholder="e.g. auto, 280px, 30%"
                         style={{
-                          flex: 1,
-                          padding: '3px 6px',
-                          borderRadius: '4px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '11px',
-                          backgroundColor: '#ffffff',
+                          flex: 1, padding: '4px 8px',
+                          borderRadius: '5px', border: '1px solid #e2e8f0',
+                          fontSize: '11.5px', backgroundColor: '#ffffff',
+                          fontFamily: 'monospace',
                         }}
                       />
                     </div>
@@ -9247,62 +9706,6 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
               </div>
             </div>
 
-            {/* 6. Spacing Controls */}
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Column Gap ({layout.gap ?? 40}px)
-              </label>
-              <input
-                type="range"
-                min="16"
-                max="80"
-                value={layout.gap ?? 40}
-                onChange={(e) => handleUpdateLayout({ gap: Number(e.target.value) })}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Row Gap (Line Spacing: {layout.gapY ?? layout.gap ?? 40}px)
-              </label>
-              <input
-                type="range"
-                min="16"
-                max="80"
-                value={layout.gapY ?? layout.gap ?? 40}
-                onChange={(e) => handleUpdateLayout({ gapY: Number(e.target.value) })}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Top & Bottom Padding ({layout.paddingY ?? 64}px)
-              </label>
-              <input
-                type="range"
-                min="24"
-                max="120"
-                value={layout.paddingY ?? 64}
-                onChange={(e) => handleUpdateLayout({ paddingY: Number(e.target.value) })}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
-                Horizontal Padding ({layout.paddingX ?? 32}px)
-              </label>
-              <input
-                type="range"
-                min="16"
-                max="64"
-                value={layout.paddingX ?? 32}
-                onChange={(e) => handleUpdateLayout({ paddingX: Number(e.target.value) })}
-                style={{ width: '100%' }}
-              />
-            </div>
           </div>
         )}
 
@@ -9635,12 +10038,170 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
         )}
       </div>
 
+      {/* ── Apply Look Confirmation Modal (Preserve vs Replace) ── */}
+      {lookToApply && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 999999,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => setLookToApply(null)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={18} color="#2563eb" />
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                  Apply Look: {lookToApply.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLookToApply(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <FooterLookWireframeDiagram look={lookToApply} fullWidth />
+
+              <div style={{ fontSize: '12.5px', color: '#475569', lineHeight: 1.5 }}>
+                How would you like to apply the <strong>{lookToApply.name}</strong> layout structure?
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: lookContentMode === 'preserve' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                    backgroundColor: lookContentMode === 'preserve' ? '#eff6ff' : '#ffffff',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setLookContentMode('preserve')}
+                >
+                  <input
+                    type="radio"
+                    name="lookContentMode"
+                    checked={lookContentMode === 'preserve'}
+                    onChange={() => setLookContentMode('preserve')}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>
+                      Preserve existing content <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600 }}>(Recommended)</span>
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Keeps all your current links, logo, social icons, newsletter, and text, reorganizing them cleanly into the {lookToApply.columns} new columns.
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: lookContentMode === 'replace' ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                    backgroundColor: lookContentMode === 'replace' ? '#eff6ff' : '#ffffff',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setLookContentMode('replace')}
+                >
+                  <input
+                    type="radio"
+                    name="lookContentMode"
+                    checked={lookContentMode === 'replace'}
+                    onChange={() => setLookContentMode('replace')}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>
+                      Replace with template content
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>
+                      Replaces the entire content with fresh designer template components showcase for this look.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setLookToApply(null)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const updatedRow = switchFooterLook(row, lookToApply.id, lookContentMode === 'replace');
+                  updateFooterRow(row.id, updatedRow);
+                  setLookToApply(null);
+                }}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#2563eb',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                }}
+              >
+                Apply Look
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Centered Add Component Modal (Overlay Widget) ── */}
       <FooterComponentPickerModal
         isOpen={pickerTarget.isOpen}
         rowId={row.id}
         columnId={pickerTarget.columnId}
         columnIdx={pickerTarget.columnIdx}
+        groupId={pickerTarget.groupId}
         onClose={() => setPickerTarget({ isOpen: false, columnId: '', columnIdx: 0 })}
       />
 
@@ -9685,6 +10246,9 @@ export const FooterDirectoryRightEditor: React.FC<{ row?: FooterRow; onClose: ()
   }
   if (row.type === 'legal') {
     return <LegalSectionInspector key={row.id} row={row} onClose={onClose} />;
+  }
+  if (row.type === 'seo') {
+    return <SeoSectionInspector key={row.id} row={row} onClose={onClose} />;
   }
 
   // Footer Directory (Permanently locked parent, 20 Looks, inline column controls)

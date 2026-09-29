@@ -287,37 +287,49 @@ export type FooterRowType =
   | 'utility'
   | 'app'
   | 'contact'
+  | 'seo'
   | 'custom';
 
 export type FooterElementType =
   | 'logo'
   | 'brand-description'
   | 'brand-mission'
+  | 'brand-story'
+  | 'brand-rating'
   | 'contact'
   | 'contact-info'
   | 'address'
   | 'business-hours'
+  | 'store-locator'
+  | 'whatsapp-contact'
+  | 'support-cta'
   | 'link-group'
   | 'navigation-menu'
   | 'category-menu'
   | 'collection-menu'
   | 'dynamic-menu'
   | 'mega-footer-nav'
+  | 'featured-link'
+  | 'legal-link-group'
   | 'newsletter-form'
   | 'track-order'
   | 'account'
-  | 'store-locator'
   | 'wishlist'
   | 'cart'
   | 'social-links'
   | 'social-icons'
   | 'social-follow'
+  | 'community-cta'
   | 'trust-badges'
+  | 'guarantees'
+  | 'shipping-highlights'
   | 'shipping-benefits'
+  | 'cod-availability'
   | 'returns'
   | 'warranty'
   | 'certifications'
   | 'security'
+  | 'security-badges'
   | 'payment-methods'
   | 'connected-payments'
   | 'language'
@@ -325,6 +337,8 @@ export type FooterElementType =
   | 'region'
   | 'localization'
   | 'app-download'
+  | 'app-store-badge'
+  | 'google-play-badge'
   | 'qr-code'
   | 'back-to-top'
   | 'copyright'
@@ -340,11 +354,14 @@ export type FooterElementType =
   | 'custom-app-block'
   | 'dynamic-data'
   | 'embed'
-  | 'brand-story'
   | 'rich-text'
   | 'image'
+  | 'image-text'
+  | 'promo-card'
   | 'divider'
-  | 'spacer';
+  | 'spacer'
+  | 'group'
+  | 'column-heading';
 
 export interface FooterElement {
   id: string;
@@ -352,14 +369,28 @@ export interface FooterElement {
   name: string;
   isLocked?: boolean;
   props: Record<string, any>;
-  capabilities: ComponentCapability[];
+  capabilities?: ComponentCapability[];
   overrides?: Record<string, any>;
 }
 
 export interface FooterColumn {
   id: string;
-  width: string; // '1fr', '2fr', '300px', etc.
+  width: string; // 'auto', 'fill', '200px', '25%', etc.
+  widthMode?: 'fit' | 'fit-max' | 'fill' | 'custom';
+  maxWidth?: string | number;
+  direction?: 'stack' | 'row' | 'wrap';
+  gap?: number;
+  alignment?: 'start' | 'center' | 'end';
+  verticalAlignment?: 'top' | 'center' | 'bottom';
+  padding?: { top?: number; right?: number; bottom?: number; left?: number };
   elements: FooterElement[];
+}
+
+export interface FooterDirectorySubRow {
+  id: string;
+  name: string;
+  columns: FooterColumn[];
+  layout?: Partial<FooterRowLayout>;
 }
 
 export interface FooterRowLayout {
@@ -367,8 +398,8 @@ export interface FooterRowLayout {
   columns: number;
   gap: number;
   gapY?: number;
-  alignment: 'left' | 'center' | 'right' | 'stretch' | 'space-between';
-  verticalAlignment: 'top' | 'center' | 'bottom' | 'stretch';
+  alignment: 'left' | 'center' | 'right' | 'stretch' | 'space-between' | 'space-around' | 'space-evenly' | 'flex-start' | 'flex-end';
+  verticalAlignment: 'top' | 'center' | 'bottom' | 'stretch' | 'flex-start' | 'flex-end';
   paddingX: number;
   paddingY: number;
   maxWidth?: number;
@@ -409,6 +440,7 @@ export interface FooterRow {
   isVisible: boolean;
   isLocked?: boolean;
   columns: FooterColumn[];
+  rows?: FooterDirectorySubRow[];
   layout: FooterRowLayout;
   styling: FooterRowStyling;
   behavior?: Record<string, any>;

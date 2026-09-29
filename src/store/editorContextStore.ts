@@ -160,7 +160,8 @@ interface EditorContextState {
     columnId: string,
     type: FooterElementType,
     name: string,
-    defaultProps?: Record<string, any>
+    defaultProps?: Record<string, any>,
+    groupId?: string
   ) => void;
   updateFooterSettings: (updates: Partial<GlobalFooterSettings>) => void;
 
@@ -1035,6 +1036,34 @@ export const useEditorContextStore = create<EditorContextState>()(
               ],
             },
           ];
+        } else if (type === 'seo') {
+          defaultColumns = [
+            {
+              id: `col-seo-${Date.now().toString(36)}`,
+              width: '1fr',
+              elements: [
+                {
+                  id: `el-ftr-seo-${Date.now().toString(36)}`,
+                  type: 'rich-text',
+                  name: 'SEO & Brand Story',
+                  capabilities: ['style', 'content', 'responsive'],
+                  props: {
+                    heading: 'Discover Premium Online Shopping with BillionBiz',
+                    text: 'We curate authentic, premium essentials crafted for conscious consumers. Enjoy lightning-fast doorstep shipping across India, guaranteed genuine products, hassle-free returns, and dedicated 24/7 customer concierge support.',
+                    keywords: [
+                      'Organic Skincare',
+                      'Ayurvedic Products',
+                      'Eco-Friendly Essentials',
+                      'Pan-India Fast Delivery',
+                      '100% Genuine Certified',
+                    ],
+                    isExpandable: true,
+                    enableSchema: true,
+                  },
+                },
+              ],
+            },
+          ];
         } else {
           defaultColumns = [
             { id: `col-${Date.now().toString(36)}-1`, width: '1fr', elements: [] },
@@ -1116,12 +1145,40 @@ export const useEditorContextStore = create<EditorContextState>()(
           }
           const newRows = state.footerRows.map((r) => {
             if (r.id !== rowId) return r;
+            const filterElList = (list: FooterElement[]): FooterElement[] => {
+              return list
+                .filter((el) => el.id !== elementId)
+                .map((el) => {
+                  if (el.type === 'group' && Array.isArray(el.props?.elements)) {
+                    return {
+                      ...el,
+                      props: {
+                        ...el.props,
+                        elements: (el.props.elements as any[]).filter((sub) => sub.id !== elementId),
+                      },
+                    };
+                  }
+                  return el;
+                });
+            };
+
+            const updatedColumns = r.columns.map((col) => ({
+              ...col,
+              elements: filterElList(col.elements),
+            }));
+
+            const updatedSubRows = r.rows?.map((subRow) => ({
+              ...subRow,
+              columns: subRow.columns.map((col) => ({
+                ...col,
+                elements: filterElList(col.elements),
+              })),
+            }));
+
             return {
               ...r,
-              columns: r.columns.map((col) => ({
-                ...col,
-                elements: col.elements.filter((el) => el.id !== elementId),
-              })),
+              columns: updatedColumns,
+              ...(updatedSubRows ? { rows: updatedSubRows } : {}),
             };
           });
           return {
@@ -1132,7 +1189,7 @@ export const useEditorContextStore = create<EditorContextState>()(
         get().pushSnapshot('Deleted footer element');
       },
 
-      addFooterElement: (rowId, columnId, type, name, defaultProps = {}) => {
+      addFooterElement: (rowId, columnId, type, name, defaultProps = {}, groupId?: string) => {
         const newEl: FooterElement = {
           id: `el-ftr-${type}-${Date.now().toString(36)}`,
           type,
@@ -1142,16 +1199,45 @@ export const useEditorContextStore = create<EditorContextState>()(
         };
 
         set((state) => {
+          const insertElementIntoList = (elements: FooterElement[]): FooterElement[] => {
+            if (!groupId) {
+              return [...elements, newEl];
+            }
+            return elements.map((el) => {
+              if (el.id === groupId && el.type === 'group') {
+                const existingChildren = el.props?.children || (el as any).children || [];
+                return {
+                  ...el,
+                  props: {
+                    ...el.props,
+                    children: [...existingChildren, newEl],
+                  },
+                };
+              }
+              return el;
+            });
+          };
+
           const newRows = state.footerRows.map((r) => {
             if (r.id !== rowId) return r;
+            const updatedCols = (r.columns || []).map((col) => {
+              if (col.id !== columnId && r.columns.length > 0) return col;
+              return { ...col, elements: insertElementIntoList(col.elements) };
+            });
+            const updatedSubRows = r.rows?.map((rowBand) => ({
+              ...rowBand,
+              columns: rowBand.columns.map((col) => {
+                if (col.id !== columnId) return col;
+                return { ...col, elements: insertElementIntoList(col.elements) };
+              }),
+            }));
             return {
               ...r,
-              columns: r.columns.map((col) => {
-                if (col.id !== columnId && r.columns.length > 0) return col;
-                return { ...col, elements: [...col.elements, newEl] };
-              }),
+              columns: updatedCols,
+              ...(updatedSubRows ? { rows: updatedSubRows } : {}),
             };
           });
+
           return {
             footerRows: newRows,
             selectedTarget: {

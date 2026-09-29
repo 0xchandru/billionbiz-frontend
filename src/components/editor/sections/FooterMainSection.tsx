@@ -17,6 +17,12 @@ import {
   Heart,
   Star,
   Check,
+  MessageCircle,
+  Users,
+  Headphones,
+  Banknote,
+  Apple,
+  Play,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
@@ -272,29 +278,49 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
   const isCentered = layout.variantId === 'centered-brand';
   const isBento = layout.variantId === 'bento-grid';
 
-  // Dynamic flexbox column styling supporting auto width, custom widths, and responsive wrapping
-  const getColumnStyle = (widthStr?: string): React.CSSProperties => {
+
+
+  // Dynamic flexbox column styling supporting flex columns, auto width, custom widths, and responsive wrapping
+  const getColumnStyle = (col: FooterColumn | any): React.CSSProperties => {
     if (isMobile) {
       return {
         flex: '1 1 100%',
         width: '100%',
-        minWidth: '100%',
+        minWidth: 0,
         maxWidth: '100%',
         boxSizing: 'border-box',
       };
     }
     if (isTablet) {
       return {
-        flex: '1 1 calc(50% - 20px)',
+        flex: '0 1 calc(50% - 20px)',
         minWidth: '200px',
         maxWidth: '100%',
         boxSizing: 'border-box',
       };
     }
 
-    const w = (widthStr || 'auto').trim().toLowerCase();
+    if (col?.widthMode === 'fill') {
+      return {
+        flex: '1 1 0px',
+        minWidth: '160px',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+      };
+    }
 
-    if (w === 'auto') {
+    if (col?.widthMode === 'fit-max') {
+      return {
+        flex: '0 1 auto',
+        maxWidth: col.maxWidth ? (typeof col.maxWidth === 'number' ? `${col.maxWidth}px` : col.maxWidth) : undefined,
+        boxSizing: 'border-box',
+      };
+    }
+
+    const w = (typeof col === 'string' ? col : col?.width || 'auto').trim().toLowerCase();
+
+    // Explicit fill / grow
+    if (w === 'fill' || w === 'grow') {
       return {
         flex: '1 1 180px',
         minWidth: '160px',
@@ -302,35 +328,29 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
         boxSizing: 'border-box',
       };
     }
+
+    // Percentage width (e.g. 20%, 25%, 33.3%, 50%)
     if (w.endsWith('%')) {
       return {
         flex: `0 0 ${w}`,
         width: w,
-        minWidth: '140px',
         maxWidth: '100%',
         boxSizing: 'border-box',
       };
     }
+
+    // Pixel width (e.g. 200px, 240px, 280px)
     if (w.endsWith('px')) {
       return {
         flex: `0 0 ${w}`,
         width: w,
-        minWidth: '140px',
         maxWidth: '100%',
         boxSizing: 'border-box',
       };
     }
-    if (w.endsWith('fr')) {
-      const frVal = parseFloat(w) || 1;
-      return {
-        flex: `${frVal} 1 0px`,
-        minWidth: frVal >= 1.5 ? '220px' : '160px',
-        maxWidth: '100%',
-        boxSizing: 'border-box',
-      };
-    }
+
     return {
-      flex: '1 1 180px',
+      flex: '0 1 auto',
       minWidth: '160px',
       maxWidth: '100%',
       boxSizing: 'border-box',
@@ -371,48 +391,72 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
             : styles.containerConstrained
         }
       >
-        <div
-          className={styles.mainFooterGrid}
-          style={{
-            display: 'flex',
-            flexWrap: (layout.flexWrap ?? 'wrap') as any,
-            justifyContent: layout.justifyContent || (isCentered ? 'center' : (layout.alignment === 'center' ? 'center' : layout.alignment === 'right' ? 'flex-end' : 'space-between')),
-            alignItems: layout.alignItems || 'flex-start',
-            gap: isMobile ? '28px' : `${layout.gap ?? 40}px`,
-            rowGap: isMobile ? '28px' : `${layout.gapY ?? layout.gap ?? 40}px`,
-            maxWidth: isCentered && columns.length === 1 ? '680px' : '100%',
-            margin: isCentered && columns.length === 1 ? '0 auto' : undefined,
-            width: '100%',
-          }}
-        >
-          {columns.map((col, colIdx) => {
-            const isAccordionOpen = openAccordions[col.id] ?? false;
+        {(activeRow?.rows && activeRow.rows.length > 0 ? activeRow.rows : [{ id: 'row-default', name: 'Row 1', columns, layout }]).map((rowBand: any, rIdx: number) => {
+          const rowLayout = { ...layout, ...(rowBand.layout || {}) };
+          const rowCols: FooterColumn[] = rowBand.columns || [];
+          const rowJustify = (() => {
+            const jc = rowLayout.justifyContent || rowLayout.alignment;
+            if (jc === 'left' || jc === 'start') return 'flex-start';
+            if (jc === 'right' || jc === 'end') return 'flex-end';
+            if (jc === 'center') return 'center';
+            if (jc === 'space-between') return 'space-between';
+            if (jc === 'space-around') return 'space-around';
+            if (jc === 'space-evenly') return 'space-evenly';
+            return isCentered ? 'center' : 'space-between';
+          })();
 
-            return (
-              <div
-                key={col.id || colIdx}
-                className={styles.columnCard}
-                onClick={(e) => {
-                  // Column container clicks do not open right sidebar (Spec #3, #8)
-                  e.stopPropagation();
-                }}
-                style={{
-                  ...getColumnStyle(col.width),
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: isCentered ? 'center' : 'flex-start',
-                  textAlign: isCentered ? 'center' : 'left',
-                  ...(isBento
-                    ? {
-                        backgroundColor: 'rgba(255, 255, 255, 0.035)',
-                        border: '1px solid rgba(255, 255, 255, 0.09)',
-                        borderRadius: '12px',
-                        padding: '24px 20px',
-                      }
-                    : {}),
-                }}
-              >
-                {col.elements.map((el) => {
+          return (
+            <div
+              key={rowBand.id || rIdx}
+              className={styles.mainFooterGrid}
+              style={{
+                display: 'flex',
+                flexWrap: rowLayout.flexWrap || 'wrap',
+                justifyContent: rowJustify,
+                alignItems: rowLayout.alignItems || (rowLayout.verticalAlignment === 'center' ? 'center' : rowLayout.verticalAlignment === 'bottom' ? 'flex-end' : rowLayout.verticalAlignment === 'stretch' ? 'stretch' : 'flex-start'),
+                gap: isMobile ? '28px' : `${rowLayout.gap ?? 40}px`,
+                rowGap: isMobile ? '28px' : `${rowLayout.gapY ?? rowLayout.gap ?? 40}px`,
+                maxWidth: isCentered && rowCols.length === 1 ? '680px' : '100%',
+                margin: isCentered && rowCols.length === 1 ? '0 auto' : undefined,
+                width: '100%',
+                marginBottom: rIdx < (activeRow?.rows?.length || 1) - 1 ? `${rowLayout.gapY ?? 32}px` : 0,
+              }}
+            >
+              {rowCols.map((col, colIdx) => {
+                const isAccordionOpen = openAccordions[col.id] ?? false;
+                const colDirection = col.direction === 'row' ? 'row' : col.direction === 'wrap' ? 'row' : 'column';
+                const colWrap = col.direction === 'wrap' ? 'wrap' : 'nowrap';
+                const colGap = col.gap !== undefined ? `${col.gap}px` : undefined;
+                const colAlign = col.alignment === 'center' ? 'center' : col.alignment === 'end' ? 'flex-end' : isCentered ? 'center' : 'flex-start';
+                const colPadding = col.padding ? `${col.padding.top ?? 0}px ${col.padding.right ?? 0}px ${col.padding.bottom ?? 0}px ${col.padding.left ?? 0}px` : undefined;
+
+                return (
+                  <div
+                    key={col.id || colIdx}
+                    className={styles.columnCard}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    style={{
+                      ...getColumnStyle(col),
+                      display: 'flex',
+                      flexDirection: colDirection,
+                      flexWrap: colWrap,
+                      gap: colGap,
+                      padding: colPadding,
+                      alignItems: colAlign,
+                      textAlign: isCentered ? 'center' : 'left',
+                      ...(isBento
+                        ? {
+                            backgroundColor: 'rgba(255, 255, 255, 0.035)',
+                            border: '1px solid rgba(255, 255, 255, 0.09)',
+                            borderRadius: '12px',
+                            padding: '24px 20px',
+                          }
+                        : {}),
+                    }}
+                  >
+                {col.elements.map(function renderItem(el: FooterElement): React.ReactNode {
                   const isElSelected =
                     selectedTarget.type === 'element' &&
                     selectedTarget.editorType === 'footer' &&
@@ -422,14 +466,33 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
 
                   // ─── 1. Brand Logo ───
                   if (el.type === 'logo') {
-                    const logoType = elProps.logoType || (elProps.sourceType === 'image' ? 'image' : (elProps.imageUrl || elProps.image ? 'both' : 'text'));
+                    const isElVisible = elProps.isVisible !== false;
+                    if (!isEditorInteractive && !isElVisible) return null;
                     const logoImgUrl = elProps.imageUrl || elProps.image;
+                    const logoType = elProps.logoType || (elProps.sourceType === 'image' ? 'image' : (logoImgUrl ? 'image' : 'text'));
                     const showImg = (logoType === 'image' || logoType === 'both') && Boolean(logoImgUrl);
                     const showTxt = logoType === 'text' || logoType === 'both' || !logoImgUrl;
                     const isTwoLines = Boolean(elProps.isTwoLines);
                     const upperText = elProps.upperText || elProps.text || 'BillionBiz';
                     const lowerText = elProps.lowerText || '';
                     const tagline = elProps.tagline;
+                    const logoHeight = (elProps.logoHeight || elProps.height) ?? 40;
+                    const logoWidth = isMobile
+                      ? (elProps.mobileWidth || elProps.width || 110)
+                      : isTablet
+                      ? (elProps.tabletWidth || elProps.width || 130)
+                      : (elProps.desktopWidth || elProps.width || 150);
+                    const shape = elProps.shape || 'none';
+                    const borderRadius =
+                      shape === 'circle'
+                        ? '50%'
+                        : shape === 'rounded'
+                        ? `${elProps.borderRadius ?? 8}px`
+                        : shape === 'pill'
+                        ? '9999px'
+                        : shape === 'square'
+                        ? '4px'
+                        : '0';
 
                     return (
                       <div
@@ -439,73 +502,83 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                           isElSelected ? styles.elementSelected : ''
                         }`}
                         style={{
-                          marginBottom: '6px',
-                          display: isCentered ? 'flex' : 'inline-flex',
-                          flexDirection: isCentered ? 'column' : 'row',
-                          alignItems: isCentered ? 'center' : 'center',
+                          display: 'inline-flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
                           gap: '10px',
                           justifyContent: isCentered ? 'center' : 'flex-start',
-                          width: isCentered ? '100%' : 'auto',
+                          marginBottom: '6px',
                           cursor: isEditorInteractive ? 'pointer' : 'default',
+                          opacity: isElVisible ? 1 : 0.45,
+                          flexShrink: 0,
                         }}
                       >
                         {showImg && (
-                          <img
-                            src={logoImgUrl}
-                            alt={elProps.text || 'Store Logo'}
+                          <div
                             style={{
-                              height: `${elProps.height ?? 36}px`,
-                              width: elProps.width ? `${elProps.width}px` : 'auto',
-                              maxWidth: '100%',
-                              objectFit: 'contain',
-                              display: 'block',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: elProps.imagePadding ? `${elProps.imagePadding}px` : 0,
+                              backgroundColor: elProps.imageBg || 'transparent',
+                              borderRadius,
+                              border: elProps.border || 'none',
+                              boxShadow: elProps.shadow || 'none',
+                              overflow: 'hidden',
+                              flexShrink: 0,
                             }}
-                          />
+                          >
+                            <img
+                              src={logoImgUrl}
+                              alt={elProps.text || 'Store Logo'}
+                              style={{
+                                height: `${logoHeight}px`,
+                                width: 'auto',
+                                maxWidth: `${logoWidth}px`,
+                                maxHeight: `${logoHeight}px`,
+                                objectFit: elProps.objectFit || 'contain',
+                                borderRadius,
+                                display: 'block',
+                              }}
+                            />
+                          </div>
                         )}
                         {showTxt && (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: isCentered ? 'center' : 'flex-start' }}>
                             {isTwoLines ? (
                               <div style={{ lineHeight: 1.15 }}>
-                                <div
-                                  style={{
-                                    fontSize: `${elProps.fontSize ?? 20}px`,
-                                    fontWeight: elProps.fontWeight ?? 800,
-                                    color: elProps.textColor || textColor,
-                                    letterSpacing: '-0.02em',
-                                  }}
-                                >
+                                <div style={{
+                                  fontSize: `${elProps.fontSize ?? 20}px`,
+                                  fontWeight: elProps.fontWeight ?? 800,
+                                  color: elProps.textColor || textColor,
+                                  letterSpacing: '-0.02em',
+                                }}>
                                   {upperText}
                                 </div>
                                 {lowerText && (
-                                  <div
-                                    style={{
-                                      fontSize: `${Math.round((elProps.fontSize ?? 20) * 0.65)}px`,
-                                      fontWeight: 700,
-                                      color: elProps.textColor || textColor,
-                                      letterSpacing: '0.08em',
-                                      opacity: 0.85,
-                                    }}
-                                  >
+                                  <div style={{
+                                    fontSize: `${Math.round((elProps.fontSize ?? 20) * 0.65)}px`,
+                                    fontWeight: 700,
+                                    color: elProps.textColor || textColor,
+                                    letterSpacing: '0.08em',
+                                    opacity: 0.8,
+                                  }}>
                                     {lowerText}
                                   </div>
                                 )}
                               </div>
                             ) : (
-                              <h3
-                                style={{
-                                  margin: 0,
-                                  fontSize: `${elProps.fontSize ?? 22}px`,
-                                  fontWeight: elProps.fontWeight ?? 800,
-                                  color: elProps.textColor || textColor,
-                                  letterSpacing: '-0.03em',
-                                  textAlign: isCentered ? 'center' : 'left',
-                                }}
-                              >
+                              <div style={{
+                                fontSize: `${elProps.fontSize ?? 22}px`,
+                                fontWeight: elProps.fontWeight ?? 800,
+                                color: elProps.textColor || textColor,
+                                letterSpacing: '-0.03em',
+                              }}>
                                 {elProps.text || 'BillionBiz'}
-                              </h3>
+                              </div>
                             )}
                             {tagline && (
-                              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', marginTop: '2px', fontWeight: 500 }}>
+                              <span style={{ fontSize: '11px', color: elProps.taglineColor || 'rgba(255,255,255,0.6)', marginTop: '2px', fontWeight: 500 }}>
                                 {tagline}
                               </span>
                             )}
@@ -517,6 +590,8 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
 
                   // ─── 2. Brand Description / Bio ───
                   if (el.type === 'brand-description' || el.type === 'brand-mission') {
+                    const isElVisible = elProps.isVisible !== false;
+                    if (!isEditorInteractive && !isElVisible) return null;
                     return (
                       <div
                         key={el.id}
@@ -524,15 +599,16 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                         className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
                         }`}
+                        style={{ opacity: isElVisible ? 1 : 0.45 }}
                       >
                         <p
                           style={{
                             margin: 0,
                             fontSize: `${elProps.fontSize ?? 13.5}px`,
-                            color: elProps.textColor || 'rgba(255, 255, 255, 0.72)',
-                            lineHeight: 1.6,
-                            maxWidth: elProps.maxWidth ? `${elProps.maxWidth}px` : isCentered ? '540px' : '320px',
-                            textAlign: isCentered ? 'center' : 'left',
+                            color: elProps.textColor || textColor,
+                            lineHeight: elProps.lineHeight ?? 1.65,
+                            maxWidth: elProps.maxWidth ? `${elProps.maxWidth}px` : isCentered ? '540px' : '340px',
+                            textAlign: isCentered ? 'center' : (elProps.textAlign || 'left'),
                           }}
                         >
                           {elProps.text ||
@@ -756,10 +832,12 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                           isElSelected ? styles.elementSelected : ''
                         }`}
                         style={{
-                          width: '100%',
+                          // Use auto width so the link group only takes up the space it needs
+                          // and can be positioned/aligned within the flex column
+                          width: isCentered ? '100%' : 'auto',
                           display: 'flex',
                           flexDirection: 'column',
-                          alignItems: isCentered ? 'center' : 'stretch',
+                          alignItems: isCentered ? 'center' : 'flex-start',
                         }}
                       >
                         {/* Column Header (Clickable Accordion on Mobile) */}
@@ -1446,10 +1524,799 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                         onClick={(e) => handleElementClick(e, el)}
                         className={`${isEditorInteractive ? styles.elementEditable : ''} ${
                           isElSelected ? styles.elementSelected : ''
-                        } ${elProps.cssClass || ''}`}
+                        }`}
                         dangerouslySetInnerHTML={{ __html: elProps.html || '' }}
                         style={{ opacity: isElVisible ? 1 : 0.45 }}
                       />
+                    );
+                  }
+
+                  // ─── 13. Group Container ───
+                  if (el.type === 'group') {
+                    const gDir = elProps.direction === 'row' ? 'row' : elProps.direction === 'wrap' ? 'row' : 'column';
+                    const gWrap = elProps.direction === 'wrap' ? 'wrap' : 'nowrap';
+                    const gGap = elProps.gap !== undefined ? `${elProps.gap}px` : '12px';
+                    const gAlign = elProps.alignItems || (isCentered ? 'center' : 'flex-start');
+                    const gJustify = elProps.justifyContent || (isCentered ? 'center' : 'flex-start');
+                    const children: FooterElement[] = elProps.children || (el as any).children || [];
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: gDir,
+                          flexWrap: gWrap,
+                          gap: gGap,
+                          alignItems: gAlign,
+                          justifyContent: gJustify,
+                          width: '100%',
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      >
+                        {children.map(renderItem)}
+                      </div>
+                    );
+                  }
+
+                  // ─── 14. Column Heading ───
+                  if (el.type === 'column-heading') {
+                    const headingTitle = elProps.title || el.name || 'Directory';
+                    const kicker = elProps.kicker;
+                    const size = elProps.size || 'md';
+                    const hasAccentBar = elProps.hasAccentBar ?? false;
+                    const accentColor = elProps.accentColor || '#6366f1';
+                    const titleColor = elProps.color || textColor;
+                    const fontSize = size === 'lg' ? '18px' : size === 'sm' ? '13px' : '15px';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: isCentered ? 'center' : 'flex-start',
+                          marginBottom: '10px',
+                          opacity: isElVisible ? 1 : 0.45,
+                        }}
+                      >
+                        {kicker && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.08em',
+                              fontWeight: 700,
+                              color: accentColor,
+                              marginBottom: '4px',
+                            }}
+                          >
+                            {kicker}
+                          </span>
+                        )}
+                        <h4
+                          style={{
+                            margin: 0,
+                            fontSize,
+                            fontWeight: 700,
+                            color: titleColor,
+                            letterSpacing: '-0.01em',
+                          }}
+                        >
+                          {headingTitle}
+                        </h4>
+                        {hasAccentBar && (
+                          <div
+                            style={{
+                              width: '26px',
+                              height: '3px',
+                              borderRadius: '2px',
+                              backgroundColor: accentColor,
+                              marginTop: '6px',
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // ─── 15. Brand Rating ───
+                  if (el.type === 'brand-rating') {
+                    const rating = elProps.rating ?? 4.9;
+                    const maxRating = elProps.maxRating ?? 5;
+                    const reviewCount = elProps.reviewCount || '2,400+ reviews';
+                    const platform = elProps.platform || 'Customer Reviews';
+                    const showStars = elProps.showStars !== false;
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          padding: '6px 12px',
+                          borderRadius: '9999px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '8px',
+                        }}
+                      >
+                        {showStars && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: '#f59e0b' }}>
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} size={13} fill={i < Math.floor(rating) ? '#f59e0b' : 'none'} />
+                            ))}
+                          </div>
+                        )}
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: textColor }}>
+                          {rating}/{maxRating}
+                        </span>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>•</span>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>
+                          {reviewCount} ({platform})
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  // ─── 16. Brand Story ───
+                  if (el.type === 'brand-story') {
+                    const headline = elProps.headline || 'Crafted with Purpose';
+                    const story = elProps.story || 'Born from a desire to elevate everyday experiences through meticulous design and sustainable craftsmanship.';
+                    const founder = elProps.founder || '';
+                    const year = elProps.year || 'Est. 2024';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: textColor }}>{headline}</h5>
+                          {year && <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.04em' }}>({year})</span>}
+                        </div>
+                        <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'rgba(255,255,255,0.75)' }}>{story}</p>
+                        {founder && <span style={{ fontSize: '12px', fontStyle: 'italic', color: 'rgba(255,255,255,0.6)' }}>— {founder}</span>}
+                      </div>
+                    );
+                  }
+
+                  // ─── 17. Store Locator ───
+                  if (el.type === 'store-locator') {
+                    const storeTitle = elProps.title || 'Flagship Boutique';
+                    const storeAddress = elProps.address || '452 Broadway, SoHo, New York, NY';
+                    const hours = elProps.hours || 'Mon–Sat: 10am – 8pm';
+                    const ctaText = elProps.ctaText || 'Get Directions';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '12px 14px',
+                          borderRadius: '10px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <MapPin size={15} color="#38bdf8" />
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: textColor }}>{storeTitle}</span>
+                        </div>
+                        <span style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{storeAddress}</span>
+                        {hours && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{hours}</span>}
+                        {ctaText && (
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '2px', cursor: 'pointer' }}>
+                            {ctaText} <ArrowUpRight size={13} />
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // ─── 18. WhatsApp Contact ───
+                  if (el.type === 'whatsapp-contact') {
+                    const phone = elProps.phone || '+1 (555) 019-2834';
+                    const label = elProps.label || 'WhatsApp Support';
+                    const subtext = elProps.subtext || 'Quick response';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 14px',
+                          borderRadius: '24px',
+                          backgroundColor: 'rgba(37, 211, 102, 0.12)',
+                          border: '1px solid rgba(37, 211, 102, 0.3)',
+                          color: '#25D366',
+                          cursor: 'pointer',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <MessageCircle size={18} fill="#25D366" color="#ffffff" />
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>{label}</span>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>{phone} • {subtext}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 19. Support CTA ───
+                  if (el.type === 'support-cta') {
+                    const title = elProps.title || 'Need Help?';
+                    const desc = elProps.description || 'Our concierge team is available around the clock.';
+                    const btnText = elProps.buttonText || 'Contact Concierge';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '14px',
+                          borderRadius: '10px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Headphones size={16} color="#818cf8" />
+                          <span style={{ fontSize: '13.5px', fontWeight: 700, color: textColor }}>{title}</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '12.5px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{desc}</p>
+                        <button
+                          type="button"
+                          style={{
+                            marginTop: '4px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            backgroundColor: '#818cf8',
+                            color: '#ffffff',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          {btnText}
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // ─── 20. Guarantees ───
+                  if (el.type === 'guarantees') {
+                    const items = Array.isArray(elProps.items)
+                      ? elProps.items
+                      : ['30-Day Money Back', '100% Authentic Guarantee', 'Free Returns'];
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        {items.map((item: any, i: number) => {
+                          const text = typeof item === 'string' ? item : item.text || item.title || '';
+                          return (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'rgba(255,255,255,0.85)' }}>
+                              <ShieldCheck size={15} color="#10b981" />
+                              <span>{text}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+
+                  // ─── 21. Shipping Highlights ───
+                  if (el.type === 'shipping-highlights' || el.type === 'shipping-benefits') {
+                    const items = Array.isArray(elProps.items)
+                      ? elProps.items
+                      : ['Free Express Shipping on Orders $75+', 'Worldwide Dispatch in 24 Hours'];
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        {items.map((item: any, i: number) => {
+                          const text = typeof item === 'string' ? item : item.text || item.title || '';
+                          return (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'rgba(255,255,255,0.85)' }}>
+                              <Truck size={15} color="#38bdf8" />
+                              <span>{text}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+
+                  // ─── 22. Cash on Delivery ───
+                  if (el.type === 'cod-availability') {
+                    const title = elProps.title || 'Cash on Delivery Available';
+                    const desc = elProps.description || 'Pay securely when your package arrives.';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <div style={{ padding: '6px', borderRadius: '6px', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                          <Banknote size={18} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>{title}</span>
+                          <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.6)' }}>{desc}</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 23. Security Badges ───
+                  if (el.type === 'security-badges' || el.type === 'security') {
+                    const items = Array.isArray(elProps.items)
+                      ? elProps.items
+                      : ['256-Bit SSL Encryption', 'PCI-DSS Compliant Checkout'];
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '8px',
+                        }}
+                      >
+                        {items.map((item: any, i: number) => {
+                          const text = typeof item === 'string' ? item : item.text || item.title || '';
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.09)',
+                                fontSize: '11.5px',
+                                color: 'rgba(255,255,255,0.8)',
+                              }}
+                            >
+                              <Lock size={12} color="#10b981" />
+                              <span>{text}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+
+                  // ─── 24. Community CTA ───
+                  if (el.type === 'community-cta') {
+                    const title = elProps.title || 'Join the Community';
+                    const desc = elProps.description || 'Access private drops, member perks, and private releases.';
+                    const btnText = elProps.buttonText || 'Join 50k+ Members';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '12px 14px',
+                          borderRadius: '10px',
+                          backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                          border: '1px solid rgba(99, 102, 241, 0.2)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Users size={16} color="#818cf8" />
+                          <span style={{ fontSize: '13.5px', fontWeight: 700, color: textColor }}>{title}</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{desc}</p>
+                        <button
+                          type="button"
+                          style={{
+                            marginTop: '4px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            backgroundColor: '#6366f1',
+                            color: '#ffffff',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          {btnText}
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // ─── 25. App Store Badge ───
+                  if (el.type === 'app-store-badge') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          backgroundColor: '#000000',
+                          color: '#ffffff',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          cursor: 'pointer',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <Apple size={22} fill="#ffffff" color="#ffffff" />
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
+                          <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.7)' }}>Download on the</span>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em' }}>App Store</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 26. Google Play Badge ───
+                  if (el.type === 'google-play-badge') {
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          backgroundColor: '#000000',
+                          color: '#ffffff',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          cursor: 'pointer',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <Play size={20} fill="#ffffff" color="#ffffff" />
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
+                          <span style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'rgba(255,255,255,0.7)' }}>GET IT ON</span>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.01em' }}>Google Play</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 27. Image + Text ───
+                  if (el.type === 'image-text') {
+                    const imgUrl = elProps.imageUrl;
+                    const title = elProps.title || 'Featured Story';
+                    const text = elProps.text || 'Discover the craftsmanship and heritage behind every piece.';
+                    const layoutMode = elProps.layout || 'vertical';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: layoutMode === 'horizontal' ? 'row' : 'column',
+                          gap: '10px',
+                          alignItems: layoutMode === 'horizontal' ? 'center' : 'flex-start',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        {imgUrl ? (
+                          <img
+                            src={imgUrl}
+                            alt={title}
+                            style={{
+                              width: layoutMode === 'horizontal' ? '64px' : '100%',
+                              height: layoutMode === 'horizontal' ? '64px' : '110px',
+                              borderRadius: '8px',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: layoutMode === 'horizontal' ? '64px' : '100%',
+                              height: layoutMode === 'horizontal' ? '64px' : '90px',
+                              borderRadius: '8px',
+                              backgroundColor: 'rgba(255,255,255,0.06)',
+                              border: '1px dashed rgba(255,255,255,0.15)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11px',
+                              color: 'rgba(255,255,255,0.4)',
+                            }}
+                          >
+                            Media
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <h5 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: textColor }}>{title}</h5>
+                          <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>{text}</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ─── 28. Promo Card ───
+                  if (el.type === 'promo-card') {
+                    const badge = elProps.badge || 'EXCLUSIVE';
+                    const headline = elProps.headline || '20% Off Your First Order';
+                    const code = elProps.code || 'WELCOME20';
+                    const btnText = elProps.buttonText || 'Claim Offer';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          padding: '14px',
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%)',
+                          border: '1px solid rgba(99, 102, 241, 0.25)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.15)', padding: '2px 7px', borderRadius: '4px' }}>
+                            {badge}
+                          </span>
+                          {code && (
+                            <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8', border: '1px dashed #38bdf8', padding: '1px 6px', borderRadius: '4px' }}>
+                              {code}
+                            </span>
+                          )}
+                        </div>
+                        <h5 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: textColor }}>{headline}</h5>
+                        <button
+                          type="button"
+                          style={{
+                            marginTop: '2px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            backgroundColor: '#6366f1',
+                            color: '#ffffff',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          {btnText}
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // ─── 29. Featured Link ───
+                  if (el.type === 'featured-link') {
+                    const title = elProps.title || 'Explore Latest Arrivals';
+                    const tag = elProps.tag || 'NEW';
+                    const desc = elProps.description;
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          opacity: isElVisible ? 1 : 0.45,
+                          cursor: 'pointer',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>{title}</span>
+                            {tag && (
+                              <span style={{ fontSize: '10px', fontWeight: 800, color: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', padding: '1px 5px', borderRadius: '3px' }}>
+                                {tag}
+                              </span>
+                            )}
+                          </div>
+                          {desc && <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.6)' }}>{desc}</span>}
+                        </div>
+                        <ArrowUpRight size={15} color="rgba(255,255,255,0.7)" />
+                      </div>
+                    );
+                  }
+
+                  // ─── 30. Legal Links Group ───
+                  if (
+                    el.type === 'legal-link-group' ||
+                    el.type === 'policy-links' ||
+                    el.type === 'privacy' ||
+                    el.type === 'terms' ||
+                    el.type === 'refund' ||
+                    el.type === 'shipping-policy' ||
+                    el.type === 'cookie-preferences' ||
+                    el.type === 'accessibility'
+                  ) {
+                    const links = Array.isArray(elProps.links)
+                      ? elProps.links
+                      : [
+                          { label: 'Privacy Policy', url: '/privacy' },
+                          { label: 'Terms of Service', url: '/terms' },
+                          { label: 'Cookie Preferences', url: '/cookies' },
+                        ];
+                    const layoutMode = elProps.layout || 'row';
+                    const sep = elProps.separator || '•';
+
+                    return (
+                      <div
+                        key={el.id}
+                        onClick={(e) => handleElementClick(e, el)}
+                        className={`${isEditorInteractive ? styles.elementEditable : ''} ${
+                          isElSelected ? styles.elementSelected : ''
+                        }`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: layoutMode === 'column' ? 'column' : 'row',
+                          flexWrap: 'wrap',
+                          gap: layoutMode === 'column' ? '6px' : '10px',
+                          alignItems: 'center',
+                          opacity: isElVisible ? 1 : 0.45,
+                          marginBottom: '6px',
+                        }}
+                      >
+                        {links.map((link: any, i: number) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && layoutMode !== 'column' && (
+                              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{sep}</span>
+                            )}
+                            <a
+                              href={link.url || '#'}
+                              onClick={(e) => e.preventDefault()}
+                              style={{
+                                fontSize: '12px',
+                                color: 'rgba(255,255,255,0.65)',
+                                textDecoration: 'none',
+                                transition: 'color 0.15s ease',
+                              }}
+                            >
+                              {link.label || 'Legal Link'}
+                            </a>
+                          </React.Fragment>
+                        ))}
+                      </div>
                     );
                   }
 
@@ -1472,8 +2339,10 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
             );
           })}
         </div>
-      </div>
-    </footer>
+      );
+    })}
+  </div>
+</footer>
   );
 };
 

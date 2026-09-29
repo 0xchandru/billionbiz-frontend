@@ -1,7 +1,8 @@
 // ============================================================
 // FOOTER COMPONENT PICKER MODAL (CENTER OVERLAY WIDGET)
-// Centered over the editor viewport, category filtered,
+// Centered over the editor viewport, 8-category grouped,
 // singleton validated with clear inline explanations.
+// Supports all 43 footer directory components.
 // ============================================================
 
 import React, { useState, useMemo } from 'react';
@@ -31,12 +32,31 @@ import {
   CreditCard,
   ShieldCheck,
   Smartphone,
+  Star,
+  ExternalLink,
+  Shield,
+  MapPin,
+  MessageCircle,
+  Headphones,
+  Award,
+  Truck,
+  Banknote,
+  Users,
+  Play,
+  QrCode,
+  LayoutList,
+  Megaphone,
+  LayoutGrid,
+  Heading,
+  Box,
+  Apple,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import {
   FOOTER_DIRECTORY_COMPONENTS,
   type ComponentPickerItem,
+  type FooterComponentCategory,
 } from './footerDirectoryModel';
 
 interface FooterComponentPickerModalProps {
@@ -44,66 +64,90 @@ interface FooterComponentPickerModalProps {
   rowId: string;
   columnId: string;
   columnIdx?: number;
+  groupId?: string;
   onClose: () => void;
 }
 
-// Icon renderer for picker items
-const renderPickerIcon = (iconName: string, size = 18, color = '#2563eb') => {
-  switch (iconName) {
-    case 'Sparkles':
-      return <Sparkles size={size} color="#f59e0b" />;
-    case 'FileText':
-      return <FileText size={size} color="#6366f1" />;
-    case 'BookOpen':
-      return <BookOpen size={size} color="#8b5cf6" />;
-    case 'Menu':
-      return <Menu size={size} color={color} />;
-    case 'ShoppingBag':
-      return <ShoppingBag size={size} color="#10b981" />;
-    case 'Layers':
-      return <Layers size={size} color="#0ea5e9" />;
-    case 'HelpCircle':
-      return <HelpCircle size={size} color="#ec4899" />;
-    case 'Building2':
-      return <Building2 size={size} color="#64748b" />;
-    case 'Compass':
-      return <Compass size={size} color="#f97316" />;
-    case 'ListPlus':
-      return <ListPlus size={size} color="#14b8a6" />;
-    case 'PhoneCall':
-      return <PhoneCall size={size} color="#38bdf8" />;
-    case 'Clock':
-      return <Clock size={size} color="#10b981" />;
-    case 'Type':
-      return <Type size={size} color="#6366f1" />;
-    case 'Image':
-      return <ImageIcon size={size} color="#8b5cf6" />;
-    case 'Code':
-      return <Code size={size} color="#64748b" />;
-    case 'Minus':
-      return <Minus size={size} color="#94a3b8" />;
-    case 'Maximize2':
-      return <Maximize2 size={size} color="#94a3b8" />;
-    case 'Mail':
-      return <Mail size={size} color="#ec4899" />;
-    case 'Share2':
-      return <Share2 size={size} color="#f59e0b" />;
-    case 'CreditCard':
-      return <CreditCard size={size} color="#0ea5e9" />;
-    case 'ShieldCheck':
-      return <ShieldCheck size={size} color="#10b981" />;
-    case 'Smartphone':
-      return <Smartphone size={size} color="#6366f1" />;
-    default:
-      return <Sparkles size={size} color={color} />;
-  }
+// Icon renderer for picker items — maps icon names to Lucide components
+const renderPickerIcon = (iconName: string, size = 18) => {
+  const iconMap: Record<string, React.ReactNode> = {
+    'Sparkles': <Sparkles size={size} color="#f59e0b" />,
+    'FileText': <FileText size={size} color="#6366f1" />,
+    'BookOpen': <BookOpen size={size} color="#8b5cf6" />,
+    'Star': <Star size={size} color="#f59e0b" />,
+    'Menu': <Menu size={size} color="#2563eb" />,
+    'ShoppingBag': <ShoppingBag size={size} color="#10b981" />,
+    'Layers': <Layers size={size} color="#0ea5e9" />,
+    'LayoutGrid': <LayoutGrid size={size} color="#6366f1" />,
+    'HelpCircle': <HelpCircle size={size} color="#ec4899" />,
+    'Building2': <Building2 size={size} color="#64748b" />,
+    'Compass': <Compass size={size} color="#f97316" />,
+    'ListPlus': <ListPlus size={size} color="#14b8a6" />,
+    'ExternalLink': <ExternalLink size={size} color="#2563eb" />,
+    'Shield': <Shield size={size} color="#6366f1" />,
+    'PhoneCall': <PhoneCall size={size} color="#38bdf8" />,
+    'Clock': <Clock size={size} color="#10b981" />,
+    'MapPin': <MapPin size={size} color="#f97316" />,
+    'MessageCircle': <MessageCircle size={size} color="#25d366" />,
+    'Headphones': <Headphones size={size} color="#6366f1" />,
+    'CreditCard': <CreditCard size={size} color="#0ea5e9" />,
+    'ShieldCheck': <ShieldCheck size={size} color="#10b981" />,
+    'Award': <Award size={size} color="#f59e0b" />,
+    'Truck': <Truck size={size} color="#0ea5e9" />,
+    'Banknote': <Banknote size={size} color="#10b981" />,
+    'Lock': <Lock size={size} color="#64748b" />,
+    'Mail': <Mail size={size} color="#ec4899" />,
+    'Share2': <Share2 size={size} color="#f59e0b" />,
+    'Users': <Users size={size} color="#6366f1" />,
+    'Smartphone': <Smartphone size={size} color="#6366f1" />,
+    'Apple': <Apple size={size} color="#334155" />,
+    'Play': <Play size={size} color="#10b981" />,
+    'QrCode': <QrCode size={size} color="#6366f1" />,
+    'Type': <Type size={size} color="#6366f1" />,
+    'Image': <ImageIcon size={size} color="#8b5cf6" />,
+    'LayoutList': <LayoutList size={size} color="#0ea5e9" />,
+    'Megaphone': <Megaphone size={size} color="#ef4444" />,
+    'Code': <Code size={size} color="#64748b" />,
+    'GroupIcon': <Box size={size} color="#6366f1" />,
+    'Heading': <Heading size={size} color="#334155" />,
+    'Minus': <Minus size={size} color="#94a3b8" />,
+    'Maximize2': <Maximize2 size={size} color="#94a3b8" />,
+  };
+  return iconMap[iconName] || <Sparkles size={size} color="#2563eb" />;
 };
+
+// Category display configuration
+const CATEGORY_CONFIG: Record<FooterComponentCategory, { label: string; description: string; accentColor: string }> = {
+  'BRAND': { label: 'Brand', description: 'Logo, bio, story, rating', accentColor: '#f59e0b' },
+  'NAVIGATION': { label: 'Navigation', description: 'Link groups & directories', accentColor: '#2563eb' },
+  'CONTACT': { label: 'Contact', description: 'Phone, email, store locator', accentColor: '#38bdf8' },
+  'COMMERCE & TRUST': { label: 'Commerce & Trust', description: 'Payments, trust, guarantees', accentColor: '#10b981' },
+  'ENGAGEMENT': { label: 'Engagement', description: 'Newsletter, social, community', accentColor: '#ec4899' },
+  'APP': { label: 'App', description: 'Download badges, QR codes', accentColor: '#6366f1' },
+  'CONTENT': { label: 'Content', description: 'Rich text, images, promos', accentColor: '#8b5cf6' },
+  'LEGAL': { label: 'Legal', description: 'Copyright & notice', accentColor: '#64748b' },
+  'LAYOUT': { label: 'Layout', description: 'Group, heading, divider, spacer', accentColor: '#94a3b8' },
+};
+
+// The ordered list of categories as they should appear in the picker
+const CATEGORY_ORDER: FooterComponentCategory[] = [
+  'BRAND',
+  'NAVIGATION',
+  'CONTACT',
+  'COMMERCE & TRUST',
+  'ENGAGEMENT',
+  'APP',
+  'CONTENT',
+  'LEGAL',
+  'LAYOUT',
+];
 
 export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProps> = ({
   isOpen,
   rowId,
   columnId,
   columnIdx = 0,
+  groupId,
   onClose,
 }) => {
   const { footerRows, addFooterElement, selectTarget } = useEditorContextStore();
@@ -129,16 +173,8 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
 
   if (!isOpen) return null;
 
-  // Filtered components grouped by category
-  const categories: Array<'BRANDING' | 'NAVIGATION' | 'CONTACT' | 'CONTENT' | 'LAYOUT'> = [
-    'BRANDING',
-    'NAVIGATION',
-    'CONTACT',
-    'CONTENT',
-    'LAYOUT',
-  ];
-
-  const filteredByCategory = categories.map((cat) => {
+  // Filtered components grouped by the 8 specified categories
+  const filteredByCategory = CATEGORY_ORDER.map((cat) => {
     const items = FOOTER_DIRECTORY_COMPONENTS.filter((comp) => {
       if (comp.category !== cat) return false;
       if (!searchQuery.trim()) return true;
@@ -146,10 +182,11 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
       return (
         comp.name.toLowerCase().includes(q) ||
         comp.description.toLowerCase().includes(q) ||
-        (comp.preset && comp.preset.toLowerCase().includes(q))
+        (comp.preset && comp.preset.toLowerCase().includes(q)) ||
+        comp.type.toLowerCase().includes(q)
       );
     });
-    return { category: cat, items };
+    return { category: cat, items, config: CATEGORY_CONFIG[cat] };
   }).filter((group) => group.items.length > 0);
 
   const handleSelectComponent = (comp: ComponentPickerItem, isDisabled: boolean) => {
@@ -164,7 +201,8 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
       effectiveColId,
       comp.type as any,
       comp.name,
-      comp.defaults
+      comp.defaults,
+      groupId
     );
 
     // Automatically select newly inserted component to open child overlay in right sidebar
@@ -179,6 +217,8 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
 
     onClose();
   };
+
+  const totalResults = filteredByCategory.reduce((acc, g) => acc + g.items.length, 0);
 
   return (
     <div
@@ -198,8 +238,8 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
       <div
         style={{
           width: '100%',
-          maxWidth: '640px',
-          maxHeight: '85vh',
+          maxWidth: '680px',
+          maxHeight: '88vh',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(0, 0, 0, 0.06)',
@@ -288,6 +328,11 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
               </button>
             )}
           </div>
+          {searchQuery && (
+            <div style={{ marginTop: '6px', fontSize: '11px', color: '#94a3b8' }}>
+              {totalResults} component{totalResults !== 1 ? 's' : ''} found
+            </div>
+          )}
         </div>
 
         {/* Component Category Groups */}
@@ -295,10 +340,10 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '20px 24px',
+            padding: '16px 24px 24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '24px',
+            gap: '20px',
           }}
         >
           {filteredByCategory.length === 0 ? (
@@ -308,24 +353,54 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
             </div>
           ) : (
             filteredByCategory.map((group) => (
-              <div key={group.category} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div key={group.category} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* Category Header */}
                 <div
                   style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.05em',
-                    color: '#64748b',
-                    textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    paddingBottom: '4px',
+                    borderBottom: `2px solid ${group.config.accentColor}15`,
                   }}
                 >
-                  {group.category}
+                  <div
+                    style={{
+                      width: '3px',
+                      height: '14px',
+                      backgroundColor: group.config.accentColor,
+                      borderRadius: '2px',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      color: '#334155',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {group.config.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10.5px',
+                      color: '#94a3b8',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {'\u2014'} {group.config.description}
+                  </span>
                 </div>
 
+                {/* Component Grid */}
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                    gap: '10px',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+                    gap: '8px',
                   }}
                 >
                   {group.items.map((comp) => {
@@ -337,7 +412,7 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
                         key={comp.id}
                         onClick={() => handleSelectComponent(comp, isSingletonUsed)}
                         style={{
-                          padding: '12px 14px',
+                          padding: '10px 12px',
                           borderRadius: '10px',
                           border: isSingletonUsed ? '1px dashed #cbd5e1' : '1px solid #e2e8f0',
                           backgroundColor: isSingletonUsed ? '#f8fafc' : '#ffffff',
@@ -345,14 +420,14 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
                           opacity: isSingletonUsed ? 0.65 : 1,
                           display: 'flex',
                           alignItems: 'flex-start',
-                          gap: '12px',
+                          gap: '10px',
                           transition: 'all 0.15s ease',
                           position: 'relative',
                         }}
                         onMouseEnter={(e) => {
                           if (!isSingletonUsed) {
-                            e.currentTarget.style.borderColor = '#2563eb';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.08)';
+                            e.currentTarget.style.borderColor = group.config.accentColor;
+                            e.currentTarget.style.boxShadow = `0 4px 12px ${group.config.accentColor}12`;
                             e.currentTarget.style.transform = 'translateY(-1px)';
                           }
                         }}
@@ -366,24 +441,24 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
                       >
                         <div
                           style={{
-                            width: '34px',
-                            height: '34px',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '8px',
-                            backgroundColor: isSingletonUsed ? '#f1f5f9' : '#eff6ff',
+                            backgroundColor: isSingletonUsed ? '#f1f5f9' : `${group.config.accentColor}10`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                           }}
                         >
-                          {renderPickerIcon(comp.icon, 18)}
+                          {renderPickerIcon(comp.icon, 16)}
                         </div>
 
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
                             <span
                               style={{
-                                fontSize: '13px',
+                                fontSize: '12.5px',
                                 fontWeight: 700,
                                 color: isSingletonUsed ? '#64748b' : '#0f172a',
                               }}
@@ -411,8 +486,8 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
                           </div>
                           <p
                             style={{
-                              margin: '3px 0 0',
-                              fontSize: '11px',
+                              margin: '2px 0 0',
+                              fontSize: '10.5px',
                               color: '#64748b',
                               lineHeight: 1.4,
                             }}
@@ -431,7 +506,7 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
           )}
         </div>
 
-        {/* Modal Footer Tip */}
+        {/* Modal Footer */}
         <div
           style={{
             padding: '12px 24px',
@@ -444,7 +519,7 @@ export const FooterComponentPickerModal: React.FC<FooterComponentPickerModalProp
             justifyContent: 'space-between',
           }}
         >
-          <span>Tip: Newsletter, Social, Trust, & Legal rows belong in dedicated Footer Stack sections.</span>
+          <span>{FOOTER_DIRECTORY_COMPONENTS.length} components available across {CATEGORY_ORDER.length} categories</span>
           <button
             type="button"
             onClick={onClose}

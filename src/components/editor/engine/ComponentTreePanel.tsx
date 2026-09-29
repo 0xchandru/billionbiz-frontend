@@ -1284,9 +1284,22 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                         switch (el.type) {
                                           case 'logo':
                                             return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
+                                          case 'group':
+                                            return <Layers size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
+                                          case 'column-heading':
+                                            return <FileText size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
                                           case 'brand-description':
                                           case 'brand-mission':
+                                          case 'brand-story':
                                             return <Box size={13} color={isElSelected ? '#2563eb' : '#3b82f6'} style={{ flexShrink: 0 }} />;
+                                          case 'brand-rating':
+                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
+                                          case 'store-locator':
+                                            return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
+                                          case 'whatsapp-contact':
+                                            return <Phone size={13} color={isElSelected ? '#2563eb' : '#22c55e'} style={{ flexShrink: 0 }} />;
+                                          case 'support-cta':
+                                            return <MousePointerClick size={13} color={isElSelected ? '#2563eb' : '#f97316'} style={{ flexShrink: 0 }} />;
                                           case 'contact':
                                           case 'address':
                                             return <Phone size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
@@ -1295,19 +1308,32 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                           case 'social-links':
                                           case 'social-icons':
                                           case 'social-follow':
+                                          case 'community-cta':
                                             return <Share2 size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
                                           case 'newsletter-form':
                                             return <Mail size={13} color={isElSelected ? '#2563eb' : '#ec4899'} style={{ flexShrink: 0 }} />;
                                           case 'payment-methods':
+                                          case 'cod-availability':
                                             return <CreditCard size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
                                           case 'trust-badges':
+                                          case 'guarantees':
+                                          case 'security-badges':
                                             return <ShieldCheck size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
+                                          case 'shipping-highlights':
+                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
                                           case 'app-download':
+                                          case 'app-store-badge':
+                                          case 'google-play-badge':
                                           case 'qr-code':
                                             return <Smartphone size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
+                                          case 'promo-card':
+                                          case 'image-text':
+                                            return <Bookmark size={13} color={isElSelected ? '#2563eb' : '#f43f5e'} style={{ flexShrink: 0 }} />;
                                           case 'copyright':
                                             return <FileText size={13} color={isElSelected ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />;
                                           case 'link-group':
+                                          case 'legal-link-group':
+                                          case 'featured-link':
                                           case 'navigation-menu':
                                             return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
                                           default:
@@ -1368,6 +1394,81 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                       </button>
                                     </div>
                                   </div>
+
+                                  {/* Nested Group Items in Tree */}
+                                  {el.type === 'group' && Array.isArray(el.props?.elements) && el.props.elements.length > 0 && (
+                                    <div style={{ width: '100%', paddingLeft: '14px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      {(el.props.elements as any[]).map((subEl: any, sIdx: number) => {
+                                        const isSubLast = sIdx === (el.props.elements as any[]).length - 1;
+                                        return (
+                                          <div
+                                            key={subEl.id}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              store.selectTarget({
+                                                type: 'element',
+                                                editorType: 'footer',
+                                                rowId: row.id,
+                                                elementId: el.id,
+                                                elementType: el.type,
+                                              });
+                                              useLandingEditorStore.getState().setSelectedSectionId(row.id);
+                                              useLandingEditorStore.getState().setRightSidebarOpen(true);
+                                            }}
+                                            style={{
+                                              position: 'relative',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between',
+                                              padding: '3px 6px 3px 12px',
+                                              borderRadius: '4px',
+                                              backgroundColor: '#f8fafc',
+                                              border: '1px solid #e2e8f0',
+                                              fontSize: '11px',
+                                              color: '#475569',
+                                              cursor: 'pointer',
+                                            }}
+                                          >
+                                            <div
+                                              style={{
+                                                position: 'absolute',
+                                                left: '4px',
+                                                top: 0,
+                                                bottom: isSubLast ? '50%' : 0,
+                                                width: '1px',
+                                                backgroundColor: '#cbd5e1',
+                                              }}
+                                            />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flex: 1 }}>
+                                              <Box size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
+                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {subEl.name || subEl.type}
+                                              </span>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                store.deleteFooterElement(row.id, subEl.id);
+                                              }}
+                                              title="Delete from group"
+                                              style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                padding: '2px',
+                                                cursor: 'pointer',
+                                                color: '#94a3b8',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                              }}
+                                            >
+                                              <Trash2 size={10} />
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -1443,7 +1544,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
               { type: 'app', name: 'App Download' },
               { type: 'contact', name: 'Contact / Store Information' },
               { type: 'payment', name: 'Payment & Security' },
-              { type: 'legal', name: 'Legal & Bottom Bar' },
+              { type: 'legal', name: 'Copyright & Legal' },
+              { type: 'seo', name: 'SEO / Rich Content' },
             ].map((option) => {
               const exists = store.footerRows.some((row) =>
                 row.type === option.type || (option.type === 'navigation' && (row.type === 'navigation' || row.id === 'row-main-nav'))

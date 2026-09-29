@@ -192,9 +192,11 @@
 
 /* ── Main Multi-Column Directory ── */
 .mainFooterGrid {
-  display: grid;
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .columnCard {
