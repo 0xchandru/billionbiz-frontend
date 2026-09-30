@@ -22,6 +22,7 @@ import {
   HEADER_ARRANGEMENTS,
   ANNOUNCEMENT_VARIANTS,
   createResponsiveArrangement,
+  createDefaultHeaderStack,
 } from './headerPresets';
 import { ThemeOverrideControl } from '../ui/ThemeOverrideControl';
 import { DeviceSelector, type DeviceType } from '../ui/DeviceSelector';
@@ -284,18 +285,95 @@ const PresetWireframe: React.FC<{
 
   // Header Wireframes
   switch (presetId) {
-    case 'floating':
-    case 'floating-pill':
+    case 'classic-standard':
+    case 'standard':
       return (
-        <div style={{ background: '#f1f5f9', borderRadius: '6px', padding: '5px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', height: '34px' }}>
-          <div style={{ width: '92%', height: '22px', borderRadius: '999px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#2563eb' }} />
+            <div style={{ width: '22px', height: '5px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <div style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '14px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+          </div>
+        </div>
+      );
+
+    case 'inline-nav-left':
+      return (
+        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#2563eb' }} />
-              <div style={{ width: '20px', height: '4px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#2563eb' }} />
+              <div style={{ width: '18px', height: '5px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
             </div>
-            <div style={{ display: 'flex', gap: '4px' }}>
+            <div style={{ width: '1px', height: '10px', backgroundColor: '#cbd5e1' }} />
+            <div style={{ display: 'flex', gap: '3px' }}>
+              <div style={{ width: '10px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+              <div style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '16px', height: '8px', borderRadius: '3px', backgroundColor: '#2563eb' }} />
+          </div>
+        </div>
+      );
+
+    case 'centered-brand':
+      return (
+        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <div style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '12px', height: '4px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <div style={{ width: '9px', height: '9px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+            <div style={{ width: '24px', height: '6px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+          </div>
+        </div>
+      );
+
+    case 'prominent-search':
+      return (
+        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#2563eb' }} />
+            <div style={{ width: '16px', height: '5px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+          </div>
+          <div style={{ flex: 1, height: '14px', borderRadius: '4px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', padding: '0 4px', gap: '3px' }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '28px', height: '3px', borderRadius: '1px', backgroundColor: '#cbd5e1' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+          </div>
+        </div>
+      );
+
+    case 'floating-pill':
+    case 'floating':
+      return (
+        <div style={{ background: '#e2e8f0', borderRadius: '6px', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #cbd5e1', height: '34px' }}>
+          <div style={{ width: '94%', height: '22px', borderRadius: '11px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', boxShadow: '0 2px 5px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563eb' }} />
+              <div style={{ width: '16px', height: '4px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+            </div>
+            <div style={{ display: 'flex', gap: '3px' }}>
               <div style={{ width: '10px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
-              <div style={{ width: '12px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
               <div style={{ width: '10px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
             </div>
             <div style={{ display: 'flex', gap: '3px' }}>
@@ -305,55 +383,63 @@ const PresetWireframe: React.FC<{
         </div>
       );
 
-    case 'transparent':
-    case 'transparent-overlay':
-      return (
-        <div style={{ background: 'linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.3) 60%, transparent 100%)', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #334155', height: '34px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '2px', backgroundColor: '#93c5fd' }} />
-            <div style={{ width: '22px', height: '4px', borderRadius: '2px', backgroundColor: '#e2e8f0' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <div style={{ width: '12px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
-            <div style={{ width: '12px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
-          </div>
-          <div style={{ display: 'flex', gap: '3px' }}>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#e2e8f0' }} />
-          </div>
-        </div>
-      );
-
+    case 'minimalist-clean':
     case 'minimal-hamburger':
-    case 'minimal-clean':
       return (
         <div style={{ background: '#ffffff', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ width: '12px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
-              <div style={{ width: '8px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
-              <div style={{ width: '12px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
-            </div>
-            <div style={{ width: '20px', height: '4px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
-          </div>
-          <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d97706' }} />
-        </div>
-      );
-
-    case 'side-rail':
-      return (
-        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '4px 6px', display: 'flex', border: '1px solid #e2e8f0', height: '34px', gap: '4px' }}>
-          <div style={{ width: '22px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0', borderRight: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#2563eb' }} />
-            <div style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
-            <div style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '22px', height: '5px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: '60%', height: '4px', borderRadius: '2px', backgroundColor: '#e2e8f0' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ width: '11px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
+              <div style={{ width: '8px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
+              <div style={{ width: '11px', height: '2px', borderRadius: '1px', backgroundColor: '#0f172a' }} />
+            </div>
           </div>
         </div>
       );
 
-    default: // standard
+    case 'two-tier-stacked':
+      return (
+        <div style={{ background: '#ffffff', borderRadius: '6px', padding: '3px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ width: '20px', height: '4px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+            <div style={{ width: '28px', height: '6px', borderRadius: '2px', backgroundColor: '#e2e8f0' }} />
+            <div style={{ width: '12px', height: '5px', borderRadius: '2px', backgroundColor: '#d97706' }} />
+          </div>
+          <div style={{ width: '100%', height: '1px', backgroundColor: '#f1f5f9' }} />
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', width: '100%' }}>
+            <div style={{ width: '12px', height: '3px', borderRadius: '1px', backgroundColor: '#2563eb' }} />
+            <div style={{ width: '14px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '12px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+            <div style={{ width: '14px', height: '3px', borderRadius: '1px', backgroundColor: '#94a3b8' }} />
+          </div>
+        </div>
+      );
+
+    case 'full-width-edge':
+      return (
+        <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #cbd5e1', height: '34px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <div style={{ width: '7px', height: '7px', borderRadius: '2px', backgroundColor: '#2563eb' }} />
+            <div style={{ width: '18px', height: '4px', borderRadius: '2px', backgroundColor: '#0f172a' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <div style={{ width: '14px', height: '3px', borderRadius: '1px', backgroundColor: '#64748b' }} />
+            <div style={{ width: '16px', height: '3px', borderRadius: '1px', backgroundColor: '#64748b' }} />
+            <div style={{ width: '14px', height: '3px', borderRadius: '1px', backgroundColor: '#64748b' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#64748b' }} />
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d97706' }} />
+          </div>
+        </div>
+      );
+
+    default: // classic-standard
       return (
         <div style={{ background: '#f8fafc', borderRadius: '6px', padding: '5px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', height: '34px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -390,11 +476,17 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
     cancelPreview,
     headerRows,
     headerSettings,
+    presetPreview,
   } = useEditorContextStore();
 
-  // Derive row reactively from headerRows
-  const row = (headerRows && headerRows.length > 0
-    ? (headerRows.find((r: HeaderRow) => r.id === propRow.id) || headerRows.find((r: HeaderRow) => r.type === propRow.type))
+  const isPresetPreviewActive = Boolean(presetPreview?.isActive && presetPreview?.editorType === 'header');
+  const effectiveHeaderRows = isPresetPreviewActive && presetPreview?.previewRows
+    ? (presetPreview.previewRows as HeaderRow[])
+    : headerRows;
+
+  // Derive row reactively from effectiveHeaderRows
+  const row = (effectiveHeaderRows && effectiveHeaderRows.length > 0
+    ? (effectiveHeaderRows.find((r: HeaderRow) => r.id === propRow.id) || effectiveHeaderRows.find((r: HeaderRow) => r.type === propRow.type))
     : undefined) || propRow;
 
   const isPrimaryNav = row.type === 'primary-nav' || row.id === 'row-primary-nav' || (row.type as string) === 'header';
@@ -537,52 +629,120 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
     const currentIsCompact = Boolean(row.layout?.isCompact);
 
     if (isPrimaryNav) {
-      const defaultArrangementId = variant.compatibleArrangementIds?.[0] || 'general';
+      const variantPrimary = variant.rows?.find((candidate: HeaderRow) => candidate.type === 'primary-nav');
+      const defaultArrangementId = variant.compatibleArrangementIds?.[0] || variantPrimary?.layout?.arrangementId || 'general';
       const arrangementObj = HEADER_ARRANGEMENTS.find((a) => a.id === defaultArrangementId);
       const arrangementLayout = arrangementObj?.layout;
-      const nextResponsiveArrangement = createResponsiveArrangement(
-        currentResponsiveArrangement,
-        arrangementLayout || variant.rows?.find((candidate: HeaderRow) => candidate.type === 'primary-nav')?.layout || {},
-        { variantId: variant.id },
-      );
+
+      // Prioritize the variant's exact responsive arrangement
+      const nextResponsiveArrangement = variantPrimary?.layout?.responsiveArrangement
+        ? JSON.parse(JSON.stringify(variantPrimary.layout.responsiveArrangement))
+        : createResponsiveArrangement(
+            currentResponsiveArrangement,
+            arrangementLayout || variantPrimary?.layout || {},
+            { variantId: variant.id },
+          );
+
+      // Ensure all standard core elements (logo, navigation, search, actions) exist in row.elements
+      const defaultElements = createDefaultHeaderStack().find((r: HeaderRow) => r.type === 'primary-nav')?.elements || [];
+      let updatedElements = [...row.elements];
+
+      const hasLogo = updatedElements.some((e: HeaderElement) => e.type === 'logo');
+      const hasNav = updatedElements.some((e: HeaderElement) => e.type === 'navigation' || e.type === 'primary-nav' || e.type === 'navigation-menu');
+      const hasSearch = updatedElements.some((e: HeaderElement) => e.type === 'search');
+      const hasActions = updatedElements.some((e: HeaderElement) => e.type === 'actions' || e.type === 'action-group');
+
+      if (!hasLogo) {
+        const defLogo = defaultElements.find((e: HeaderElement) => e.type === 'logo');
+        if (defLogo) updatedElements.unshift(defLogo);
+      }
+      if (!hasNav) {
+        const defNav = defaultElements.find((e: HeaderElement) => e.type === 'navigation');
+        if (defNav) updatedElements.push(defNav);
+      }
+      if (!hasSearch) {
+        const defSearch = defaultElements.find((e: HeaderElement) => e.type === 'search');
+        if (defSearch) updatedElements.push(defSearch);
+      }
+      if (!hasActions) {
+        const defActions = defaultElements.find((e: HeaderElement) => e.type === 'actions');
+        if (defActions) updatedElements.push(defActions);
+      }
+
+      // If switching to prominent-search, ensure search element is visible and mode is large-inline
+      if (variant.id === 'prominent-search') {
+        updatedElements = updatedElements.map((el) => {
+          if (el.type === 'search') {
+            return {
+              ...el,
+              isVisible: true,
+              props: {
+                ...el.props,
+                mode: 'large-inline',
+                placeholder: el.props?.placeholder || 'Search products, collections, brands...',
+                showCategoryFilter: true,
+              },
+            };
+          }
+          return el;
+        });
+      }
+
+      // If switching to any variant that uses navigation, ensure navigation is visible
+      if (variant.id !== 'minimalist-clean' && variant.id !== 'minimal-hamburger') {
+        updatedElements = updatedElements.map((el) => {
+          if (el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu') {
+            return { ...el, isVisible: true };
+          }
+          return el;
+        });
+      }
 
       const newLayout = {
         ...row.layout,
         variantId: variant.id,
-        arrangementId: defaultArrangementId,
-        alignment: arrangementObj?.layout?.alignment || row.layout?.alignment || 'space-between',
-        logoPosition: arrangementObj?.layout?.logoPosition || row.layout?.logoPosition || 'left',
-        navPosition: arrangementObj?.layout?.navPosition || row.layout?.navPosition || 'center',
-        actionsPosition: arrangementObj?.layout?.actionsPosition || row.layout?.actionsPosition || 'right',
+        arrangementId: variantPrimary?.layout?.arrangementId || defaultArrangementId,
+        alignment: variantPrimary?.layout?.alignment || arrangementObj?.layout?.alignment || row.layout?.alignment || 'space-between',
+        logoPosition: variantPrimary?.layout?.logoPosition || arrangementObj?.layout?.logoPosition || row.layout?.logoPosition || 'left',
+        navPosition: variantPrimary?.layout?.navPosition || arrangementObj?.layout?.navPosition || row.layout?.navPosition || 'center',
+        actionsPosition: variantPrimary?.layout?.actionsPosition || arrangementObj?.layout?.actionsPosition || row.layout?.actionsPosition || 'right',
+        container: variantPrimary?.layout?.container || row.layout?.container || 'constrained',
+        paddingX: variantPrimary?.layout?.paddingX ?? row.layout?.paddingX,
+        paddingY: variantPrimary?.layout?.paddingY ?? row.layout?.paddingY,
+        gap: variantPrimary?.layout?.gap ?? row.layout?.gap,
         responsiveArrangement: nextResponsiveArrangement,
         // CRITICAL CONSTRAINT: Preserve fixed height and compact mode — NEVER alter height or compact mode based on variant!
         height: currentHeight,
         isCompact: currentIsCompact,
       };
 
-      const variantPrimary = variant.rows?.find((candidate: HeaderRow) => candidate.type === 'primary-nav');
       const presetStyling = variantPrimary?.styling;
       const inheritedStyling = presetStyling
         ? {
-            ...presetStyling,
+            ...row.styling,
+            radius: presetStyling.radius ?? 0,
+            shadow: presetStyling.shadow ?? 'none',
+            borderBottom: presetStyling.borderBottom ?? true,
+            borderColor: presetStyling.borderColor || row.styling.borderColor,
+            fontSize: presetStyling.fontSize || row.styling.fontSize || 14,
+            fontWeight: presetStyling.fontWeight || row.styling.fontWeight || 600,
             bgColor: row.styling.bgColor,
             textColor: row.styling.textColor,
-            borderColor: row.styling.borderColor,
             bgGradient: row.styling.bgGradient,
             bgImage: row.styling.bgImage,
             bgVideo: row.styling.bgVideo,
           }
         : row.styling;
 
-      // Cleanly sanitize styling: when leaving floating or transparent, completely reset radius, glassmorphism, background, and shadows
       updateHeaderRowAndStudio(row.id, {
         layout: newLayout,
         styling: inheritedStyling,
+        elements: updatedElements,
       });
 
       // Clear all variant-specific global overrides and apply the new variant's overrides
       const baseGlobalOverrides = {
-        positioning: (variant.id === 'floating' ? 'floating' : (variant.id === 'transparent' ? 'overlay' : 'static')) as any,
+        positioning: (variant.id === 'floating' || variant.id === 'floating-pill' ? 'floating' : (variant.id === 'transparent' ? 'overlay' : 'static')) as any,
         heroAwareMode: (variant.id === 'transparent' ? 'transparent-hero' : 'standard') as any,
       };
       const finalGlobalOverrides = {
@@ -607,7 +767,7 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
     }
 
     if (isPrimaryNav) {
-      previewVariant('header', variant.id, false);
+      cancelPreview();
     }
   };
 
@@ -616,18 +776,80 @@ export const HeaderSectionInspector: React.FC<HeaderSectionInspectorProps> = ({
     const currentHeight = row.layout?.height ?? 64;
     const currentIsCompact = Boolean(row.layout?.isCompact);
 
+    // Ensure all standard core elements exist
+    const defaultElements = createDefaultHeaderStack().find((r: HeaderRow) => r.type === 'primary-nav')?.elements || [];
+    let updatedElements = [...row.elements];
+
+    const hasLogo = updatedElements.some((e: HeaderElement) => e.type === 'logo');
+    const hasNav = updatedElements.some((e: HeaderElement) => e.type === 'navigation' || e.type === 'primary-nav' || e.type === 'navigation-menu');
+    const hasSearch = updatedElements.some((e: HeaderElement) => e.type === 'search');
+    const hasActions = updatedElements.some((e: HeaderElement) => e.type === 'actions' || e.type === 'action-group');
+
+    if (!hasLogo) {
+      const defLogo = defaultElements.find((e: HeaderElement) => e.type === 'logo');
+      if (defLogo) updatedElements.unshift(defLogo);
+    }
+    if (!hasNav) {
+      const defNav = defaultElements.find((e: HeaderElement) => e.type === 'navigation');
+      if (defNav) updatedElements.push(defNav);
+    }
+    if (!hasSearch) {
+      const defSearch = defaultElements.find((e: HeaderElement) => e.type === 'search');
+      if (defSearch) updatedElements.push(defSearch);
+    }
+    if (!hasActions) {
+      const defActions = defaultElements.find((e: HeaderElement) => e.type === 'actions');
+      if (defActions) updatedElements.push(defActions);
+    }
+
+    // If arrangement has center search, configure search element as large-inline
+    const isSearchHub = arr.id === 'search-center' || arr.layout?.searchPosition === 'center' || arr.layout?.responsiveArrangement?.desktop?.center?.includes('search');
+    if (isSearchHub) {
+      updatedElements = updatedElements.map((el) => {
+        if (el.type === 'search') {
+          return {
+            ...el,
+            isVisible: true,
+            props: {
+              ...el.props,
+              mode: 'large-inline',
+              placeholder: el.props?.placeholder || 'Search products, collections, brands...',
+              showCategoryFilter: true,
+            },
+          };
+        }
+        return el;
+      });
+    }
+
+    // Ensure navigation is visible for all arrangements except hamburger-right
+    if (arr.id !== 'hamburger-right') {
+      updatedElements = updatedElements.map((el) => {
+        if (el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu') {
+          return { ...el, isVisible: true };
+        }
+        return el;
+      });
+    }
+
+    const nextResponsiveArrangement = arr.layout?.responsiveArrangement
+      ? JSON.parse(JSON.stringify(arr.layout.responsiveArrangement))
+      : createResponsiveArrangement(currentResponsiveArrangement, arr.layout, { variantId: row.layout?.variantId });
+
     updateHeaderRowAndStudio(row.id, {
       layout: {
         ...row.layout,
         ...arr.layout,
         arrangementId: arr.id,
-        responsiveArrangement: createResponsiveArrangement(currentResponsiveArrangement, arr.layout),
+        responsiveArrangement: nextResponsiveArrangement,
         // CRITICAL CONSTRAINT: Preserve fixed height and compact mode — NEVER alter height or compact mode based on arrangement!
         height: currentHeight,
         isCompact: currentIsCompact,
       },
+      elements: updatedElements,
     });
 
+    cancelPreview();
     setToastMessage(`✓ Arrangement "${arr.name}" selected.`);
     setTimeout(() => setToastMessage(null), 2500);
   };

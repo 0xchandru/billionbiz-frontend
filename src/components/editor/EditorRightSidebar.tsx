@@ -167,6 +167,7 @@ import {
   PaymentSectionInspector,
   LegalSectionInspector,
   SeoSectionInspector,
+  CategoryLinksSectionInspector,
 } from './engine/FooterSectionInspectors';
 import type { FooterRow, FooterColumn, FooterElement } from './engine/types';
 import styles from '../../pages/editor/EditorLayout.module.css';
@@ -9457,6 +9458,122 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
 
             <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
 
+            {/* ─── 1b. Columns Parent Container Alignment & Auto Width ─ */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Columns Container & Alignment
+                </span>
+                <span style={{ fontSize: '10px', color: '#2563eb', backgroundColor: '#eff6ff', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                  Center Container
+                </span>
+              </div>
+              <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#64748b', lineHeight: 1.4 }}>
+                Set container to Auto width to align the entire columns block in the center while keeping internal columns left-aligned.
+              </p>
+
+              {/* Container Width Mode */}
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>
+                  Container Width Sizing
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                  {[
+                    { id: 'auto', label: 'Auto (Fit)', desc: 'Fit to columns' },
+                    { id: 'full', label: 'Full (100%)', desc: 'Stretch across' },
+                    { id: 'custom', label: 'Custom', desc: 'Set max px' },
+                  ].map((mode) => {
+                    const isCur = (layout.columnsContainerWidth || 'full') === mode.id;
+                    return (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => handleUpdateLayout({ columnsContainerWidth: mode.id as any })}
+                        style={{
+                          padding: '7px 4px',
+                          borderRadius: '6px',
+                          border: isCur ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                          backgroundColor: isCur ? '#eff6ff' : '#f8fafc',
+                          color: isCur ? '#1d4ed8' : '#475569',
+                          fontSize: '11px',
+                          fontWeight: isCur ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {mode.label}
+                        <div style={{ fontSize: '9.5px', color: isCur ? '#3b82f6' : '#94a3b8', marginTop: '1px' }}>{mode.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Width Input if custom */}
+              {layout.columnsContainerWidth === 'custom' && (
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                    Custom Container Max Width (px)
+                  </label>
+                  <input
+                    type="number"
+                    value={layout.columnsContainerCustomWidth || 960}
+                    onChange={(e) => handleUpdateLayout({ columnsContainerCustomWidth: Number(e.target.value) || 960 })}
+                    placeholder="960"
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Container Horizontal Alignment */}
+              <div>
+                <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '5px' }}>
+                  Container Alignment in Section
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                  {[
+                    { id: 'flex-start' as const, label: 'Align Left' },
+                    { id: 'center' as const, label: 'Align Center' },
+                    { id: 'flex-end' as const, label: 'Align Right' },
+                  ].map((alignOpt) => {
+                    const curAlign = String(layout.columnsContainerAlignment || layout.columnsContainerAlign || 'flex-start');
+                    const isCur = curAlign === alignOpt.id || (alignOpt.id === 'flex-start' && (curAlign === 'left' || curAlign === 'start')) || (alignOpt.id === 'flex-end' && (curAlign === 'right' || curAlign === 'end'));
+                    return (
+                      <button
+                        key={alignOpt.id}
+                        type="button"
+                        onClick={() => handleUpdateLayout({ columnsContainerAlignment: alignOpt.id, columnsContainerAlign: alignOpt.id })}
+                        style={{
+                          padding: '7px 4px',
+                          borderRadius: '6px',
+                          border: isCur ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                          backgroundColor: isCur ? '#eff6ff' : '#f8fafc',
+                          color: isCur ? '#1d4ed8' : '#475569',
+                          fontSize: '11px',
+                          fontWeight: isCur ? 700 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.12s ease',
+                        }}
+                      >
+                        {alignOpt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
             {/* ─── 2. Column Alignment ────────────────────────── */}
             <div>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
@@ -10249,6 +10366,9 @@ export const FooterDirectoryRightEditor: React.FC<{ row?: FooterRow; onClose: ()
   }
   if (row.type === 'seo') {
     return <SeoSectionInspector key={row.id} row={row} onClose={onClose} />;
+  }
+  if (row.type === 'category-links') {
+    return <CategoryLinksSectionInspector key={row.id} row={row} onClose={onClose} />;
   }
 
   // Footer Directory (Permanently locked parent, 20 Looks, inline column controls)

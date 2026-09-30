@@ -135,8 +135,6 @@ export const FooterNewsletterSection: React.FC<FooterNewsletterSectionProps> = (
         paddingRight: isMobile ? '16px' : `${layout.paddingX ?? 32}px`,
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>Newsletter & Lead Capture</div>}
-
       <div
         className={
           containerMode === 'boxed'

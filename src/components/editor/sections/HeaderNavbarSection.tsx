@@ -177,12 +177,36 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
     executeSelect();
   };
 
-  // Find standard elements
+  // Find standard elements with robust fallbacks
   const logoEl = row.elements.find((e) => e.type === 'logo') || row.elements[0];
   const navEl = row.elements.find(
     (e) => e.type === 'navigation' || e.type === 'primary-nav' || e.type === 'navigation-menu'
-  );
-  const searchEl = row.elements.find((e) => e.type === 'search');
+  ) || {
+    id: 'el-nav-default',
+    type: 'navigation' as const,
+    name: 'Navigation',
+    isVisible: true,
+    props: {
+      links: [
+        { id: 'nav-home', label: 'Home', url: '/' },
+        { id: 'nav-shop', label: 'Shop', url: '/shop' },
+        { id: 'nav-collections', label: 'Collections', url: '/collections' },
+        { id: 'nav-about', label: 'About Us', url: '/about' },
+        { id: 'nav-contact', label: 'Contact', url: '/contact' },
+      ],
+    },
+  };
+  const searchEl = row.elements.find((e) => e.type === 'search') || {
+    id: 'el-search-default',
+    type: 'search' as const,
+    name: 'Search Bar',
+    isVisible: true,
+    props: {
+      mode: 'large-inline',
+      placeholder: 'Search products, collections, brands...',
+      showCategoryFilter: true,
+    },
+  };
   const actionsEl = row.elements.find((e) => e.type === 'actions' || e.type === 'action-group');
   const menuEl = row.elements.find((e) => e.type === 'menu');
   const ctaEl = row.elements.find((e) => e.type === 'cta');
@@ -231,14 +255,139 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
   const horizontalPadding = row.layout?.responsivePadding?.[device]?.left ?? row.layout?.paddingX ?? 24;
 
   const renderSearch = () => {
-    if (!searchEl || searchEl.isVisible === false) return null;
+    if (!searchEl) return null;
     const isSelected =
       isEditingHeader &&
       store.selectedTarget.type === 'element' &&
       (store.selectedTarget.elementId === searchEl.id || store.selectedTarget.elementType === 'search');
     const isHovered = hoveredElementId === searchEl.id;
     const searchProps = searchEl.props || {};
-    const isInline = searchProps.mode === 'inline' || searchProps.mode === 'large-inline' || searchProps.mode === 'command';
+
+    const responsiveArrangement = row.layout?.responsiveArrangement?.[device as 'desktop' | 'tablet' | 'mobile'];
+    const isCenterSlot = Boolean(responsiveArrangement?.center?.includes('search'));
+    const isLargeSearch =
+      isCenterSlot ||
+      variantId === 'prominent-search' ||
+      row.layout?.arrangementId === 'search-center' ||
+      row.layout?.searchPosition === 'center' ||
+      searchProps.mode === 'large-inline' ||
+      searchProps.mode === 'inline' ||
+      searchProps.mode === 'command';
+
+    if (isLargeSearch) {
+      return (
+        <div
+          id="header-search-element"
+          className={`${styles.elementEditable} ${isSelected ? styles.elementSelected : isHovered ? styles.elementHovered : ''}`}
+          onClick={(event) => handleElementClick(event, searchEl)}
+          onMouseEnter={() => setHoveredElementId(searchEl.id)}
+          onMouseLeave={() => setHoveredElementId(null)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: isCenterSlot ? '640px' : '360px',
+            margin: isCenterSlot ? '0 auto' : undefined,
+            cursor: isEditorInteractive ? 'pointer' : 'default',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '100%',
+              height: '42px',
+              backgroundColor: '#f8fafc',
+              border: `1.5px solid ${isSelected ? brandPrimary : '#cbd5e1'}`,
+              borderRadius: `${searchProps.radius ?? 8}px`,
+              padding: '0 4px 0 14px',
+              gap: '10px',
+              boxShadow: isSelected ? `0 0 0 3px rgba(37, 99, 235, 0.15)` : '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.15s ease',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', flexShrink: 0 }}>
+              <Search size={18} />
+            </div>
+
+            {searchProps.showCategoryFilter !== false && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 8px',
+                  backgroundColor: '#f1f5f9',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#475569',
+                  whiteSpace: 'nowrap',
+                  borderRight: '1px solid #e2e8f0',
+                  flexShrink: 0,
+                }}
+              >
+                <span>{searchProps.categoryFilterLabel || 'All Categories'}</span>
+                <ChevronDown size={12} style={{ opacity: 0.6 }} />
+              </div>
+            )}
+
+            <div
+              style={{
+                flex: 1,
+                fontSize: '13px',
+                color: '#64748b',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {searchProps.placeholder || 'Search products, collections, brands...'}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <span
+                style={{
+                  display: device === 'desktop' ? 'inline-flex' : 'none',
+                  alignItems: 'center',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#94a3b8',
+                  padding: '2px 6px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '4px',
+                }}
+              >
+                ⌘K
+              </span>
+              <button
+                type="button"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 16px',
+                  height: '34px',
+                  backgroundColor: brandPrimary,
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: `${Math.max(4, (searchProps.radius ?? 8) - 2)}px`,
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: isEditorInteractive ? 'pointer' : 'default',
+                  gap: '6px',
+                }}
+              >
+                <span>Search</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const searchIcon = searchProps.iconUrl ? <img src={searchProps.iconUrl} alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} /> : searchProps.iconType === 'command' ? <span style={{ fontSize: 16, lineHeight: 1 }}>⌘</span> : <Search size={18} />;
     return (
       <div
@@ -249,16 +398,9 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
         onMouseLeave={() => setHoveredElementId(null)}
         style={{ display: 'flex', alignItems: 'center', minWidth: 0, cursor: isEditorInteractive ? 'pointer' : 'default' }}
       >
-        {isInline ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: searchProps.width || (searchProps.mode === 'large-inline' ? 360 : 220), maxWidth: '100%', padding: '8px 12px', border: `1px solid ${borderColor}`, borderRadius: `${searchProps.radius || 8}px`, background: 'rgba(255,255,255,0.7)', color: '#64748b' }}>
-            {searchIcon}
-            <span style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{searchProps.placeholder || 'Search products...'}</span>
-          </div>
-        ) : (
-          <button type="button" className={styles.iconBtn} title="Search" aria-label="Search" style={{ color: textColor }}>
-            {searchIcon}
-          </button>
-        )}
+        <button type="button" className={styles.iconBtn} title="Search" aria-label="Search" style={{ color: textColor }}>
+          {searchIcon}
+        </button>
       </div>
     );
   };
@@ -453,7 +595,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
 
   // ── Render Navigation Links ──
   const renderNavigation = (customItems?: any[]) => {
-    if (!navEl || navEl.isVisible === false || device === 'mobile') return null;
+    if (device === 'mobile') return null;
     const isElSelected =
       isEditingHeader &&
       store.selectedTarget.type === 'element' &&
@@ -742,9 +884,14 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
       const hasRight = rightKeys.length > 0;
 
       const gapVal = `${row.layout?.[`${device}Gap` as 'desktopGap' | 'tabletGap' | 'mobileGap'] || row.layout?.gap || 16}px`;
-      const maxWidth = row.layout?.container === 'boxed' ? '1024px' : '1240px';
+      const maxWidth =
+        row.layout?.container === 'full' || row.layout?.container === 'edge-to-edge'
+          ? '100%'
+          : row.layout?.container === 'boxed'
+          ? '1120px'
+          : '1280px';
 
-      const renderSlot = (slot: keyof HeaderSlotArrangement, customJustify?: string) => {
+      const renderSlot = (slot: keyof HeaderSlotArrangement, customJustify?: string, customStyle?: React.CSSProperties) => {
         const keys = responsiveArrangement[slot] || [];
         if (keys.length === 0) return null;
         return (
@@ -757,6 +904,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
               gap: gapVal,
               minWidth: 0,
               flex: slot === 'center' && !customJustify ? 1 : '0 1 auto',
+              ...customStyle,
             }}
           >
             {keys.map((componentKey) => {
@@ -767,33 +915,30 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
         );
       };
 
-      // When any visible container does not have child items:
-      // Case 1: Exactly 2 visible containers have child items -> use them for left and right with space-between
+      // Case 1: Exactly 2 visible containers have child items
       if (hasLeft && hasRight && !hasCenter) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
-            {renderSlot('left', 'flex-start')}
-            {renderSlot('right', 'flex-end')}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
+            {renderSlot('left', 'flex-start', { flex: '1 1 auto', minWidth: 0 })}
+            {renderSlot('right', 'flex-end', { flex: '0 0 auto' })}
           </div>
         );
       }
 
       if (!hasLeft && hasCenter && hasRight) {
-        // Use center container for left, right container for right based on space-between
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
-            {renderSlot('center', 'flex-start')}
-            {renderSlot('right', 'flex-end')}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
+            {renderSlot('center', centerKeys.includes('search') ? 'center' : 'flex-start', { flex: '1 1 auto', minWidth: 0, width: centerKeys.includes('search') ? '100%' : undefined, maxWidth: centerKeys.includes('search') ? '640px' : undefined, margin: centerKeys.includes('search') ? '0 16px' : undefined })}
+            {renderSlot('right', 'flex-end', { flex: '0 0 auto' })}
           </div>
         );
       }
 
       if (hasLeft && hasCenter && !hasRight) {
-        // Use left container for left, center container for right based on space-between
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
-            {renderSlot('left', 'flex-start')}
-            {renderSlot('center', 'flex-end')}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
+            {renderSlot('left', 'flex-start', { flex: '0 0 auto' })}
+            {renderSlot('center', centerKeys.includes('search') ? 'center' : 'flex-end', { flex: '1 1 auto', minWidth: 0, width: centerKeys.includes('search') ? '100%' : undefined, maxWidth: centerKeys.includes('search') ? '640px' : undefined, margin: centerKeys.includes('search') ? '0 16px' : undefined })}
           </div>
         );
       }
@@ -801,7 +946,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
       // Case 2: Only 1 visible container has items
       if (hasLeft && !hasCenter && !hasRight) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
             {renderSlot('left', 'flex-start')}
           </div>
         );
@@ -809,7 +954,7 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
 
       if (!hasLeft && hasCenter && !hasRight) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
             {renderSlot('center', 'center')}
           </div>
         );
@@ -817,18 +962,41 @@ export const HeaderNavbarSection: React.FC<HeaderNavbarSectionProps> = ({
 
       if (!hasLeft && !hasCenter && hasRight) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%', maxWidth, margin: '0 auto', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
             {renderSlot('right', 'flex-end')}
           </div>
         );
       }
 
       // Case 3: All 3 visible containers have child items
+      // 3A: Prominent Search in center container -> wide, expansive searchbar
+      if (centerKeys.includes('search')) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
+            {renderSlot('left', 'flex-start', { flex: '0 0 auto' })}
+            {renderSlot('center', 'center', { flex: '1 1 auto', width: '100%', maxWidth: '640px', margin: '0 16px' })}
+            {renderSlot('right', 'flex-end', { flex: '0 0 auto' })}
+          </div>
+        );
+      }
+
+      // 3B: Centered brand masthead -> symmetrical grid so logo is 100% centered
+      if (centerKeys.includes('logo')) {
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', maxWidth, margin: '0 auto', gap: '20px' }}>
+            {renderSlot('left', 'flex-start')}
+            {renderSlot('center', 'center')}
+            {renderSlot('right', 'flex-end')}
+          </div>
+        );
+      }
+
+      // 3C: Standard balanced navbar (Nav in Center) -> flex: 1 1 auto so navigation never gets squished
       return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr)', alignItems: 'center', width: '100%', maxWidth, margin: '0 auto', gap: '12px' }}>
-          {renderSlot('left')}
-          {renderSlot('center')}
-          {renderSlot('right')}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth, margin: '0 auto', gap: gapVal }}>
+          {renderSlot('left', 'flex-start', { flex: '0 0 auto' })}
+          {renderSlot('center', 'center', { flex: '1 1 auto', minWidth: 0 })}
+          {renderSlot('right', 'flex-end', { flex: '0 0 auto' })}
         </div>
       );
     }

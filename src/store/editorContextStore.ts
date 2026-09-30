@@ -1064,6 +1064,128 @@ export const useEditorContextStore = create<EditorContextState>()(
               ],
             },
           ];
+        } else if (type === 'category-links') {
+          defaultColumns = [
+            {
+              id: `col-catlinks-${Date.now().toString(36)}`,
+              width: '1fr',
+              elements: [
+                {
+                  id: `el-ftr-catlinks-${Date.now().toString(36)}`,
+                  type: 'category-links' as any,
+                  name: 'Category Directory Links',
+                  capabilities: ['style', 'content', 'responsive'],
+                  props: {
+                    separator: ', ',
+                    titleTransform: 'uppercase',
+                    titleColor: '#0f172a',
+                    linkColor: '#64748b',
+                    linkHoverColor: '#0f172a',
+                    fontSize: 13,
+                    categories: [
+                      {
+                        id: 'cat-1',
+                        name: 'KITCHEN',
+                        links: [
+                          { label: 'Storage Jars', url: '#' },
+                          { label: 'Storage Containers', url: '#' },
+                          { label: 'Lunch Boxes', url: '#' },
+                          { label: 'Casseroles', url: '#' },
+                          { label: 'Lunch Bags', url: '#' },
+                          { label: 'Kitchen Tools', url: '#' },
+                          { label: 'Baking Dishes', url: '#' },
+                          { label: 'Kitchen Racks', url: '#' },
+                          { label: 'Cookware', url: '#' },
+                          { label: 'Cooking Pots', url: '#' },
+                          { label: 'Stainless Steel Cookware', url: '#' },
+                          { label: 'Aprons', url: '#' }
+                        ]
+                      },
+                      {
+                        id: 'cat-2',
+                        name: 'DINING',
+                        links: [
+                          { label: 'Plates', url: '#' },
+                          { label: 'Platters', url: '#' },
+                          { label: 'Bowls', url: '#' },
+                          { label: 'Snack Bowls', url: '#' },
+                          { label: 'Table Linen', url: '#' },
+                          { label: 'Tea Cups', url: '#' },
+                          { label: 'Coffee Mugs', url: '#' },
+                          { label: 'Water Bottles', url: '#' },
+                          { label: 'Wine Glasses', url: '#' },
+                          { label: 'Champagne Glasses', url: '#' },
+                          { label: 'Tumblers', url: '#' },
+                          { label: 'Table Mats', url: '#' },
+                          { label: 'Cake Stands', url: '#' },
+                          { label: 'Serving Bowls', url: '#' },
+                          { label: 'Dinner Plates', url: '#' },
+                          { label: 'Section Plates', url: '#' },
+                          { label: 'Drinkware', url: '#' }
+                        ]
+                      },
+                      {
+                        id: 'cat-3',
+                        name: 'DECOR',
+                        links: [
+                          { label: 'Puja Essentials', url: '#' },
+                          { label: 'Showpieces', url: '#' },
+                          { label: 'Photo Frames', url: '#' },
+                          { label: 'Baskets', url: '#' },
+                          { label: 'Mirrors', url: '#' },
+                          { label: 'Candles', url: '#' },
+                          { label: 'Candle Stands', url: '#' },
+                          { label: "Kids' Collection", url: '#' },
+                          { label: 'Vases', url: '#' },
+                          { label: 'Tissue Boxes', url: '#' },
+                          { label: 'Decorative Trays', url: '#' },
+                          { label: 'Table Accents', url: '#' },
+                          { label: 'Decorative Bowls', url: '#' }
+                        ]
+                      },
+                      {
+                        id: 'cat-4',
+                        name: 'BATH',
+                        links: [
+                          { label: 'Floor Mats', url: '#' },
+                          { label: 'Dustbins', url: '#' },
+                          { label: 'Bathroom Accessories', url: '#' },
+                          { label: 'Bathroom Sets', url: '#' },
+                          { label: 'Dispensers', url: '#' }
+                        ]
+                      },
+                      {
+                        id: 'cat-5',
+                        name: 'BAGS AND ACCESSORIES',
+                        links: [
+                          { label: 'Car Accessories', url: '#' },
+                          { label: 'Jewellery', url: '#' },
+                          { label: 'Earrings', url: '#' },
+                          { label: 'Rings', url: '#' },
+                          { label: 'Makeup Pouches', url: '#' },
+                          { label: 'Jewellery Organisers', url: '#' },
+                          { label: 'Tote Bags', url: '#' },
+                          { label: 'Travel Bags', url: '#' },
+                          { label: 'Sling Bags', url: '#' },
+                          { label: 'Handbags', url: '#' }
+                        ]
+                      },
+                      {
+                        id: 'cat-6',
+                        name: 'SOFT FURNISHINGS',
+                        links: [
+                          { label: 'Throw Blankets', url: '#' },
+                          { label: 'Cushions And Cushion Covers', url: '#' },
+                          { label: 'Bedsheets', url: '#' },
+                          { label: 'Rugs', url: '#' }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ];
         } else {
           defaultColumns = [
             { id: `col-${Date.now().toString(36)}-1`, width: '1fr', elements: [] },
@@ -1487,11 +1609,13 @@ export const useEditorContextStore = create<EditorContextState>()(
           const variantPrimary = variant.rows.find((r) => r.type === 'primary-nav') || variant.rows[0];
           const arrangementId = variantPrimary?.layout?.arrangementId || variant.compatibleArrangementIds?.[0];
           const arrangement = HEADER_ARRANGEMENTS.find((candidate) => candidate.id === arrangementId);
-          const previewArrangement = createResponsiveArrangement(
-            currentPrimaryRow?.layout?.responsiveArrangement,
-            arrangement?.layout || variantPrimary?.layout || {},
-            { variantId: variant.id },
-          );
+          const previewArrangement = variantPrimary?.layout?.responsiveArrangement
+            ? JSON.parse(JSON.stringify(variantPrimary.layout.responsiveArrangement))
+            : createResponsiveArrangement(
+                currentPrimaryRow?.layout?.responsiveArrangement,
+                arrangement?.layout || variantPrimary?.layout || {},
+                { variantId: variant.id },
+              );
 
           // CRITICAL: Presets ONLY change the header navbar (primary-nav) layout in preview!
           // Category bar, announcement bar, utility bar, and promo rows remain 100% UNTOUCHED!
@@ -1499,9 +1623,34 @@ export const useEditorContextStore = create<EditorContextState>()(
           // User styling & colors remain 100% UNTOUCHED!
           const previewRows: HeaderRow[] = baseRows.map((row: HeaderRow) => {
             if (row.type === 'primary-nav' && variantPrimary) {
-              const elementsToUse = variant.id === 'minimal-hamburger' && variantPrimary.elements
-                ? variantPrimary.elements
-                : (currentElements.length > 0 ? currentElements : row.elements);
+              const defaultElements = createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [];
+              let elementsToUse = currentElements.length > 0 ? [...currentElements] : [...row.elements];
+              const hasNav = elementsToUse.some((e) => e.type === 'navigation' || e.type === 'primary-nav' || e.type === 'navigation-menu');
+              const hasSearch = elementsToUse.some((e) => e.type === 'search');
+              if (!hasNav) {
+                const defNav = defaultElements.find((e) => e.type === 'navigation');
+                if (defNav) elementsToUse.push(defNav);
+              }
+              if (!hasSearch) {
+                const defSearch = defaultElements.find((e) => e.type === 'search');
+                if (defSearch) elementsToUse.push(defSearch);
+              }
+              if (variant.id === 'prominent-search') {
+                elementsToUse = elementsToUse.map((el) => {
+                  if (el.type === 'search') {
+                    return { ...el, isVisible: true, props: { ...el.props, mode: 'large-inline', showCategoryFilter: true } };
+                  }
+                  return el;
+                });
+              }
+              if (variant.id !== 'minimalist-clean' && variant.id !== 'minimal-hamburger') {
+                elementsToUse = elementsToUse.map((el) => {
+                  if (el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu') {
+                    return { ...el, isVisible: true };
+                  }
+                  return el;
+                });
+              }
 
               const updatedRow: HeaderRow = {
                 ...row,
@@ -1525,6 +1674,8 @@ export const useEditorContextStore = create<EditorContextState>()(
                 styling: {
                   ...row.styling,
                   ...variantPrimary?.styling,
+                  radius: variantPrimary?.styling?.radius ?? 0,
+                  shadow: variantPrimary?.styling?.shadow ?? 'none',
                   bgColor: row.styling.bgColor,
                   textColor: row.styling.textColor,
                   borderColor: row.styling.borderColor,
@@ -1711,16 +1862,74 @@ export const useEditorContextStore = create<EditorContextState>()(
           const arrangement = HEADER_ARRANGEMENTS.find((a) => a.id === arrangementId);
           if (!arrangement) return;
 
+          const defaultElements = createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [];
+
           const updatedRows: HeaderRow[] = state.headerRows.map((r) => {
             if (r.type === 'primary-nav') {
+              let updatedElements = [...r.elements];
+              const hasNav = updatedElements.some((e) => e.type === 'navigation' || e.type === 'primary-nav' || e.type === 'navigation-menu');
+              const hasSearch = updatedElements.some((e) => e.type === 'search');
+              const hasLogo = updatedElements.some((e) => e.type === 'logo');
+              const hasActions = updatedElements.some((e) => e.type === 'actions' || e.type === 'action-group');
+
+              if (!hasLogo) {
+                const defLogo = defaultElements.find((e) => e.type === 'logo');
+                if (defLogo) updatedElements.unshift(defLogo);
+              }
+              if (!hasNav) {
+                const defNav = defaultElements.find((e) => e.type === 'navigation');
+                if (defNav) updatedElements.push(defNav);
+              }
+              if (!hasSearch) {
+                const defSearch = defaultElements.find((e) => e.type === 'search');
+                if (defSearch) updatedElements.push(defSearch);
+              }
+              if (!hasActions) {
+                const defActions = defaultElements.find((e) => e.type === 'actions');
+                if (defActions) updatedElements.push(defActions);
+              }
+
+              const isSearchHub = arrangementId === 'search-center' || arrangement.layout?.searchPosition === 'center' || arrangement.layout?.responsiveArrangement?.desktop?.center?.includes('search');
+              if (isSearchHub) {
+                updatedElements = updatedElements.map((el) => {
+                  if (el.type === 'search') {
+                    return {
+                      ...el,
+                      isVisible: true,
+                      props: {
+                        ...el.props,
+                        mode: 'large-inline',
+                        placeholder: el.props?.placeholder || 'Search products, collections, brands...',
+                        showCategoryFilter: true,
+                      },
+                    };
+                  }
+                  return el;
+                });
+              }
+
+              if (arrangementId !== 'hamburger-right') {
+                updatedElements = updatedElements.map((el) => {
+                  if (el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu') {
+                    return { ...el, isVisible: true };
+                  }
+                  return el;
+                });
+              }
+
+              const nextResponsiveArrangement = arrangement.layout?.responsiveArrangement
+                ? JSON.parse(JSON.stringify(arrangement.layout.responsiveArrangement))
+                : createResponsiveArrangement(r.layout?.responsiveArrangement, arrangement.layout, { variantId: r.layout?.variantId });
+
               return {
                 ...r,
                 layout: {
                   ...r.layout,
                   ...arrangement.layout,
                   arrangementId,
-                  responsiveArrangement: createResponsiveArrangement(r.layout?.responsiveArrangement, arrangement.layout),
+                  responsiveArrangement: nextResponsiveArrangement,
                 },
+                elements: updatedElements,
               };
             }
             return r;
@@ -1832,7 +2041,28 @@ export const useEditorContextStore = create<EditorContextState>()(
             if (arr) {
               baseRows.forEach((r) => {
                 if (r.type === 'primary-nav') {
-                  r.layout = { ...r.layout, ...arr.layout };
+                  const nextResponsiveArrangement = arr.layout?.responsiveArrangement
+                    ? JSON.parse(JSON.stringify(arr.layout.responsiveArrangement))
+                    : createResponsiveArrangement(r.layout?.responsiveArrangement, arr.layout);
+                  r.layout = { ...r.layout, ...arr.layout, responsiveArrangement: nextResponsiveArrangement };
+
+                  const isSearchHub = targetArrangementId === 'search-center' || arr.layout?.searchPosition === 'center' || arr.layout?.responsiveArrangement?.desktop?.center?.includes('search');
+                  if (isSearchHub) {
+                    r.elements = r.elements.map((el) => {
+                      if (el.type === 'search') {
+                        return { ...el, isVisible: true, props: { ...el.props, mode: 'large-inline', showCategoryFilter: true } };
+                      }
+                      return el;
+                    });
+                  }
+                  if (targetArrangementId !== 'hamburger-right') {
+                    r.elements = r.elements.map((el) => {
+                      if (el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu') {
+                        return { ...el, isVisible: true };
+                      }
+                      return el;
+                    });
+                  }
                 }
               });
             }

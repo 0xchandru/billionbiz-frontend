@@ -194,7 +194,8 @@ export interface HeaderRowLayout {
   container: 'full' | 'constrained' | 'boxed' | 'edge-to-edge';
   alignment: 'left' | 'center' | 'right' | 'space-between' | 'distributed';
   logoPosition: 'left' | 'center' | 'right' | 'custom';
-  navPosition: 'left' | 'center' | 'right' | 'split';
+  navPosition: 'left' | 'center' | 'right' | 'split' | 'none';
+  searchPosition?: 'center' | 'left' | 'right' | 'disabled';
   actionsPosition: 'left' | 'right' | 'inline' | 'separate';
   paddingX: number;
   paddingY: number;
@@ -288,6 +289,7 @@ export type FooterRowType =
   | 'app'
   | 'contact'
   | 'seo'
+  | 'category-links'
   | 'custom';
 
 export type FooterElementType =
@@ -413,8 +415,13 @@ export interface FooterRowLayout {
   qrSize?: number;
   splitRatio?: string;
   feedColumns?: number;
-  direction?: string;
-  badgeSize?: string;
+  columnsContainerWidth?: 'auto' | 'full' | 'custom' | string;
+  columnsContainerCustomWidth?: number | string;
+  columnsContainerAlignment?: 'left' | 'center' | 'right' | 'flex-start' | 'flex-end';
+  columnsContainerAlign?: 'left' | 'center' | 'right' | 'flex-start' | 'flex-end';
+  categoryGap?: number;
+  titleGap?: number;
+  [key: string]: any;
 }
 
 export interface FooterRowStyling {
@@ -423,6 +430,14 @@ export interface FooterRowStyling {
   bgGradient?: string;
   bgImage?: string;
   textColor: string;
+  titleColor?: string;
+  titleFontSize?: number;
+  linkColor?: string;
+  linkHoverColor?: string;
+  separatorColor?: string;
+  pillBg?: string;
+  pillHoverBg?: string;
+  cardBg?: string;
   borderTop: boolean;
   borderBottom: boolean;
   borderColor: string;
@@ -431,6 +446,7 @@ export interface FooterRowStyling {
   radius: number;
   fontSize: number;
   customClass?: string;
+  [key: string]: any;
 }
 
 export interface FooterRow {

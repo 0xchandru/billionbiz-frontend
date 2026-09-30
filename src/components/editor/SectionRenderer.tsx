@@ -15,6 +15,7 @@ import { FooterAppSection } from './sections/FooterAppSection';
 import { FooterContactSection } from './sections/FooterContactSection';
 import { FooterPaymentSection } from './sections/FooterPaymentSection';
 import FooterSeoSection from './sections/FooterSeoSection';
+import FooterCategoryLinksSection from './sections/FooterCategoryLinksSection';
 
 // Import all section components
 import HeroBannerSection from './sections/HeroBannerSection';
@@ -231,6 +232,15 @@ const FooterSeo: React.FC<{ props: any }> = ({ props }) => (
   />
 );
 
+const FooterCategoryLinks: React.FC<{ props: any }> = ({ props }) => (
+  <FooterCategoryLinksSection
+    props={props}
+    device={props.device}
+    isEditorInteractive={props.isEditorInteractive === true}
+    useEditorModel={props.useEditorModel === true}
+  />
+);
+
 const Footer: React.FC<{ props: any }> = ({ props }) => (
   <FooterMainSection
     props={props}
@@ -271,6 +281,7 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
   FooterContact,
   FooterPayment,
   FooterSeo,
+  FooterCategoryLinks,
   FooterBottom,
   Footer,
   FooterMenu: FooterMain,
@@ -585,6 +596,8 @@ export const sectionNameMap: Record<string, string> = {
   FooterMain: 'Footer Directory',
   FooterSocial: 'Footer Social Showcase',
   FooterBottom: 'Footer Bottom & Copyright',
+  FooterSeo: 'SEO / Rich Content',
+  FooterCategoryLinks: 'Category Directory Links',
   FooterMenu: 'Footer Menu',
   FooterText: 'Footer Text',
   Footer: 'Footer',

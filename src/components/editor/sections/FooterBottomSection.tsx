@@ -211,8 +211,6 @@ export const FooterBottomSection: React.FC<FooterBottomSectionProps> = ({
         position: 'relative',
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>Bottom Legal & Payments Bar</div>}
-
       <div
         className={
           containerMode === 'boxed'

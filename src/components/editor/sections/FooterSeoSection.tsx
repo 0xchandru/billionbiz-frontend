@@ -124,8 +124,6 @@ export const FooterSeoSection: React.FC<FooterSeoSectionProps> = ({
         paddingRight: isMobile ? '20px' : `${layout.paddingX ?? 32}px`,
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>SEO / Rich Content</div>}
-
       <div
         className={
           containerMode === 'boxed'

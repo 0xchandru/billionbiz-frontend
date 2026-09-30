@@ -109,8 +109,6 @@ export const FooterSocialSection: React.FC<FooterSocialSectionProps> = ({
         paddingRight: isMobile ? '16px' : `${layout.paddingX ?? 32}px`,
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>Social & Community Showcase</div>}
-
       <div
         className={
           containerMode === 'boxed'

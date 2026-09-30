@@ -12,7 +12,8 @@ export type FooterStackSectionType =
   | 'contact'
   | 'payment'
   | 'legal'
-  | 'seo';
+  | 'seo'
+  | 'category-links';
 
 export interface SectionLookDefinition {
   id: string;
@@ -1035,6 +1036,84 @@ export const SEO_LOOKS: SectionLookDefinition[] = [
 ];
 
 // ────────────────────────────────────────────────────────────
+// 9. CATEGORY DIRECTORY LINKS LOOKS (6 LOOKS)
+// ────────────────────────────────────────────────────────────
+export const CATEGORY_LINKS_LOOKS: SectionLookDefinition[] = [
+  {
+    id: 'classic-inline-comma',
+    name: '1. Classic Inline Comma',
+    description: 'Clean uppercase category titles with horizontal wrapping text links separated by commas.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, categoryGap: 24, titleGap: 8, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', titleColor: '#0f172a', linkColor: '#64748b', linkHoverColor: '#0f172a', separatorColor: '#94a3b8', fontSize: 13, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'modern-bullet-dot',
+    name: '2. Modern Bullet Dot',
+    description: 'Muted bullet dot (•) separator between links with refined hover transitions.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, categoryGap: 24, titleGap: 8, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#f8fafc', titleColor: '#0f172a', linkColor: '#475569', linkHoverColor: '#2563eb', separatorColor: '#cbd5e1', fontSize: 13, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'pill-chips-shelf',
+    name: '3. Pill Chips Shelves',
+    description: 'Modern badge chips layout where each link has a rounded pill container and subtle background.',
+    capabilities: { links: true, badges: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, categoryGap: 26, titleGap: 10, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', titleColor: '#0f172a', linkColor: '#334155', linkHoverColor: '#1d4ed8', pillBg: '#f1f5f9', pillHoverBg: '#e2e8f0', fontSize: 12.5, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'pipe-minimalist',
+    name: '4. Pipe Delimited Minimalist',
+    description: 'Refined vertical pipe (|) separated links with high contrast typography.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 32, categoryGap: 22, titleGap: 8, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', titleColor: '#0f172a', linkColor: '#64748b', linkHoverColor: '#000000', separatorColor: '#cbd5e1', fontSize: 12.5, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'split-two-col',
+    name: '5. Two-Column Category Shelves',
+    description: 'Category name positioned in a left header column with horizontal links flowing on the right.',
+    capabilities: { links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, categoryGap: 28, titleGap: 16, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#ffffff', titleColor: '#0f172a', linkColor: '#64748b', linkHoverColor: '#2563eb', separatorColor: '#cbd5e1', fontSize: 13, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+  {
+    id: 'boxed-card-shelves',
+    name: '6. Card Shelves / Boxed Categories',
+    description: 'Each category group enclosed within a clean card container with subtle borders.',
+    capabilities: { cards: true, links: true },
+    supportedTabs: ['look', 'content', 'layout', 'design', 'responsive', 'visibility', 'advanced'],
+    defaults: {
+      layout: { container: 'constrained', paddingX: 32, paddingY: 36, categoryGap: 16, titleGap: 10, alignment: 'left' },
+      design: { bgType: 'theme', bgColor: '#f8fafc', cardBg: '#ffffff', titleColor: '#0f172a', linkColor: '#475569', linkHoverColor: '#2563eb', separatorColor: '#94a3b8', fontSize: 12.5, titleFontSize: 13, borderTop: true, borderColor: '#e2e8f0' },
+      responsive: { mobileLayout: 'stack' },
+    },
+  },
+];
+
+// ────────────────────────────────────────────────────────────
 // REGISTRY MAP FOR EASY LOOKUP
 // ────────────────────────────────────────────────────────────
 export const FOOTER_STACK_SECTION_REGISTRY: Record<
@@ -1093,6 +1172,12 @@ export const FOOTER_STACK_SECTION_REGISTRY: Record<
     description: 'Search engine optimized content, brand stories, keyword taxonomy, and rich text.',
     looks: SEO_LOOKS,
     defaultLookId: 'keyword-story'
+  },
+  'category-links': {
+    name: 'Category Directory Links',
+    description: 'Comprehensive category taxonomy with horizontal wrapping keyword links.',
+    looks: CATEGORY_LINKS_LOOKS,
+    defaultLookId: 'classic-inline-comma'
   }
 };
 

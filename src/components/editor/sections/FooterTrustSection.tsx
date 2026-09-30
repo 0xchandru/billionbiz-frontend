@@ -139,8 +139,6 @@ export const FooterTrustSection: React.FC<FooterTrustSectionProps> = ({
         paddingRight: isMobile ? '16px' : `${layout.paddingX ?? 32}px`,
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>Trust & Guarantees Bar</div>}
-
       <div
         className={
           containerMode === 'boxed'

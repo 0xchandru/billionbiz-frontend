@@ -762,8 +762,8 @@ export const ChildItemOverlayInspector: React.FC<ChildItemOverlayInspectorProps>
                         <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Brand Name Text</span>
                         <input
                           type="text"
-                          value={element.props.text || 'BillionBiz'}
-                          onChange={(e) => handleUpdateProps({ text: e.target.value, upperText: e.target.value })}
+                          value={element.props.brandName || element.props.text || 'BillionBiz'}
+                          onChange={(e) => handleUpdateProps({ text: e.target.value, brandName: e.target.value, upperText: e.target.value })}
                           placeholder="e.g. BillionBiz"
                           style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
                         />

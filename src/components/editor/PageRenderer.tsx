@@ -252,6 +252,11 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     'Footer',
     'FooterMenu',
     'FooterText',
+    'FooterApp',
+    'FooterContact',
+    'FooterPayment',
+    'FooterSeo',
+    'FooterCategoryLinks',
   ];
 
   const validSections = (page.sections || []).filter(Boolean);
@@ -300,6 +305,8 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     contact: 'FooterContact',
     payment: 'FooterPayment',
     legal: 'FooterBottom',
+    seo: 'FooterSeo',
+    'category-links': 'FooterCategoryLinks',
     custom: 'FooterMain',
   };
 
@@ -433,6 +440,8 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
         (section.type === 'FooterContact' && r.type === 'contact') ||
         (section.type === 'FooterPayment' && r.type === 'payment') ||
         (section.type === 'FooterBottom' && r.type === 'legal') ||
+        (section.type === 'FooterSeo' && r.type === 'seo') ||
+        (section.type === 'FooterCategoryLinks' && r.type === 'category-links') ||
         (section.type === 'FooterMain' && (r.type === 'navigation' || r.type === 'brand'))
     );
     const rowId = targetRow ? targetRow.id : (section.id || 'row-main-nav');

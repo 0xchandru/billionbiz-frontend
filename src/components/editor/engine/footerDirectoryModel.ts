@@ -320,8 +320,10 @@ export const FOOTER_DIRECTORY_COMPONENTS: ComponentPickerItem[] = [
     singleton: true,
     icon: 'Sparkles',
     defaults: {
+      logoType: 'both',
+      brandName: 'BillionBiz',
+      text: 'BillionBiz',
       sourceType: 'text',
-      text: 'Store Logo',
       fontSize: 22,
       fontWeight: 800,
       textColor: '#0f172a',

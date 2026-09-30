@@ -160,6 +160,20 @@ export const AddComponentModal: React.FC = () => {
       icon: <Share2 size={18} color="#f59e0b" />,
     },
     {
+      type: 'category-links',
+      name: 'Category Directory Links',
+      desc: 'Horizontal directory of categories and products with customizable separators and styling.',
+      category: 'Commerce',
+      icon: <Layers size={18} color="#10b981" />,
+    },
+    {
+      type: 'seo',
+      name: 'SEO & Rich Content',
+      desc: 'Search engine optimized content, brand stories, keyword taxonomy, and rich text.',
+      category: 'Brand',
+      icon: <Sparkles size={18} color="#6366f1" />,
+    },
+    {
       type: 'custom-row',
       name: 'Custom Footer Row',
       desc: 'Multi-column container supporting arbitrary layout, custom columns, and nested blocks.',

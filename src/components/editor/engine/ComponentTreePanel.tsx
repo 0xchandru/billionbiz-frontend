@@ -38,6 +38,7 @@ import {
   Lock,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   Clock,
   Smartphone,
   Monitor,
@@ -119,6 +120,8 @@ const SortableRow: React.FC<SortableRowProps> = ({
     disabled: !isDraggable,
   });
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isEffectivelyCollapsed = isCollapsed || isDragging;
   const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; left: number; maxHeight: number }>({
     left: 0,
     maxHeight: 360,
@@ -170,7 +173,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
     }
   };
 
-  const hasExpandedChildren = Boolean(children);
+  const hasExpandedChildren = Boolean(children) && !isEffectivelyCollapsed;
 
   return (
     <div ref={setNodeRef} style={{ ...style, width: '100%', boxSizing: 'border-box' }}>
@@ -218,51 +221,60 @@ const SortableRow: React.FC<SortableRowProps> = ({
             >
               {name}
             </span>
-            {isLocked && (
-              <span
-                title="Default core section (always visible, cannot be deleted)"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '1px 5px',
-                  borderRadius: '4px',
-                  backgroundColor: '#f1f5f9',
-                  color: '#64748b',
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  gap: '3px',
-                  flexShrink: 0,
-                }}
-              >
-                <Lock size={10} /> Core
-              </span>
-            )}
           </div>
         </div>
 
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-          {/* Visibility toggle button */}
-          <button
-            type="button"
-            onClick={isLocked ? undefined : onToggleVisibility}
-            title={isLocked ? 'Core section (always visible)' : (isVisible ? 'Hide row' : 'Show row')}
-            disabled={isLocked}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: isLocked ? 'default' : 'pointer',
-              padding: '4px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              opacity: isLocked ? 0.45 : 1,
-            }}
-          >
-            {isVisible ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#ef4444" />}
-          </button>
+          {isLocked ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span title="Default core section (always visible, cannot be deleted)" style={{ display: 'inline-flex', alignItems: 'center', color: '#94a3b8', padding: '4px' }}>
+                <Lock size={13} />
+              </span>
+              {children && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCollapsed(!isCollapsed);
+                  }}
+                  title={isEffectivelyCollapsed ? 'Expand child components' : 'Collapse child components'}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#64748b',
+                  }}
+                >
+                  {isEffectivelyCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Visibility toggle button */}
+              <button
+                type="button"
+                onClick={onToggleVisibility}
+                title={isVisible ? 'Hide row' : 'Show row'}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {isVisible ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#ef4444" />}
+              </button>
 
-          {/* 3-dot More Options Button: ALWAYS AVAILABLE ON ALL ITEMS */}
+              {/* 3-dot More Options Button */}
           <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
@@ -471,6 +483,8 @@ const SortableRow: React.FC<SortableRowProps> = ({
               document.body
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
 
@@ -664,7 +678,10 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
 }) => {
   const store = useEditorContextStore();
   const editorType = overrideEditorType || (store.editorType === 'page' ? 'header' : store.editorType);
-  const headerRows = store.headerRows;
+  const isHeaderPreviewActive = Boolean(store.presetPreview?.isActive && store.presetPreview?.editorType === 'header');
+  const headerRows = isHeaderPreviewActive && store.presetPreview?.previewRows
+    ? (store.presetPreview.previewRows as any[])
+    : store.headerRows;
   const [addHeaderMenuOpen, setAddHeaderMenuOpen] = useState(false);
   const [addFooterMenuOpen, setAddFooterMenuOpen] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<{
@@ -786,6 +803,15 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     onAddChildItem={() => {
                       store.selectTarget({ type: 'row', editorType: 'header', rowId: row.id });
                       store.setActiveTab('content');
+                      useLandingEditorStore.getState().setSelectedPageId('header-global');
+                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
+                      useLandingEditorStore.getState().setRightSidebarOpen(true);
+                    }}
+                    onManageComponents={() => {
+                      store.selectTarget({ type: 'row', editorType: 'header', rowId: row.id });
+                      store.setActiveTab('content');
+                      useLandingEditorStore.getState().setSelectedPageId('header-global');
+                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
                       useLandingEditorStore.getState().setRightSidebarOpen(true);
                     }}
                     onSelect={handleSelect}
@@ -799,13 +825,13 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     onMoveDown={rIdx < headerRows.length - 1 ? () => store.reorderHeaderRows(rIdx, rIdx + 1) : undefined}
                   >
                     {/* Navbar children remain in the component tab and can be reordered from their drag handles. */}
-                    {row.type === 'primary-nav' ? row.elements.filter((el) => {
+                    {row.type === 'primary-nav' ? row.elements.filter((el: any) => {
                       const key = el.type === 'logo' ? 'logo' : el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu' ? 'navigation' : el.type === 'actions' || el.type === 'action-group' ? 'actions' : el.type;
                       const arrangement = row.layout?.responsiveArrangement;
                       return !arrangement || [arrangement.desktop, arrangement.tablet, arrangement.mobile].some((deviceSlots) =>
                         (['left', 'center', 'right'] as const).some((slot) => deviceSlots[slot].includes(key))
                       );
-                    }).map((el, elIdx, visibleElements) => {
+                    }).map((el: any, elIdx: number, visibleElements: any[]) => {
                       const isLast = elIdx === visibleElements.length - 1;
                       const isElSelected =
                         store.selectedTarget.type === 'element' &&
@@ -875,8 +901,9 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                 elementId: el.id,
                                 elementType: el.type,
                               });
-                              useLandingEditorStore.getState().setRightSidebarOpen(true);
+                              useLandingEditorStore.getState().setSelectedPageId('header-global');
                               useLandingEditorStore.getState().setSelectedSectionId('header-main');
+                              useLandingEditorStore.getState().setRightSidebarOpen(true);
                               scrollPreviewToHeaderSection('row-primary-nav');
                             }}
                             style={{
@@ -1020,6 +1047,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                      row.type === 'contact' ? 'Contact / Store Information' :
                      row.type === 'payment' ? 'Payment & Security' :
                      row.type === 'legal' ? 'Legal & Bottom Bar' :
+                     row.type === 'seo' ? 'SEO / Rich Content' :
+                     row.type === 'category-links' ? 'Category Directory Links' :
                      row.name || 'Footer Section');
 
                 const isSelected =
@@ -1069,7 +1098,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     }}
                     onManageComponents={() => {
                       store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
-                      store.setActiveTab('columns');
+                      store.setActiveTab('content');
+                      useLandingEditorStore.getState().setSelectedPageId('footer-global');
                       useLandingEditorStore.getState().setSelectedSectionId(row.id);
                       useLandingEditorStore.getState().setRightSidebarOpen(true);
                       scrollPreviewToFooterSection(row.id);
@@ -1110,7 +1140,8 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                             onClick={(e) => {
                               e.stopPropagation();
                               store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
-                              store.setActiveTab('columns');
+                              store.setActiveTab('content');
+                              useLandingEditorStore.getState().setSelectedPageId('footer-global');
                               useLandingEditorStore.getState().setSelectedSectionId(row.id);
                               useLandingEditorStore.getState().setRightSidebarOpen(true);
                             }}
@@ -1144,7 +1175,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                 marginRight: '6px',
                               }}
                             >
-                              Column {cIdx + 1} ({col.width})
+                              Column {cIdx + 1}
                             </span>
                             <button
                               type="button"
@@ -1245,6 +1276,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                                         elementId: el.id,
                                         elementType: el.type,
                                       });
+                                      useLandingEditorStore.getState().setSelectedPageId('footer-global');
                                       useLandingEditorStore.getState().setSelectedSectionId(row.id);
                                       useLandingEditorStore.getState().setRightSidebarOpen(true);
                                     }}
@@ -1546,6 +1578,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
               { type: 'payment', name: 'Payment & Security' },
               { type: 'legal', name: 'Copyright & Legal' },
               { type: 'seo', name: 'SEO / Rich Content' },
+              { type: 'category-links', name: 'Category Directory Links' },
             ].map((option) => {
               const exists = store.footerRows.some((row) =>
                 row.type === option.type || (option.type === 'navigation' && (row.type === 'navigation' || row.id === 'row-main-nav'))

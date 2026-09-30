@@ -380,8 +380,6 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
         paddingRight: isMobile ? '20px' : `${layout.paddingX ?? 32}px`,
       }}
     >
-      {isRowSelected && <div className={styles.rowBadge}>Footer Directory</div>}
-
       <div
         className={
           containerMode === 'boxed'
@@ -405,23 +403,40 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
             return isCentered ? 'center' : 'space-between';
           })();
 
+          const containerAlign = rowLayout.columnsContainerAlignment || (rowLayout.columnsContainerAlign === 'center' ? 'center' : rowLayout.columnsContainerAlign === 'right' ? 'flex-end' : 'flex-start');
+          const containerWidthMode = rowLayout.columnsContainerWidth || 'full';
+          const containerWidth =
+            containerWidthMode === 'auto' || containerWidthMode === 'fit-content'
+              ? 'fit-content'
+              : containerWidthMode === 'custom'
+              ? (typeof rowLayout.columnsContainerCustomWidth === 'number' ? `${rowLayout.columnsContainerCustomWidth}px` : (rowLayout.columnsContainerCustomWidth || '960px'))
+              : '100%';
+
           return (
             <div
               key={rowBand.id || rIdx}
-              className={styles.mainFooterGrid}
               style={{
                 display: 'flex',
-                flexWrap: rowLayout.flexWrap || 'wrap',
-                justifyContent: rowJustify,
-                alignItems: rowLayout.alignItems || (rowLayout.verticalAlignment === 'center' ? 'center' : rowLayout.verticalAlignment === 'bottom' ? 'flex-end' : rowLayout.verticalAlignment === 'stretch' ? 'stretch' : 'flex-start'),
-                gap: isMobile ? '28px' : `${rowLayout.gap ?? 40}px`,
-                rowGap: isMobile ? '28px' : `${rowLayout.gapY ?? rowLayout.gap ?? 40}px`,
-                maxWidth: isCentered && rowCols.length === 1 ? '680px' : '100%',
-                margin: isCentered && rowCols.length === 1 ? '0 auto' : undefined,
+                justifyContent: containerAlign === 'center' ? 'center' : containerAlign === 'right' || containerAlign === 'flex-end' ? 'flex-end' : 'flex-start',
                 width: '100%',
                 marginBottom: rIdx < (activeRow?.rows?.length || 1) - 1 ? `${rowLayout.gapY ?? 32}px` : 0,
               }}
             >
+              <div
+                className={styles.mainFooterGrid}
+                style={{
+                  display: 'flex',
+                  flexWrap: rowLayout.flexWrap || 'wrap',
+                  justifyContent: rowJustify,
+                  alignItems: rowLayout.alignItems || (rowLayout.verticalAlignment === 'center' ? 'center' : rowLayout.verticalAlignment === 'bottom' ? 'flex-end' : rowLayout.verticalAlignment === 'stretch' ? 'stretch' : 'flex-start'),
+                  gap: isMobile ? '28px' : `${rowLayout.gap ?? 40}px`,
+                  rowGap: isMobile ? '28px' : `${rowLayout.gapY ?? rowLayout.gap ?? 40}px`,
+                  maxWidth: isCentered && rowCols.length === 1 ? '680px' : '100%',
+                  margin: isCentered && rowCols.length === 1 ? '0 auto' : undefined,
+                  width: containerWidth,
+                  boxSizing: 'border-box',
+                }}
+              >
               {rowCols.map((col, colIdx) => {
                 const isAccordionOpen = openAccordions[col.id] ?? false;
                 const colDirection = col.direction === 'row' ? 'row' : col.direction === 'wrap' ? 'row' : 'column';
@@ -469,11 +484,12 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                     const isElVisible = elProps.isVisible !== false;
                     if (!isEditorInteractive && !isElVisible) return null;
                     const logoImgUrl = elProps.imageUrl || elProps.image;
-                    const logoType = elProps.logoType || (elProps.sourceType === 'image' ? 'image' : (logoImgUrl ? 'image' : 'text'));
+                    const logoType = elProps.logoType || (elProps.sourceType === 'image' ? 'image' : 'both');
                     const showImg = (logoType === 'image' || logoType === 'both') && Boolean(logoImgUrl);
-                    const showTxt = logoType === 'text' || logoType === 'both' || !logoImgUrl;
+                    const showTxt = logoType === 'text' || logoType === 'both';
                     const isTwoLines = Boolean(elProps.isTwoLines);
-                    const upperText = elProps.upperText || elProps.text || 'BillionBiz';
+                    const brandTitle = elProps.brandName || elProps.text || 'BillionBiz';
+                    const upperText = elProps.upperText || brandTitle;
                     const lowerText = elProps.lowerText || '';
                     const tagline = elProps.tagline;
                     const logoHeight = (elProps.logoHeight || elProps.height) ?? 40;
@@ -530,7 +546,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                           >
                             <img
                               src={logoImgUrl}
-                              alt={elProps.text || 'Store Logo'}
+                              alt={brandTitle || 'Store Logo'}
                               style={{
                                 height: `${logoHeight}px`,
                                 width: 'auto',
@@ -574,7 +590,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                                 color: elProps.textColor || textColor,
                                 letterSpacing: '-0.03em',
                               }}>
-                                {elProps.text || 'BillionBiz'}
+                                {brandTitle}
                               </div>
                             )}
                             {tagline && (
@@ -2339,9 +2355,10 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
             );
           })}
         </div>
-      );
-    })}
-  </div>
+      </div>
+    );
+  })}
+</div>
 </footer>
   );
 };

@@ -11,6 +11,9 @@ export const createResponsiveArrangement = (
   layout: Partial<HeaderRow['layout']>,
   options: { variantId?: string; preserveMobile?: boolean } = {},
 ): HeaderResponsiveArrangement => {
+  if (layout.responsiveArrangement) {
+    return JSON.parse(JSON.stringify(layout.responsiveArrangement)) as HeaderResponsiveArrangement;
+  }
   const fallback: HeaderResponsiveArrangement = {
     desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
     tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
@@ -24,9 +27,11 @@ export const createResponsiveArrangement = (
   (['desktop', 'tablet', 'mobile'] as const).forEach((device) => {
     if (device === 'mobile' && options.preserveMobile) return;
     const arrangement = result[device];
-    const keys = slots.flatMap((slot) => arrangement[slot])
-      .map((key) => key === 'navigation-left' || key === 'navigation-right' ? 'navigation' : key)
-      .filter((key, index, list) => list.indexOf(key) === index);
+    const standardKeys = ['logo', 'navigation', 'actions', 'search', 'cta', 'menu'];
+    const existingKeys = slots.flatMap((slot) => arrangement[slot])
+      .map((key) => key === 'navigation-left' || key === 'navigation-right' ? 'navigation' : key);
+    const keys = Array.from(new Set([...existingKeys, ...standardKeys]));
+
     slots.forEach((slot) => { arrangement[slot] = []; });
     const place = (key: string, slot: keyof HeaderSlotArrangement) => {
       if (!arrangement[slot].includes(key)) arrangement[slot].push(key);
@@ -39,17 +44,45 @@ export const createResponsiveArrangement = (
         if (layout.navPosition === 'split') {
           place('navigation-left', 'left');
           place('navigation-right', 'right');
-        } else place(key, slotFor(layout.navPosition));
+        } else if (
+          layout.navPosition === 'none' ||
+          options.variantId === 'minimalist-clean' ||
+          options.variantId === 'minimal-hamburger' ||
+          options.variantId === 'prominent-search' ||
+          layout.arrangementId === 'search-center' ||
+          layout.arrangementId === 'hamburger-right'
+        ) {
+          place('navigation', 'disabled');
+        } else {
+          place(key, slotFor(layout.navPosition));
+        }
+      } else if (key === 'search') {
+        if (
+          options.variantId === 'prominent-search' ||
+          layout.arrangementId === 'search-center' ||
+          layout.searchPosition === 'center'
+        ) {
+          place('search', 'center');
+        } else {
+          place(key, 'disabled');
+        }
       } else {
         place(key, key === 'menu' ? (layout.navPosition === 'left' ? 'left' : 'right') : 'disabled');
       }
     });
 
-    if (options.variantId === 'minimal-hamburger') {
+    if (options.variantId === 'minimalist-clean' || options.variantId === 'minimal-hamburger') {
       (['left', 'center', 'right'] as const).forEach((slot) => {
         arrangement[slot] = arrangement[slot].filter((key) => key !== 'navigation');
       });
-      if (!arrangement.right.includes('menu')) arrangement.right.unshift('menu');
+      if (!arrangement.disabled.includes('navigation')) arrangement.disabled.push('navigation');
+      if (!arrangement.right.includes('menu')) arrangement.right.push('menu');
+    }
+    if (options.variantId === 'prominent-search' || layout.arrangementId === 'search-center') {
+      if (!arrangement.center.includes('search')) arrangement.center = ['search'];
+      arrangement.left = arrangement.left.filter((k) => k !== 'search');
+      arrangement.right = arrangement.right.filter((k) => k !== 'search');
+      if (!arrangement.disabled.includes('navigation')) arrangement.disabled.push('navigation');
     }
   });
   return result;
@@ -1216,244 +1249,395 @@ import type {
   HeaderTemplate,
 } from '../engine/types';
 
-const createUseCaseVariant = (
-  id: string,
-  name: string,
-  description: string,
-  category: HeaderVariant['category'],
-  layout: Partial<HeaderRow['layout']>,
-  globalOverrides: HeaderVariant['globalOverrides'] = {},
-): HeaderVariant => {
-  const primaryRow = createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!;
-  return {
-    id,
-    name,
-    description,
-    category,
-    previewDiagram: 'Logo | Navigation | Search · Account · CTA',
-    rows: [{ ...primaryRow, layout: { ...primaryRow.layout, ...layout } }],
-    globalOverrides,
-    compatibleArrangementIds: ['general', 'logo-nav-left', 'center-split'],
-    compatibleTemplateIds: [],
-  };
-};
+
 
 export const HEADER_VARIANTS: HeaderVariant[] = [
   {
-    id: 'standard',
-    name: 'Standard Header',
-    description: 'General-purpose header with logo, brand name, navigation links, and action icons. The go-to for most websites.',
+    id: 'classic-standard',
+    name: 'Classic Standard',
+    description: 'Balanced 3-zone layout: Brand logo on left, navigation links centered, and shopping actions on right.',
     category: 'commerce',
-    previewDiagram: '🏷️ Logo | Navigation | 🔍 🛒 👤',
-    rows: createDefaultHeaderStack(),
-    compatibleArrangementIds: ['general', 'center-split', 'center-split-inverse', 'split-navigation', 'inverse-general', 'logo-nav-left'],
-    compatibleTemplateIds: ['tpl-modern-commerce', 'tpl-marketplace', 'tpl-search-first'],
-  },
-  {
-    id: 'floating',
-    name: 'Floating Header',
-    description: 'Floating navbar with rounded corners and spacing from page edges. Glassmorphism backdrop with elevated shadow.',
-    category: 'creative',
-    previewDiagram: '    ╭─────────────────────────────╮\n    │ Logo   Nav Nav   🔍 🛒 👤  │\n    ╰─────────────────────────────╯',
+    previewDiagram: '🏷️ Logo | Navigation | 🔍 👤 🛒',
     rows: [
       {
-        id: 'row-primary-nav', type: 'primary-nav', name: 'Header', isVisible: true, isLocked: true,
-        layout: { container: 'boxed', alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right', paddingX: 24, paddingY: 10, gap: 20, height: 64, arrangementId: 'floating-general' },
-        styling: { bgType: 'custom', bgColor: 'rgba(255,255,255,0.85)', bgGlass: true, textColor: '#0f172a', borderBottom: false, borderColor: 'rgba(255,255,255,0.3)', shadow: 'medium', radius: 999, fontSize: 14, fontWeight: 500 },
-        elements: [
-          { id: 'el-logo', type: 'logo', name: 'Logo', isLocked: true, props: { logoType: 'text', text: 'BillionBiz', desktopWidth: 130, tabletWidth: 110, mobileWidth: 100, link: '/' } },
-          { id: 'el-nav-links', type: 'navigation', name: 'Navigation', isLocked: true, props: { links: [{ id: 'n1', label: 'Shop', url: '/shop' }, { id: 'n2', label: 'Collections', url: '/collections' }, { id: 'n3', label: 'About', url: '/about' }] } },
-          { id: 'el-actions', type: 'actions', name: 'Actions', isLocked: true, props: { showSearch: true, showCart: true, showAccount: true, showWishlist: false, cartItemCount: 2 } },
-        ],
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'center',
+          actionsPosition: 'right',
+          height: 70,
+          paddingX: 28,
+          paddingY: 14,
+          gap: 24,
+          arrangementId: 'general',
+          variantId: 'classic-standard',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'soft',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
       },
     ],
-    globalOverrides: { positioning: 'floating', scrollBehavior: 'sticky' },
-    compatibleArrangementIds: ['floating-general', 'floating-center-brand', 'floating-split-nav', 'floating-inline-end'],
-    compatibleTemplateIds: ['tpl-glass-commerce', 'tpl-minimal-store'],
+    compatibleArrangementIds: ['general', 'center-split', 'split-navigation', 'logo-nav-left'],
+    compatibleTemplateIds: ['tpl-modern-commerce', 'tpl-marketplace'],
   },
   {
-    id: 'transparent',
-    name: 'Transparent Header',
-    description: 'Header with a transparent/overlay appearance that sits on top of hero content. Becomes solid on scroll.',
-    category: 'creative',
-    previewDiagram: '┊ Logo    Nav Nav Nav   🔍 🛒  ┊\n┊          (transparent)        ┊\n┊═══════ HERO CONTENT ═════════┊',
-    rows: [
-      {
-        id: 'row-primary-nav', type: 'primary-nav', name: 'Header', isVisible: true, isLocked: true,
-        layout: { container: 'constrained', alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right', paddingX: 28, paddingY: 16, gap: 24, height: 64, arrangementId: 'transparent-general' },
-        styling: { bgType: 'custom', bgColor: 'transparent', textColor: '#f8fafc', borderBottom: false, borderColor: 'transparent', shadow: 'none', radius: 0, fontSize: 14, fontWeight: 500, overlayHero: true },
-        elements: [
-          { id: 'el-logo', type: 'logo', name: 'Logo', isLocked: true, props: { logoType: 'text', text: 'BillionBiz', desktopWidth: 150, link: '/' } },
-          { id: 'el-nav-links', type: 'navigation', name: 'Navigation', isLocked: true, props: { links: [{ id: 'n1', label: 'Shop', url: '/shop' }, { id: 'n2', label: 'Collections', url: '/collections' }, { id: 'n3', label: 'About', url: '/about' }] } },
-          { id: 'el-actions', type: 'actions', name: 'Actions', isLocked: true, props: { showSearch: true, showCart: true, showAccount: true, showWishlist: false, cartItemCount: 0 } },
-        ],
-      },
-    ],
-    globalOverrides: { positioning: 'overlay', scrollBehavior: 'sticky', heroAwareMode: 'transparent-hero' },
-    compatibleArrangementIds: ['transparent-general', 'transparent-center-split', 'transparent-split-nav', 'transparent-minimal'],
-    compatibleTemplateIds: ['tpl-glass-commerce', 'tpl-tech-saas'],
-  },
-  {
-    id: 'minimal-hamburger',
-    name: 'Minimal Hamburger',
-    description: 'Only logo/brand name and a hamburger/menu icon on the right. Navigation opens via a drawer or full-screen overlay.',
-    category: 'creative',
-    previewDiagram: '☰  Logo                    🛒',
-    rows: [
-      {
-        id: 'row-primary-nav', type: 'primary-nav', name: 'Header', isVisible: true, isLocked: true,
-        layout: { container: 'constrained', alignment: 'space-between', logoPosition: 'left', navPosition: 'right', actionsPosition: 'right', paddingX: 20, paddingY: 10, gap: 12, height: 64, arrangementId: 'hamburger-right' },
-        styling: { bgType: 'theme', bgColor: '#ffffff', textColor: '#171717', borderBottom: false, borderColor: 'transparent', shadow: 'none', radius: 0, fontSize: 14, fontWeight: 500 },
-        elements: [
-          { id: 'el-logo', type: 'logo', name: 'Logo', isLocked: true, props: { logoType: 'text', text: 'BillionBiz', desktopWidth: 120, link: '/' } },
-          { id: 'el-nav-links', type: 'navigation', name: 'Navigation', isLocked: true, props: { links: [{ id: 'n1', label: 'Shop', url: '/shop' }, { id: 'n2', label: 'About', url: '/about' }] } },
-          { id: 'el-actions', type: 'actions', name: 'Actions', isLocked: true, props: { showSearch: false, showCart: true, showAccount: false, showWishlist: false, cartItemCount: 0 } },
-        ],
-      },
-    ],
-    globalOverrides: { mobileMenuType: 'full-screen' },
-    compatibleArrangementIds: ['hamburger-right', 'hamburger-left-logo-center', 'hamburger-left-logo-right'],
-    compatibleTemplateIds: ['tpl-minimal-store', 'tpl-glass-commerce'],
-  },
-  {
-    id: 'side-rail',
-    name: 'Side Rail',
-    description: 'Vertical navigation header positioned on the left side of the screen with stacked navigation.',
-    category: 'creative',
-    previewDiagram: 'Logo\nMenu\nSearch\nCart',
-    rows: [
-      {
-        id: 'row-primary-nav', type: 'primary-nav', name: 'Header', isVisible: true, isLocked: true,
-        layout: { container: 'boxed', alignment: 'left', logoPosition: 'left', navPosition: 'left', actionsPosition: 'left', paddingX: 16, paddingY: 16, gap: 16, height: 64, arrangementId: 'rail-stacked' },
-        styling: { bgType: 'theme', bgColor: '#ffffff', textColor: '#0f172a', borderBottom: true, borderColor: '#e2e8f0', shadow: 'soft', radius: 0, fontSize: 14, fontWeight: 500 },
-        elements: [
-          { id: 'el-logo', type: 'logo', name: 'Logo', isLocked: true, props: { logoType: 'text', text: 'BillionBiz', desktopWidth: 120, link: '/' } },
-          { id: 'el-nav-links', type: 'navigation', name: 'Navigation', isLocked: true, props: { links: [{ id: 'n1', label: 'Home', url: '/' }, { id: 'n2', label: 'Work', url: '/work' }, { id: 'n3', label: 'About', url: '/about' }, { id: 'n4', label: 'Contact', url: '/contact' }] } },
-          { id: 'el-actions', type: 'actions', name: 'Actions', isLocked: true, props: { showSearch: true, showCart: false, showAccount: false, showWishlist: false } },
-        ],
-      },
-    ],
-    globalOverrides: { positioning: 'sticky' },
-    compatibleArrangementIds: ['rail-stacked', 'rail-compact-icons', 'rail-nav-top'],
-    compatibleTemplateIds: [],
-  },
-  {
-    id: 'search-command',
-    name: 'Search Command Center',
-    description: 'Commerce-first navbar with a spacious search-led middle and fast-access shopping actions.',
+    id: 'inline-nav-left',
+    name: 'Inline Brand & Menu',
+    description: 'Logo and navigation links grouped on the left, leaving spacious room on the right for actions and CTA.',
     category: 'commerce',
-    previewDiagram: 'Logo |        Search        | Wishlist Cart Account',
-    rows: [createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!],
-    globalOverrides: { searchMode: 'inline', navInteraction: 'click', scrollBehavior: 'sticky' },
-    compatibleArrangementIds: ['general', 'logo-nav-left', 'floating-inline-end'],
+    previewDiagram: '🏷️ Logo  Nav Links ──────── 🔍 👤 🛒',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'left',
+          actionsPosition: 'right',
+          height: 68,
+          paddingX: 28,
+          paddingY: 14,
+          gap: 28,
+          arrangementId: 'logo-nav-left',
+          variantId: 'inline-nav-left',
+          responsiveArrangement: {
+            desktop: { left: ['logo', 'navigation'], center: [], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'soft',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
+      },
+    ],
+    compatibleArrangementIds: ['logo-nav-left', 'general'],
+    compatibleTemplateIds: ['tpl-tech-saas'],
+  },
+  {
+    id: 'centered-brand',
+    name: 'Centered Brand Masthead',
+    description: 'Symmetrical luxury masthead: navigation on left, prominent brand logo centered, and actions on right.',
+    category: 'editorial',
+    previewDiagram: 'Nav Links ── [ LOGO ] ── 🔍 👤 🛒',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'center',
+          navPosition: 'left',
+          actionsPosition: 'right',
+          height: 74,
+          paddingX: 32,
+          paddingY: 16,
+          gap: 24,
+          arrangementId: 'center-split',
+          variantId: 'centered-brand',
+          responsiveArrangement: {
+            desktop: { left: ['navigation'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['navigation'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'none',
+          radius: 0,
+          fontSize: 13,
+          fontWeight: 500,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
+      },
+    ],
+    compatibleArrangementIds: ['center-split', 'split-navigation', 'general'],
+    compatibleTemplateIds: ['tpl-luxury-fashion', 'tpl-magazine'],
+  },
+  {
+    id: 'prominent-search',
+    name: 'Storefront Search Hub',
+    description: 'Retail powerhouse layout featuring an expansive central search bar with brand logo left and actions right.',
+    category: 'commerce',
+    previewDiagram: '🏷️ Logo ── [ 🔍 Search Products... ] ── 👤 🛒',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'right',
+          actionsPosition: 'right',
+          height: 72,
+          paddingX: 28,
+          paddingY: 12,
+          gap: 20,
+          arrangementId: 'search-center',
+          variantId: 'prominent-search',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: ['search'], right: ['actions'], disabled: ['navigation', 'cta'] },
+            tablet: { left: ['logo'], center: ['search'], right: ['actions'], disabled: ['navigation', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'soft',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
+      },
+    ],
+    compatibleArrangementIds: ['search-center', 'general', 'logo-nav-left'],
     compatibleTemplateIds: ['tpl-search-first', 'tpl-marketplace'],
   },
   {
-    id: 'editorial-masthead',
-    name: 'Editorial Masthead',
-    description: 'A centered, high-contrast masthead for fashion, publishing, hospitality, and premium brands.',
-    category: 'editorial',
-    previewDiagram: 'Navigation |      Logo      | Actions',
-    rows: [{
-      ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!,
-      layout: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.layout,
-        container: 'constrained', alignment: 'space-between', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right',
-        arrangementId: 'center-split', paddingY: 18, gap: 28,
+    id: 'floating-pill',
+    name: 'Floating Island Pill',
+    description: 'Modern floating island navbar with 1200px max-width, rounded 16px pill corners, and elevated soft shadow.',
+    category: 'creative',
+    previewDiagram: '╭── 🏷️ Logo ── Navigation ── 🔍 🛒 ──╮',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'boxed',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'center',
+          actionsPosition: 'right',
+          height: 64,
+          paddingX: 24,
+          paddingY: 10,
+          gap: 20,
+          arrangementId: 'floating-general',
+          variantId: 'floating-pill',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: false,
+          borderColor: '#e2e8f0',
+          shadow: 'medium',
+          radius: 16,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
       },
-      styling: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.styling,
-        bgColor: '#fdfbf7', textColor: '#1c1917', borderColor: '#e7e5e4', shadow: 'none', radius: 0, fontSize: 13, fontWeight: 500,
-      },
-    }],
-    globalOverrides: { navInteraction: 'hover', scrollBehavior: 'shrink-on-scroll' },
-    compatibleArrangementIds: ['center-split', 'split-navigation', 'center-split-inverse'],
-    compatibleTemplateIds: ['tpl-magazine', 'tpl-luxury-fashion'],
+    ],
+    globalOverrides: { positioning: 'floating', scrollBehavior: 'sticky' },
+    compatibleArrangementIds: ['floating-general', 'center-split', 'logo-nav-left'],
+    compatibleTemplateIds: ['tpl-glass-commerce'],
   },
   {
-    id: 'conversion-bar',
-    name: 'Conversion Bar',
-    description: 'A compact retail header tuned for quick discovery, persistent actions, and campaign-led storefronts.',
+    id: 'minimalist-clean',
+    name: 'Minimalist Drawer Nav',
+    description: 'Clean luxury layout: Brand logo on left, quick cart and slide-out menu drawer trigger on right.',
+    category: 'creative',
+    previewDiagram: '🏷️ Logo ────────────────────── 🛒 ☰',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'right',
+          actionsPosition: 'right',
+          height: 64,
+          paddingX: 24,
+          paddingY: 12,
+          gap: 16,
+          arrangementId: 'hamburger-right',
+          variantId: 'minimalist-clean',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: [], right: ['actions', 'menu'], disabled: ['navigation', 'search', 'cta'] },
+            tablet: { left: ['logo'], center: [], right: ['actions', 'menu'], disabled: ['navigation', 'search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#f1f5f9',
+          shadow: 'none',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
+      },
+    ],
+    globalOverrides: { mobileMenuType: 'drawer' },
+    compatibleArrangementIds: ['hamburger-right', 'general'],
+    compatibleTemplateIds: ['tpl-minimal-store'],
+  },
+  {
+    id: 'two-tier-stacked',
+    name: 'Two-Tier Mega Commerce',
+    description: 'Structured two-tier header: Primary brand and actions on top tier, dedicated department links on lower tier.',
     category: 'commerce',
-    previewDiagram: 'Logo | Navigation + Search | Cart CTA',
-    rows: [{
-      ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!,
-      layout: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.layout,
-        container: 'full', alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right',
-        arrangementId: 'logo-nav-left', paddingX: 22, paddingY: 10, gap: 16, height: 60,
+    previewDiagram: '🏷️ Logo ── [ 🔍 Search ] ── 👤 🛒\n[Categories] [New In] [Women] [Men] [Sale]',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'constrained',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'center',
+          actionsPosition: 'right',
+          height: 70,
+          paddingX: 28,
+          paddingY: 14,
+          gap: 20,
+          arrangementId: 'general',
+          variantId: 'two-tier-stacked',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'soft',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
       },
-      styling: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.styling,
-        bgColor: '#0f172a', textColor: '#ffffff', borderBottom: false, borderColor: '#0f172a', shadow: 'medium', radius: 0, fontSize: 14, fontWeight: 600,
-      },
-    }],
-    globalOverrides: { navInteraction: 'click', scrollBehavior: 'sticky', searchMode: 'dropdown' },
-    compatibleArrangementIds: ['logo-nav-left', 'general', 'split-navigation'],
-    compatibleTemplateIds: ['tpl-modern-commerce', 'tpl-electronics'],
+    ],
+    compatibleArrangementIds: ['general', 'logo-nav-left', 'center-split'],
+    compatibleTemplateIds: ['tpl-modern-commerce'],
   },
   {
-    id: 'studio-compact',
-    name: 'Studio Compact',
-    description: 'A focused compact header for portfolios, SaaS products, and content-first experiences.',
+    id: 'full-width-edge',
+    name: 'Full-Width Bleed',
+    description: 'Expansive edge-to-edge layout spanning 100% viewport width with generous side padding and fluid link spacing.',
     category: 'saas',
-    previewDiagram: 'Logo | Links | Menu + Account',
-    rows: [{
-      ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!,
-      layout: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.layout,
-        container: 'edge-to-edge', alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right',
-        arrangementId: 'general', paddingX: 18, paddingY: 8, gap: 14, height: 54, isCompact: true,
+    previewDiagram: '╠══ 🏷️ Logo ──── Navigation Links ──── 🔍 👤 🛒 ══╣',
+    rows: [
+      {
+        id: 'row-primary-nav',
+        type: 'primary-nav',
+        name: 'Header Navbar',
+        isVisible: true,
+        isLocked: true,
+        layout: {
+          container: 'full',
+          alignment: 'space-between',
+          logoPosition: 'left',
+          navPosition: 'center',
+          actionsPosition: 'right',
+          height: 72,
+          paddingX: 36,
+          paddingY: 14,
+          gap: 32,
+          arrangementId: 'general',
+          variantId: 'full-width-edge',
+          responsiveArrangement: {
+            desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+            mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+          },
+        },
+        styling: {
+          bgType: 'theme',
+          bgColor: '#ffffff',
+          textColor: '#0f172a',
+          borderBottom: true,
+          borderColor: '#e2e8f0',
+          shadow: 'soft',
+          radius: 0,
+          fontSize: 14,
+          fontWeight: 600,
+        },
+        elements: createDefaultHeaderStack().find((r) => r.type === 'primary-nav')?.elements || [],
       },
-      styling: {
-        ...createDefaultHeaderStack().find((row) => row.type === 'primary-nav')!.styling,
-        bgColor: '#ffffff', textColor: '#111827', borderBottom: true, borderColor: '#e5e7eb', shadow: 'none', radius: 0, fontSize: 13, fontWeight: 600,
-      },
-    }],
-    globalOverrides: { navInteraction: 'click', mobileMenuType: 'full-screen', scrollBehavior: 'sticky' },
-    compatibleArrangementIds: ['general', 'logo-nav-left', 'hamburger-right'],
-    compatibleTemplateIds: ['tpl-minimal-store', 'tpl-tech-saas'],
+    ],
+    compatibleArrangementIds: ['general', 'logo-nav-left', 'center-split'],
+    compatibleTemplateIds: ['tpl-tech-saas'],
   },
-  createUseCaseVariant(
-    'service-concierge',
-    'Service Concierge',
-    'Trust-first header for agencies, consultants, clinics, and appointment-led businesses with clear contact and booking paths.',
-    'corporate',
-    { container: 'constrained', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right', height: 68, gap: 20 },
-    { navInteraction: 'click', scrollBehavior: 'sticky' },
-  ),
-  createUseCaseVariant(
-    'hospitality-welcome',
-    'Hospitality Welcome',
-    'Warm, editorial navigation for restaurants, hotels, venues, and travel brands with a prominent reservation action.',
-    'editorial',
-    { container: 'constrained', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right', height: 76, gap: 28 },
-    { navInteraction: 'hover', scrollBehavior: 'shrink-on-scroll' },
-  ),
-  createUseCaseVariant(
-    'saas-product',
-    'SaaS Product Nav',
-    'Conversion-ready product navigation for software companies with docs, pricing, account, and sign-up actions.',
-    'saas',
-    { container: 'constrained', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right', height: 64, gap: 18 },
-    { navInteraction: 'click', mobileMenuType: 'full-screen', searchMode: 'overlay', scrollBehavior: 'sticky' },
-  ),
-  createUseCaseVariant(
-    'real-estate-showcase',
-    'Real Estate Showcase',
-    'Discovery-led header for property, architecture, and interior brands with room for location search and lead capture.',
-    'corporate',
-    { container: 'full', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right', height: 70, gap: 24 },
-    { navInteraction: 'hybrid', searchMode: 'inline', scrollBehavior: 'sticky' },
-  ),
-  createUseCaseVariant(
-    'creator-portfolio',
-    'Creator Portfolio',
-    'Minimal, content-first navigation for photographers, studios, freelancers, and creative portfolios.',
-    'creative',
-    { container: 'full', logoPosition: 'left', navPosition: 'right', actionsPosition: 'right', height: 56, gap: 14, isCompact: true },
-    { navInteraction: 'click', mobileMenuType: 'drawer', scrollBehavior: 'static' },
-  ),
 ];
 
 // ─── Header Arrangements ──────────────────────────────────
@@ -1461,154 +1645,125 @@ export const HEADER_VARIANTS: HeaderVariant[] = [
 // without destroying content. Dynamic & variant-specific.
 
 export const HEADER_ARRANGEMENTS: (HeaderArrangement & { variantId?: string })[] = [
-  // ── Standard Header Arrangements ──
   {
     id: 'general',
-    name: 'General',
-    description: 'Logo/brand → navigation links → actions. Classic balanced layout.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right' },
-  },
-  {
-    id: 'center-split',
-    name: 'Center Split',
-    description: 'Navigation links on the left, logo/brand centered, actions on the right.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right' },
-  },
-  {
-    id: 'center-split-inverse',
-    name: 'Center Split Inverse',
-    description: 'Actions on the left, logo/brand centered, navigation links on the right.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'right', actionsPosition: 'left' },
-  },
-  {
-    id: 'split-navigation',
-    name: 'Split Navigation',
-    description: 'Half navigation links left and half right of centered logo/brand.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'split', actionsPosition: 'right' },
-  },
-  {
-    id: 'inverse-general',
-    name: 'Inverse General',
-    description: 'Actions on the left, navigation in the center, logo/brand on the right.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'right', navPosition: 'center', actionsPosition: 'left' },
+    name: 'Balanced (Logo Left • Nav Center • Actions Right)',
+    description: 'Classic balanced 3-zone layout. The standard for e-commerce.',
+    layout: {
+      arrangementId: 'general',
+      alignment: 'space-between',
+      logoPosition: 'left',
+      navPosition: 'center',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+        tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
   },
   {
     id: 'logo-nav-left',
-    name: 'Logo & Nav Left',
-    description: 'Logo/brand and navigation links grouped on left, actions on the right.',
-    variantId: 'standard',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'left', actionsPosition: 'right' },
+    name: 'Grouped Left (Logo & Nav Left • Actions Right)',
+    description: 'Brand logo and navigation links grouped on left, actions on the right.',
+    layout: {
+      arrangementId: 'logo-nav-left',
+      alignment: 'space-between',
+      logoPosition: 'left',
+      navPosition: 'left',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['logo', 'navigation'], center: [], right: ['actions'], disabled: ['search', 'cta'] },
+        tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
   },
-
-  // ── Floating Header Arrangements ──
+  {
+    id: 'center-split',
+    name: 'Masthead (Nav Left • Centered Brand • Actions Right)',
+    description: 'Navigation links on left, centered brand logo, actions on right.',
+    layout: {
+      arrangementId: 'center-split',
+      alignment: 'space-between',
+      logoPosition: 'center',
+      navPosition: 'left',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['navigation'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+        tablet: { left: ['navigation'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
+  },
+  {
+    id: 'search-center',
+    name: 'Search Hub (Logo Left • Search Center • Actions Right)',
+    description: 'Expansive central search bar with brand on left and actions on right.',
+    layout: {
+      arrangementId: 'search-center',
+      alignment: 'space-between',
+      logoPosition: 'left',
+      navPosition: 'none',
+      searchPosition: 'center',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['logo'], center: ['search'], right: ['actions'], disabled: ['navigation', 'cta'] },
+        tablet: { left: ['logo'], center: ['search'], right: ['actions'], disabled: ['navigation', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
+  },
   {
     id: 'floating-general',
-    name: 'Floating Balanced',
-    description: 'Logo left, navigation centered, actions right within floating pill.',
-    variantId: 'floating',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right' },
+    name: 'Floating Island (Logo Left • Nav Center • Actions Right)',
+    description: 'Floating pill island with logo left, navigation center, actions right.',
+    layout: {
+      arrangementId: 'floating-general',
+      alignment: 'space-between',
+      logoPosition: 'left',
+      navPosition: 'center',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+        tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
   },
-  {
-    id: 'floating-center-brand',
-    name: 'Floating Center Brand',
-    description: 'Navigation left, prominent centered logo, actions right.',
-    variantId: 'floating',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right' },
-  },
-  {
-    id: 'floating-split-nav',
-    name: 'Floating Split Nav',
-    description: 'Navigation split evenly around centered brand inside floating island.',
-    variantId: 'floating',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'split', actionsPosition: 'right' },
-  },
-  {
-    id: 'floating-inline-end',
-    name: 'Floating Right Grouped',
-    description: 'Logo left, with navigation links and actions grouped towards right.',
-    variantId: 'floating',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'right', actionsPosition: 'right' },
-  },
-
-  // ── Transparent Header Arrangements ──
-  {
-    id: 'transparent-general',
-    name: 'Transparent Hero Overlay',
-    description: 'Logo left, navigation centered, actions right over hero visual.',
-    variantId: 'transparent',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right' },
-  },
-  {
-    id: 'transparent-center-split',
-    name: 'Transparent Center Brand',
-    description: 'Navigation left, centered brand crest, actions right over hero.',
-    variantId: 'transparent',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right' },
-  },
-  {
-    id: 'transparent-split-nav',
-    name: 'Transparent Split Nav',
-    description: 'Split navigation links framing centered logo over cinematic media.',
-    variantId: 'transparent',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'split', actionsPosition: 'right' },
-  },
-  {
-    id: 'transparent-minimal',
-    name: 'Transparent Minimal',
-    description: 'Logo on left and clean compact navigation on right.',
-    variantId: 'transparent',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'right', actionsPosition: 'right' },
-  },
-
-  // ── Minimal Hamburger Arrangements ──
   {
     id: 'hamburger-right',
-    name: 'Logo Left + Menu Right',
-    description: 'Logo/brand on left, drawer menu toggle and cart icon on right.',
-    variantId: 'minimal-hamburger',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'right', actionsPosition: 'right' },
+    name: 'Minimal Drawer (Logo Left • Actions & Menu Right)',
+    description: 'Brand on left, shopping actions and drawer menu toggle on right.',
+    layout: {
+      arrangementId: 'hamburger-right',
+      alignment: 'space-between',
+      logoPosition: 'left',
+      navPosition: 'none',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['logo'], center: [], right: ['actions', 'menu'], disabled: ['navigation', 'search', 'cta'] },
+        tablet: { left: ['logo'], center: [], right: ['actions', 'menu'], disabled: ['navigation', 'search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
   },
   {
-    id: 'hamburger-left-logo-center',
-    name: 'Menu Left + Logo Center',
-    description: 'Menu drawer toggle on left, centered brand prominence, actions right.',
-    variantId: 'minimal-hamburger',
-    layout: { alignment: 'space-between', logoPosition: 'center', navPosition: 'left', actionsPosition: 'right' },
-  },
-  {
-    id: 'hamburger-left-logo-right',
-    name: 'Menu Left + Logo Right',
-    description: 'Menu drawer toggle on left, brand and actions right-aligned.',
-    variantId: 'minimal-hamburger',
-    layout: { alignment: 'space-between', logoPosition: 'right', navPosition: 'left', actionsPosition: 'right' },
-  },
-
-  // ── Side Rail Arrangements ──
-  {
-    id: 'rail-stacked',
-    name: 'Top Brand + Middle Nav',
-    description: 'Brand logo at top, vertical nav links in middle, actions/account at bottom.',
-    variantId: 'side-rail',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'center', actionsPosition: 'right' },
-  },
-  {
-    id: 'rail-compact-icons',
-    name: 'Compact Icon Dock',
-    description: 'Icon logo top, iconized vertical navigation dock, actions at bottom.',
-    variantId: 'side-rail',
-    layout: { alignment: 'space-between', logoPosition: 'left', navPosition: 'left', actionsPosition: 'right' },
-  },
-  {
-    id: 'rail-nav-top',
-    name: 'Nav Top + Brand Bottom',
-    description: 'Navigation items starting from top, brand insignia and actions at bottom.',
-    variantId: 'side-rail',
-    layout: { alignment: 'space-between', logoPosition: 'right', navPosition: 'left', actionsPosition: 'right' },
+    id: 'split-navigation',
+    name: 'Split Navigation (Nav 1/2 • Centered Logo • Nav 2/2)',
+    description: 'Navigation links divided equally on each side of centered brand logo.',
+    layout: {
+      arrangementId: 'split-navigation',
+      alignment: 'space-between',
+      logoPosition: 'center',
+      navPosition: 'split',
+      actionsPosition: 'right',
+      responsiveArrangement: {
+        desktop: { left: ['navigation-left'], center: ['logo'], right: ['navigation-right', 'actions'], disabled: ['search', 'cta'] },
+        tablet: { left: ['navigation'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+        mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['navigation', 'search', 'cta'] },
+      },
+    },
   },
 ];
 

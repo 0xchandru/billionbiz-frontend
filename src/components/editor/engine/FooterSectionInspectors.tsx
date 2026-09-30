@@ -1687,3 +1687,587 @@ export const SeoSectionInspector: React.FC<{ row: FooterRow; onClose: () => void
   );
 };
 
+// ────────────────────────────────────────────────────────────
+// 8. CATEGORY DIRECTORY LINKS INSPECTOR
+// ────────────────────────────────────────────────────────────
+export const CategoryLinksSectionInspector: React.FC<{ row: FooterRow; onClose: () => void }> = ({ row: propRow, onClose }) => {
+  const { footerRows, updateFooterRow, updateFooterElement } = useEditorContextStore();
+  const row = (footerRows || []).find((r) => r.id === propRow.id) || propRow;
+
+  const currentLookId = row.layout?.variantId || 'classic-inline-comma';
+  const supportedTabs = getSectionSupportedTabs('category-links', currentLookId);
+  const [activeTab, setActiveTab] = useState<string>('look');
+  const [expandedCatId, setExpandedCatId] = useState<string | null>(null);
+  const [bulkCatId, setBulkCatId] = useState<string | null>(null);
+  const [bulkText, setBulkText] = useState<string>('');
+
+  const primaryCol = row.columns?.[0];
+  const catElement = primaryCol?.elements?.[0];
+  const elProps = catElement?.props || {};
+
+  const categories: any[] = elProps.categories || [];
+  const separator = elProps.separator ?? ', ';
+  const titleTransform = elProps.titleTransform || 'uppercase';
+
+  const handleSelectLook = (newLookId: string) => {
+    const updated = switchSectionLook(row, 'category-links', newLookId);
+    updateFooterRow(row.id, {
+      layout: updated.layout,
+      styling: updated.styling,
+      behavior: updated.behavior,
+    });
+  };
+
+  const handleUpdateProps = (patch: Record<string, any>) => {
+    if (catElement) {
+      updateFooterElement(row.id, catElement.id, {
+        props: { ...catElement.props, ...patch },
+      });
+    }
+  };
+
+  const handleAddCategory = () => {
+    const newCat = {
+      id: `cat-${Date.now().toString(36)}`,
+      name: 'NEW CATEGORY',
+      links: [
+        { label: 'Example Link 1', url: '#' },
+        { label: 'Example Link 2', url: '#' },
+      ],
+    };
+    handleUpdateProps({ categories: [...categories, newCat] });
+    setExpandedCatId(newCat.id);
+  };
+
+  const handleDeleteCategory = (catId: string) => {
+    handleUpdateProps({ categories: categories.filter((c) => c.id !== catId) });
+  };
+
+  const handleUpdateCategoryName = (catId: string, name: string) => {
+    handleUpdateProps({
+      categories: categories.map((c) => (c.id === catId ? { ...c, name } : c)),
+    });
+  };
+
+  const handleAddLink = (catId: string) => {
+    handleUpdateProps({
+      categories: categories.map((c) =>
+        c.id === catId
+          ? { ...c, links: [...c.links, { label: 'New Link', url: '#' }] }
+          : c
+      ),
+    });
+  };
+
+  const handleDeleteLink = (catId: string, linkIdx: number) => {
+    handleUpdateProps({
+      categories: categories.map((c) =>
+        c.id === catId
+          ? { ...c, links: c.links.filter((_: any, i: number) => i !== linkIdx) }
+          : c
+      ),
+    });
+  };
+
+  const handleUpdateLink = (catId: string, linkIdx: number, patch: Partial<{ label: string; url: string }>) => {
+    handleUpdateProps({
+      categories: categories.map((c) =>
+        c.id === catId
+          ? {
+              ...c,
+              links: c.links.map((l: any, i: number) => (i === linkIdx ? { ...l, ...patch } : l)),
+            }
+          : c
+      ),
+    });
+  };
+
+  const handleBulkAdd = (catId: string) => {
+    if (!bulkText.trim()) return;
+    const lines = bulkText.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    const newLinks = lines.map((label) => ({ label, url: '#' }));
+    handleUpdateProps({
+      categories: categories.map((c) =>
+        c.id === catId ? { ...c, links: [...c.links, ...newLinks] } : c
+      ),
+    });
+    setBulkText('');
+    setBulkCatId(null);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#ffffff', overflow: 'hidden' }}>
+      <SectionTabsHeader
+        title="Category Directory Links"
+        activeTab={activeTab}
+        supportedTabs={supportedTabs}
+        onSelectTab={setActiveTab}
+        onClose={onClose}
+      />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        {activeTab === 'look' && (
+          <LookPickerGrid
+            looks={FOOTER_STACK_SECTION_REGISTRY['category-links'].looks}
+            currentLookId={currentLookId}
+            onSelectLook={handleSelectLook}
+          />
+        )}
+
+        {activeTab === 'content' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Global Link Separator */}
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Link Separator
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {[
+                  { label: 'Comma ( , )', val: ' , ' },
+                  { label: 'Bullet ( • )', val: '  •  ' },
+                  { label: 'Pipe ( | )', val: '  |  ' },
+                  { label: 'Slash ( / )', val: '  /  ' },
+                  { label: 'None', val: '' },
+                ].map((sep) => (
+                  <button
+                    key={sep.val}
+                    type="button"
+                    onClick={() => handleUpdateProps({ separator: sep.val })}
+                    style={{
+                      flex: 1,
+                      padding: '6px 4px',
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: separator === sep.val ? '#2563eb' : '#cbd5e1',
+                      backgroundColor: separator === sep.val ? '#eff6ff' : '#ffffff',
+                      color: separator === sep.val ? '#1d4ed8' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {sep.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Title Casing */}
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Category Title Case
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {[
+                  { label: 'UPPERCASE', val: 'uppercase' },
+                  { label: 'Capitalize', val: 'capitalize' },
+                  { label: 'Normal', val: 'none' },
+                ].map((tc) => (
+                  <button
+                    key={tc.val}
+                    type="button"
+                    onClick={() => handleUpdateProps({ titleTransform: tc.val })}
+                    style={{
+                      flex: 1,
+                      padding: '6px 4px',
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      border: '1px solid',
+                      borderColor: titleTransform === tc.val ? '#2563eb' : '#cbd5e1',
+                      backgroundColor: titleTransform === tc.val ? '#eff6ff' : '#ffffff',
+                      color: titleTransform === tc.val ? '#1d4ed8' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {tc.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Groups Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#64748b' }}>
+                Categories ({categories.length})
+              </span>
+              <button
+                type="button"
+                onClick={handleAddCategory}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <Plus size={12} /> Add Category
+              </button>
+            </div>
+
+            {/* List of Categories */}
+            {categories.map((cat, cIdx) => {
+              const isExpanded = expandedCatId === cat.id;
+              const isBulk = bulkCatId === cat.id;
+
+              return (
+                <div
+                  key={cat.id || cIdx}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    backgroundColor: '#f8fafc',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* Category Title Row */}
+                  <div
+                    style={{
+                      padding: '10px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: '#ffffff',
+                      borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none',
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={cat.name}
+                      onChange={(e) => handleUpdateCategoryName(cat.id, e.target.value)}
+                      placeholder="Category Name"
+                      style={{
+                        flex: 1,
+                        padding: '4px 8px',
+                        borderRadius: '5px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        textTransform: titleTransform as any,
+                      }}
+                    />
+                    <span style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                      {cat.links?.length || 0} links
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedCatId(isExpanded ? null : cat.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: '#64748b',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {isExpanded ? 'Collapse' : 'Edit Links'}
+                    </button>
+                    {categories.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        title="Delete category"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '4px' }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expanded Links Editor */}
+                  {isExpanded && (
+                    <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>
+                          Category Links
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setBulkCatId(isBulk ? null : cat.id)}
+                            style={{ fontSize: '11px', fontWeight: 600, color: '#4f46e5', background: 'none', border: 'none', cursor: 'pointer' }}
+                          >
+                            {isBulk ? 'Cancel Bulk' : '+ Bulk Add'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddLink(cat.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', fontSize: '11px', fontWeight: 700, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}
+                          >
+                            <Plus size={11} /> Add Link
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Bulk Add Textarea */}
+                      {isBulk && (
+                        <div style={{ padding: '8px', backgroundColor: '#eef2ff', borderRadius: '6px', border: '1px solid #c7d2fe', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <label style={{ fontSize: '11px', color: '#3730a3', fontWeight: 600 }}>
+                            Paste comma-separated or newline-separated links:
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={bulkText}
+                            onChange={(e) => setBulkText(e.target.value)}
+                            placeholder="Storage Jars, Storage Containers, Lunch Boxes..."
+                            style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px', boxSizing: 'border-box' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleBulkAdd(cat.id)}
+                            style={{ alignSelf: 'flex-end', padding: '4px 10px', backgroundColor: '#4f46e5', color: '#ffffff', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            Append Links
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Individual Links */}
+                      {cat.links?.map((link: any, lIdx: number) => (
+                        <div key={lIdx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input
+                            type="text"
+                            value={link.label}
+                            onChange={(e) => handleUpdateLink(cat.id, lIdx, { label: e.target.value })}
+                            placeholder="Link Title"
+                            style={{ flex: 1, padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                          />
+                          <input
+                            type="text"
+                            value={link.url}
+                            onChange={(e) => handleUpdateLink(cat.id, lIdx, { url: e.target.value })}
+                            placeholder="URL (#)"
+                            style={{ width: '80px', padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLink(cat.id, lIdx)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '2px' }}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab === 'layout' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Container Width
+              </label>
+              <select
+                value={row.layout?.container || 'constrained'}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, container: e.target.value as any } })}
+                style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value="constrained">Constrained (Standard 1280px)</option>
+                <option value="full">Full Width</option>
+                <option value="boxed">Boxed (Compact 1024px)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Alignment
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {(['left', 'center', 'right'] as const).map((align) => (
+                  <button
+                    key={align}
+                    type="button"
+                    onClick={() => updateFooterRow(row.id, { layout: { ...row.layout, alignment: align } })}
+                    style={{
+                      flex: 1,
+                      padding: '6px',
+                      borderRadius: '5px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      textTransform: 'capitalize',
+                      border: '1px solid',
+                      borderColor: (row.layout?.alignment || 'left') === align ? '#2563eb' : '#cbd5e1',
+                      backgroundColor: (row.layout?.alignment || 'left') === align ? '#eff6ff' : '#ffffff',
+                      color: (row.layout?.alignment || 'left') === align ? '#1d4ed8' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {align}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Gap Between Categories ({row.layout?.categoryGap ?? 24}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="60"
+                value={row.layout?.categoryGap ?? 24}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, categoryGap: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Gap Between Title and Links ({row.layout?.titleGap ?? 8}px)
+              </label>
+              <input
+                type="range"
+                min="4"
+                max="28"
+                value={row.layout?.titleGap ?? 8}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, titleGap: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Vertical Padding ({row.layout?.paddingY ?? 36}px)
+              </label>
+              <input
+                type="range"
+                min="12"
+                max="80"
+                value={row.layout?.paddingY ?? 36}
+                onChange={(e) => updateFooterRow(row.id, { layout: { ...row.layout, paddingY: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'design' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Background Color
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={row.styling?.bgColor || '#ffffff'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, bgColor: e.target.value } })}
+                  style={{ width: '36px', height: '32px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '0', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={row.styling?.bgColor || '#ffffff'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, bgColor: e.target.value } })}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Category Title Color
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={row.styling?.titleColor || '#0f172a'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, titleColor: e.target.value } })}
+                  style={{ width: '36px', height: '32px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '0', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={row.styling?.titleColor || '#0f172a'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, titleColor: e.target.value } })}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Link Text Color
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={row.styling?.linkColor || '#64748b'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, linkColor: e.target.value } })}
+                  style={{ width: '36px', height: '32px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '0', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={row.styling?.linkColor || '#64748b'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, linkColor: e.target.value } })}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Link Hover Color
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={row.styling?.linkHoverColor || '#0f172a'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, linkHoverColor: e.target.value } })}
+                  style={{ width: '36px', height: '32px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '0', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={row.styling?.linkHoverColor || '#0f172a'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, linkHoverColor: e.target.value } })}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Separator Color
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={row.styling?.separatorColor || '#94a3b8'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, separatorColor: e.target.value } })}
+                  style={{ width: '36px', height: '32px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '0', cursor: 'pointer' }}
+                />
+                <input
+                  type="text"
+                  value={row.styling?.separatorColor || '#94a3b8'}
+                  onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, separatorColor: e.target.value } })}
+                  style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '6px' }}>
+                Link Font Size ({row.styling?.fontSize ?? 13}px)
+              </label>
+              <input
+                type="range"
+                min="11"
+                max="16"
+                value={row.styling?.fontSize ?? 13}
+                onChange={(e) => updateFooterRow(row.id, { styling: { ...row.styling, fontSize: Number(e.target.value) } })}
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'responsive' && <SharedResponsiveTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'visibility' && <SharedVisibilityTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+        {activeTab === 'advanced' && <SharedAdvancedTab row={row} updateRow={(patch) => updateFooterRow(row.id, patch)} />}
+      </div>
+    </div>
+  );
+};
+
+
