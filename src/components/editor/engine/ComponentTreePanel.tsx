@@ -283,21 +283,21 @@ const SortableRow: React.FC<SortableRowProps> = ({
                 if (!menuOpen) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   const spaceBelow = window.innerHeight - rect.bottom;
-                  const openUpward = spaceBelow < 280 && rect.top > 280;
+                  const openUpward = spaceBelow < 250;
 
                   if (openUpward) {
                     setMenuPos({
                       top: undefined,
-                      bottom: Math.max(8, window.innerHeight - rect.top + 4),
-                      left: Math.max(10, Math.min(window.innerWidth - 215, rect.right - 190)),
-                      maxHeight: Math.min(380, rect.top - 16),
+                      bottom: window.innerHeight - rect.bottom,
+                      left: rect.right + 8,
+                      maxHeight: rect.top - 20,
                     });
                   } else {
                     setMenuPos({
-                      top: rect.bottom + 4,
+                      top: rect.top,
                       bottom: undefined,
-                      left: Math.max(10, Math.min(window.innerWidth - 215, rect.right - 190)),
-                      maxHeight: Math.min(380, Math.max(180, spaceBelow - 16)),
+                      left: rect.right + 8,
+                      maxHeight: spaceBelow - 20,
                     });
                   }
                 }

@@ -58,6 +58,7 @@ import {
   Box,
   ArrowLeft,
   ArrowRight,
+  ArrowRightLeft,
 } from 'lucide-react';
 
 // Safe inline SVG component for Tablet to ensure zero runtime ReferenceError
@@ -84,7 +85,19 @@ const TabletIcon: React.FC<{ size?: number; color?: string; style?: React.CSSPro
   </svg>
 );
 
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  closestCenter,
+  closestCorners,
+  pointerWithin,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  DragOverlay,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useLandingEditorStore } from '../../store/landingEditorStore';
@@ -8021,11 +8034,45 @@ export const FooterLookWireframeDiagram: React.FC<{ look: FooterLookDefinition; 
   );
 };
 
+// ─── Droppable Footer Column Container ────────────────────────
+const DroppableFooterColumnContainer: React.FC<{
+  columnId: string;
+  isEmpty: boolean;
+  children: React.ReactNode;
+}> = ({ columnId, isEmpty, children }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `col-drop-${columnId}`,
+    data: { columnId, type: 'column' },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+        minHeight: isEmpty ? '56px' : '36px',
+        padding: '6px',
+        borderRadius: '6px',
+        transition: 'all 0.15s ease',
+        backgroundColor: isOver ? '#eff6ff' : 'transparent',
+        border: isOver ? '1.5px dashed #2563eb' : '1.5px dashed transparent',
+        boxSizing: 'border-box',
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 // ─── Sortable Footer Column Child Item Component ─────────────
 const SortableFooterColumnChildItem: React.FC<{
   element: FooterElement;
   columnId: string;
   rowId: string;
+  allColumns?: FooterColumn[];
+  onMoveToColumn?: (targetColId: string) => void;
   onOpenOverlay: () => void;
   onToggleVisibility: (e: React.MouseEvent) => void;
   onDuplicate: (e: React.MouseEvent) => void;
@@ -8037,8 +8084,10 @@ const SortableFooterColumnChildItem: React.FC<{
   onToggleGroupChildVisibility?: (groupId: string, childId: string) => void;
 }> = ({
   element,
-  columnId: _columnId,
+  columnId,
   rowId: _rowId,
+  allColumns,
+  onMoveToColumn,
   onOpenOverlay,
   onToggleVisibility,
   onDuplicate,
@@ -8049,8 +8098,10 @@ const SortableFooterColumnChildItem: React.FC<{
   onDuplicateGroupChild,
   onToggleGroupChildVisibility,
 }) => {
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: element.id,
+    data: { columnId, element },
   });
 
   const isVisible = element.props?.isVisible !== false;
@@ -8177,6 +8228,101 @@ const SortableFooterColumnChildItem: React.FC<{
             >
               <Copy size={13} />
             </button>
+            {allColumns && allColumns.length > 1 && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMoveMenu(!showMoveMenu);
+                  }}
+                  title="Move group to another column"
+                  style={{
+                    background: showMoveMenu ? '#eff6ff' : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: showMoveMenu ? '#2563eb' : '#64748b',
+                    padding: '3px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <ArrowRightLeft size={13} />
+                </button>
+                {showMoveMenu && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', inset: 0, zIndex: 99998 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMoveMenu(false);
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: '4px',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
+                        zIndex: 99999,
+                        padding: '4px',
+                        minWidth: '130px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', padding: '4px 6px', textTransform: 'uppercase' }}>
+                        Move to Column:
+                      </div>
+                      {allColumns.map((c, idx) => {
+                        const isCurrent = c.id === columnId;
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            disabled={isCurrent}
+                            onClick={() => {
+                              setShowMoveMenu(false);
+                              onMoveToColumn?.(c.id);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '5px 8px',
+                              fontSize: '11px',
+                              fontWeight: isCurrent ? 500 : 600,
+                              color: isCurrent ? '#94a3b8' : '#1e293b',
+                              backgroundColor: isCurrent ? '#f8fafc' : 'transparent',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: isCurrent ? 'default' : 'pointer',
+                              textAlign: 'left',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isCurrent) e.currentTarget.style.backgroundColor = '#eff6ff';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isCurrent) e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                          >
+                            <span>Column {idx + 1}</span>
+                            {isCurrent && <span style={{ fontSize: '9px', color: '#94a3b8' }}>(Current)</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <button
               type="button"
               onClick={onDelete}
@@ -8375,6 +8521,102 @@ const SortableFooterColumnChildItem: React.FC<{
           <Copy size={13} />
         </button>
 
+        {allColumns && allColumns.length > 1 && (
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMoveMenu(!showMoveMenu);
+              }}
+              title="Move component to another column"
+              style={{
+                background: showMoveMenu ? '#eff6ff' : 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: showMoveMenu ? '#2563eb' : '#64748b',
+                padding: '3px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <ArrowRightLeft size={13} />
+            </button>
+            {showMoveMenu && (
+              <>
+                <div
+                  style={{ position: 'fixed', inset: 0, zIndex: 99998 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMoveMenu(false);
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '4px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
+                    zIndex: 99999,
+                    padding: '4px',
+                    minWidth: '130px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', padding: '4px 6px', textTransform: 'uppercase' }}>
+                    Move to Column:
+                  </div>
+                  {allColumns.map((c, idx) => {
+                    const isCurrent = c.id === columnId;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        disabled={isCurrent}
+                        onClick={() => {
+                          setShowMoveMenu(false);
+                          onMoveToColumn?.(c.id);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '5px 8px',
+                          fontSize: '11px',
+                          fontWeight: isCurrent ? 500 : 600,
+                          color: isCurrent ? '#94a3b8' : '#1e293b',
+                          backgroundColor: isCurrent ? '#f8fafc' : 'transparent',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: isCurrent ? 'default' : 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isCurrent) e.currentTarget.style.backgroundColor = '#eff6ff';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isCurrent) e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <span>Column {idx + 1}</span>
+                        {isCurrent && <span style={{ fontSize: '9px', color: '#94a3b8' }}>(Current)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Delete Component */}
         <button
           type="button"
@@ -8449,19 +8691,94 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
     })
   );
 
-  const handleChildDragEnd = (columnId: string, event: DragEndEvent) => {
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const activeDragItem = useMemo(() => {
+    if (!activeDragId || !row.columns) return null;
+    for (const col of row.columns) {
+      const found = col.elements?.find((e) => e.id === activeDragId);
+      if (found) return found;
+    }
+    return null;
+  }, [activeDragId, row.columns]);
+
+  const handleChildDragStart = (event: DragStartEvent) => {
+    setActiveDragId(String(event.active.id));
+  };
+
+  const handleChildDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveDragId(null);
     if (!over || active.id === over.id) return;
 
-    const col = row.columns?.find((c) => c.id === columnId);
-    if (!col || !col.elements) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
-    const oldIndex = col.elements.findIndex((e) => e.id === active.id);
-    const newIndex = col.elements.findIndex((e) => e.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
+    // 1. Locate the source column containing activeId
+    const sourceCol = row.columns?.find((c) => c.elements?.some((e) => e.id === activeId));
+    if (!sourceCol || !sourceCol.elements) return;
 
-    const newElements = arrayMove(col.elements, oldIndex, newIndex);
-    const newCols = row.columns?.map((c) => (c.id === columnId ? { ...c, elements: newElements } : c));
+    const activeIndex = sourceCol.elements.findIndex((e) => e.id === activeId);
+    if (activeIndex === -1) return;
+    const activeElement = sourceCol.elements[activeIndex];
+
+    // 2. Locate target column
+    let targetCol = row.columns?.find((c) => c.elements?.some((e) => e.id === overId));
+    let overIndex = -1;
+
+    if (targetCol && targetCol.elements) {
+      overIndex = targetCol.elements.findIndex((e) => e.id === overId);
+    } else {
+      targetCol = row.columns?.find((c) => c.id === overId || `col-drop-${c.id}` === overId);
+      if (targetCol) {
+        overIndex = targetCol.elements ? targetCol.elements.length : 0;
+      }
+    }
+
+    if (!targetCol || !targetCol.elements) return;
+
+    // Same column reorder
+    if (sourceCol.id === targetCol.id) {
+      if (overIndex === -1 || activeIndex === overIndex) return;
+      const reorderedElements = arrayMove(sourceCol.elements, activeIndex, overIndex);
+      const newCols = row.columns?.map((c) =>
+        c.id === sourceCol.id ? { ...c, elements: reorderedElements } : c
+      );
+      updateFooterRow(row.id, { columns: newCols });
+      return;
+    }
+
+    // Cross-column move
+    const newSourceElements = sourceCol.elements.filter((e) => e.id !== activeId);
+    const newTargetElements = [...(targetCol.elements || [])];
+
+    const insertIndex = overIndex >= 0 ? overIndex : newTargetElements.length;
+    newTargetElements.splice(insertIndex, 0, activeElement);
+
+    const newCols = row.columns?.map((c) => {
+      if (c.id === sourceCol.id) return { ...c, elements: newSourceElements };
+      if (c.id === targetCol.id) return { ...c, elements: newTargetElements };
+      return c;
+    });
+
+    updateFooterRow(row.id, { columns: newCols });
+  };
+
+  const handleMoveElementToColumn = (fromColId: string, toColId: string, elementId: string) => {
+    if (fromColId === toColId) return;
+    const fromCol = row.columns?.find((c) => c.id === fromColId);
+    const toCol = row.columns?.find((c) => c.id === toColId);
+    if (!fromCol || !toCol) return;
+    const el = fromCol.elements?.find((e) => e.id === elementId);
+    if (!el) return;
+
+    const newFromElements = fromCol.elements.filter((e) => e.id !== elementId);
+    const newToElements = [...(toCol.elements || []), el];
+    const newCols = row.columns?.map((c) => {
+      if (c.id === fromColId) return { ...c, elements: newFromElements };
+      if (c.id === toColId) return { ...c, elements: newToElements };
+      return c;
+    });
     updateFooterRow(row.id, { columns: newCols });
   };
 
@@ -9022,393 +9339,428 @@ const FooterDirectoryInspectorContent: React.FC<{ row: FooterRow; onClose: () =>
             TAB 2: CONTENT (Inline Column Management & Reordering)
             ======================================================== */}
         {(currentTab === 'content' || currentTab === 'columns') && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Footer Columns ({row.columns?.length || 0})
-              </span>
-              <button
-                type="button"
-                onClick={handleAddColumn}
-                disabled={(row.columns?.length || 0) >= 6}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '5px 10px',
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '6px',
-                  color: '#2563eb',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  cursor: (row.columns?.length || 0) >= 6 ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <Plus size={13} /> Add Column
-              </button>
-            </div>
-
-            {/* List of Columns */}
-            {row.columns?.map((col, colIdx) => {
-              const isExpanded = expandedColumnId === col.id;
-
-              return (
-                <div
-                  key={col.id}
+          <DndContext
+            sensors={dndSensors}
+            collisionDetection={(args) => {
+              const pointerCollisions = pointerWithin(args);
+              if (pointerCollisions.length > 0) return pointerCollisions;
+              return closestCorners(args);
+            }}
+            onDragStart={handleChildDragStart}
+            onDragEnd={handleChildDragEnd}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Footer Columns ({row.columns?.length || 0})
+                </span>
+                <button
+                  type="button"
+                  onClick={handleAddColumn}
+                  disabled={(row.columns?.length || 0) >= 6}
                   style={{
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    backgroundColor: '#f8fafc',
-                    overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '5px 10px',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '6px',
+                    color: '#2563eb',
+                    fontSize: '11.5px',
+                    fontWeight: 600,
+                    cursor: (row.columns?.length || 0) >= 6 ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {/* Column Header Card */}
+                  <Plus size={13} /> Add Column
+                </button>
+              </div>
+
+              {/* List of Columns */}
+              {row.columns?.map((col, colIdx) => {
+                const isExpanded = expandedColumnId === col.id;
+                const hasElements = Boolean(col.elements && col.elements.length > 0);
+
+                return (
                   <div
+                    key={col.id}
                     style={{
-                      padding: '10px 12px',
-                      backgroundColor: '#f1f5f9',
-                      borderBottom: '1px solid #e2e8f0',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      backgroundColor: '#f8fafc',
+                      overflow: 'hidden',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
+                      flexDirection: 'column',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1e293b' }}>
-                        Column {colIdx + 1}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          color: '#64748b',
-                          backgroundColor: '#ffffff',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          border: '1px solid #cbd5e1',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {col.width || '1fr'}
-                      </span>
-                    </div>
+                    {/* Column Header Card */}
+                    <div
+                      style={{
+                        padding: '10px 12px',
+                        backgroundColor: '#f1f5f9',
+                        borderBottom: '1px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1e293b' }}>
+                          Column {colIdx + 1}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            color: '#64748b',
+                            backgroundColor: '#ffffff',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            border: '1px solid #cbd5e1',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {col.width || '1fr'}
+                        </span>
+                      </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {/* Move Column Left */}
-                      <button
-                        type="button"
-                        onClick={() => handleMoveColumn(col.id, 'left')}
-                        disabled={colIdx === 0}
-                        title="Move column left"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: colIdx === 0 ? 'not-allowed' : 'pointer',
-                          color: colIdx === 0 ? '#cbd5e1' : '#64748b',
-                          padding: '3px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <ArrowLeft size={13} />
-                      </button>
-
-                      {/* Move Column Right */}
-                      <button
-                        type="button"
-                        onClick={() => handleMoveColumn(col.id, 'right')}
-                        disabled={colIdx === (row.columns?.length || 0) - 1}
-                        title="Move column right"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: colIdx === (row.columns?.length || 0) - 1 ? 'not-allowed' : 'pointer',
-                          color: colIdx === (row.columns?.length || 0) - 1 ? '#cbd5e1' : '#64748b',
-                          padding: '3px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <ArrowRight size={13} />
-                      </button>
-
-                      {/* Duplicate Column */}
-                      <button
-                        type="button"
-                        onClick={() => handleDuplicateColumn(col.id)}
-                        disabled={(row.columns?.length || 0) >= 6}
-                        title="Duplicate column"
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#64748b',
-                          padding: '3px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        <Copy size={13} />
-                      </button>
-
-                      {/* Delete Column (if > 1) */}
-                      {(row.columns?.length || 0) > 1 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {/* Move Column Left */}
                         <button
                           type="button"
-                          onClick={() => handleDeleteColumn(col.id)}
-                          title="Delete column"
+                          onClick={() => handleMoveColumn(col.id, 'left')}
+                          disabled={colIdx === 0}
+                          title="Move column left"
                           style={{
                             background: 'none',
                             border: 'none',
-                            cursor: 'pointer',
-                            color: '#ef4444',
+                            cursor: colIdx === 0 ? 'not-allowed' : 'pointer',
+                            color: colIdx === 0 ? '#cbd5e1' : '#64748b',
                             padding: '3px',
                             borderRadius: '4px',
                           }}
                         >
-                          <Trash2 size={13} />
+                          <ArrowLeft size={13} />
                         </button>
-                      )}
 
-                      {/* Inline Expand for Column Sizing & Alignment */}
-                      <button
-                        type="button"
-                        onClick={() => setExpandedColumnId(isExpanded ? null : col.id)}
-                        title={isExpanded ? 'Collapse column settings' : 'Expand column settings'}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          color: '#475569',
-                          padding: '3px',
-                          borderRadius: '4px',
-                          marginLeft: '2px',
-                        }}
-                      >
-                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Inline Column Settings Expansion */}
-                  {isExpanded && (
-                    <div
-                      style={{
-                        padding: '12px 14px',
-                        backgroundColor: '#ffffff',
-                        borderBottom: '1px solid #e2e8f0',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px',
-                        fontSize: '12px',
-                      }}
-                    >
-                      {/* Width Mode & Width Input */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Width Mode
-                          </label>
-                          <select
-                            value={col.widthMode || 'auto'}
-                            onChange={(e) => handleUpdateColumnDetails(col.id, { widthMode: e.target.value as any })}
-                            style={{
-                              width: '100%',
-                              padding: '5px 8px',
-                              borderRadius: '6px',
-                              border: '1px solid #cbd5e1',
-                              fontSize: '11.5px',
-                            }}
-                          >
-                            <option value="auto">Fit Content (Auto)</option>
-                            <option value="fit-max">Fit Content + Max Width</option>
-                            <option value="fill">Fill Available Space</option>
-                            <option value="custom">Custom Width</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            {col.widthMode === 'fit-max' ? 'Max Width (px)' : 'Column Width'}
-                          </label>
-                          <input
-                            type="text"
-                            value={col.widthMode === 'fit-max' ? (col.maxWidth ?? '280px') : (col.width || 'auto')}
-                            onChange={(e) => {
-                              if (col.widthMode === 'fit-max') {
-                                handleUpdateColumnDetails(col.id, { maxWidth: e.target.value });
-                              } else {
-                                handleUpdateColumnDetails(col.id, { width: e.target.value });
-                              }
-                            }}
-                            placeholder={col.widthMode === 'fit-max' ? '280px' : 'auto, 25%, 240px'}
-                            style={{
-                              width: '100%',
-                              padding: '5px 8px',
-                              borderRadius: '6px',
-                              border: '1px solid #cbd5e1',
-                              fontSize: '11.5px',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Flex Direction, Gap & Alignment */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
-                        <div>
-                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Direction
-                          </label>
-                          <select
-                            value={col.direction || 'column'}
-                            onChange={(e) => handleUpdateColumnDetails(col.id, { direction: e.target.value as any })}
-                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                          >
-                            <option value="column">Stack (Col)</option>
-                            <option value="row">Horizontal (Row)</option>
-                            <option value="wrap">Wrap</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Gap
-                          </label>
-                          <select
-                            value={col.gap ?? 12}
-                            onChange={(e) => handleUpdateColumnDetails(col.id, { gap: Number(e.target.value) })}
-                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                          >
-                            <option value={0}>0px</option>
-                            <option value={8}>8px</option>
-                            <option value={12}>12px</option>
-                            <option value={16}>16px</option>
-                            <option value={24}>24px</option>
-                            <option value={32}>32px</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            Align
-                          </label>
-                          <select
-                            value={col.alignment || 'start'}
-                            onChange={(e) => handleUpdateColumnDetails(col.id, { alignment: e.target.value as any })}
-                            style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
-                          >
-                            <option value="start">Left / Start</option>
-                            <option value="center">Center</option>
-                            <option value="end">Right / End</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Mobile Behavior */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                          Mobile Behavior
-                        </label>
-                        <select
-                          value={(col as any).layout?.alignment || 'default'}
-                          onChange={() => {}}
+                        {/* Move Column Right */}
+                        <button
+                          type="button"
+                          onClick={() => handleMoveColumn(col.id, 'right')}
+                          disabled={colIdx === (row.columns?.length || 0) - 1}
+                          title="Move column right"
                           style={{
-                            width: '100%',
-                            padding: '5px 8px',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            fontSize: '11.5px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: colIdx === (row.columns?.length || 0) - 1 ? 'not-allowed' : 'pointer',
+                            color: colIdx === (row.columns?.length || 0) - 1 ? '#cbd5e1' : '#64748b',
+                            padding: '3px',
+                            borderRadius: '4px',
                           }}
                         >
-                          <option value="default">Auto (Follow Look)</option>
-                          <option value="accordion">Accordion Header</option>
-                          <option value="stacked">Always Stacked</option>
-                          <option value="hide">Hide on Mobile</option>
-                        </select>
+                          <ArrowRight size={13} />
+                        </button>
+
+                        {/* Duplicate Column */}
+                        <button
+                          type="button"
+                          onClick={() => handleDuplicateColumn(col.id)}
+                          disabled={(row.columns?.length || 0) >= 6}
+                          title="Duplicate column"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#64748b',
+                            padding: '3px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          <Copy size={13} />
+                        </button>
+
+                        {/* Delete Column (if > 1) */}
+                        {(row.columns?.length || 0) > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteColumn(col.id)}
+                            title="Delete column"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: '#ef4444',
+                              padding: '3px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+
+                        {/* Inline Expand for Column Sizing & Alignment */}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedColumnId(isExpanded ? null : col.id)}
+                          title={isExpanded ? 'Collapse column settings' : 'Expand column settings'}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#475569',
+                            padding: '3px',
+                            borderRadius: '4px',
+                            marginLeft: '2px',
+                          }}
+                        >
+                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
                       </div>
                     </div>
-                  )}
 
-                  {/* Components List Inside Column with Dnd Reordering */}
-                  <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <DndContext
-                      sensors={dndSensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={(e) => handleChildDragEnd(col.id, e)}
-                    >
+                    {/* Inline Column Settings Expansion */}
+                    {isExpanded && (
+                      <div
+                        style={{
+                          padding: '12px 14px',
+                          backgroundColor: '#ffffff',
+                          borderBottom: '1px solid #e2e8f0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        {/* Width Mode & Width Input */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                              Width Mode
+                            </label>
+                            <select
+                              value={col.widthMode || 'auto'}
+                              onChange={(e) => handleUpdateColumnDetails(col.id, { widthMode: e.target.value as any })}
+                              style={{
+                                width: '100%',
+                                padding: '5px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                fontSize: '11.5px',
+                              }}
+                            >
+                              <option value="auto">Fit Content (Auto)</option>
+                              <option value="fit-max">Fit Content + Max Width</option>
+                              <option value="fill">Fill Available Space</option>
+                              <option value="custom">Custom Width</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                              {col.widthMode === 'fit-max' ? 'Max Width (px)' : 'Column Width'}
+                            </label>
+                            <input
+                              type="text"
+                              value={col.widthMode === 'fit-max' ? (col.maxWidth ?? '280px') : (col.width || 'auto')}
+                              onChange={(e) => {
+                                if (col.widthMode === 'fit-max') {
+                                  handleUpdateColumnDetails(col.id, { maxWidth: e.target.value });
+                                } else {
+                                  handleUpdateColumnDetails(col.id, { width: e.target.value });
+                                }
+                              }}
+                              placeholder={col.widthMode === 'fit-max' ? '280px' : 'auto, 25%, 240px'}
+                              style={{
+                                width: '100%',
+                                padding: '5px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                fontSize: '11.5px',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Flex Direction, Gap & Alignment */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                              Direction
+                            </label>
+                            <select
+                              value={col.direction || 'column'}
+                              onChange={(e) => handleUpdateColumnDetails(col.id, { direction: e.target.value as any })}
+                              style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                            >
+                              <option value="column">Stack (Col)</option>
+                              <option value="row">Horizontal (Row)</option>
+                              <option value="wrap">Wrap</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                              Gap
+                            </label>
+                            <select
+                              value={col.gap ?? 12}
+                              onChange={(e) => handleUpdateColumnDetails(col.id, { gap: Number(e.target.value) })}
+                              style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                            >
+                              <option value={0}>0px</option>
+                              <option value={8}>8px</option>
+                              <option value={12}>12px</option>
+                              <option value={16}>16px</option>
+                              <option value={24}>24px</option>
+                              <option value={32}>32px</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                              Align
+                            </label>
+                            <select
+                              value={col.alignment || 'start'}
+                              onChange={(e) => handleUpdateColumnDetails(col.id, { alignment: e.target.value as any })}
+                              style={{ width: '100%', padding: '5px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                            >
+                              <option value="start">Left / Start</option>
+                              <option value="center">Center</option>
+                              <option value="end">Right / End</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Mobile Behavior */}
+                        <div>
+                          <label style={{ display: 'block', fontSize: '10.5px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                            Mobile Behavior
+                          </label>
+                          <select
+                            value={(col as any).layout?.alignment || 'default'}
+                            onChange={() => {}}
+                            style={{
+                              width: '100%',
+                              padding: '5px 8px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontSize: '11.5px',
+                            }}
+                          >
+                            <option value="default">Auto (Follow Look)</option>
+                            <option value="accordion">Accordion Header</option>
+                            <option value="stacked">Always Stacked</option>
+                            <option value="hide">Hide on Mobile</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Components List Inside Column with Cross-Column Dnd & Reordering */}
+                    <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       <SortableContext
                         items={(col.elements || []).map((el) => el.id)}
                         strategy={verticalListSortingStrategy}
                       >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {col.elements && col.elements.length > 0 ? (
-                          col.elements.map((el) => (
-                            <SortableFooterColumnChildItem
-                              key={el.id}
-                              element={el}
-                              columnId={col.id}
-                              rowId={row.id}
-                              onOpenOverlay={() => handleOpenChildOverlay(el.id, el.type)}
-                              onToggleVisibility={(e) => handleToggleChildVisibility(col.id, el.id, e)}
-                              onDuplicate={(e) => handleDuplicateChildElement(col.id, el.id, e)}
-                              onDelete={(e) => handleDeleteChildElement(col.id, el.id, e)}
-                              onAddInsideGroup={(groupId) => setPickerTarget({ isOpen: true, columnId: col.id, columnIdx: colIdx, groupId })}
-                              onUpdateGroup={(groupId, updates) => handleUpdateGroup(col.id, groupId, updates)}
-                              onDeleteGroupChild={(groupId, childId) => handleDeleteGroupChild(col.id, groupId, childId)}
-                              onDuplicateGroupChild={(groupId, childId) => handleDuplicateGroupChild(col.id, groupId, childId)}
-                              onToggleGroupChildVisibility={(groupId, childId) => handleToggleGroupChildVisibility(col.id, groupId, childId)}
-                            />
-                          ))
-                        ) : (
-                          <div
-                            style={{
-                              padding: '10px',
-                              textAlign: 'center',
-                              fontSize: '11px',
-                              color: '#94a3b8',
-                              border: '1px dashed #cbd5e1',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            No components in Column {colIdx + 1}
-                          </div>
-                        )}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                        <DroppableFooterColumnContainer columnId={col.id} isEmpty={!hasElements}>
+                          {hasElements ? (
+                            col.elements.map((el) => (
+                              <SortableFooterColumnChildItem
+                                key={el.id}
+                                element={el}
+                                columnId={col.id}
+                                rowId={row.id}
+                                allColumns={row.columns}
+                                onMoveToColumn={(targetColId) => handleMoveElementToColumn(col.id, targetColId, el.id)}
+                                onOpenOverlay={() => handleOpenChildOverlay(el.id, el.type)}
+                                onToggleVisibility={(e) => handleToggleChildVisibility(col.id, el.id, e)}
+                                onDuplicate={(e) => handleDuplicateChildElement(col.id, el.id, e)}
+                                onDelete={(e) => handleDeleteChildElement(col.id, el.id, e)}
+                                onAddInsideGroup={(groupId) => setPickerTarget({ isOpen: true, columnId: col.id, columnIdx: colIdx, groupId })}
+                                onUpdateGroup={(groupId, updates) => handleUpdateGroup(col.id, groupId, updates)}
+                                onDeleteGroupChild={(groupId, childId) => handleDeleteGroupChild(col.id, groupId, childId)}
+                                onDuplicateGroupChild={(groupId, childId) => handleDuplicateGroupChild(col.id, groupId, childId)}
+                                onToggleGroupChildVisibility={(groupId, childId) => handleToggleGroupChildVisibility(col.id, groupId, childId)}
+                              />
+                            ))
+                          ) : (
+                            <div
+                              style={{
+                                padding: '12px',
+                                textAlign: 'center',
+                                fontSize: '11px',
+                                color: '#94a3b8',
+                                border: '1px dashed #cbd5e1',
+                                borderRadius: '6px',
+                                backgroundColor: '#ffffff',
+                              }}
+                            >
+                              Drop components here or click Add Component
+                            </div>
+                          )}
+                        </DroppableFooterColumnContainer>
+                      </SortableContext>
 
-                    {/* + Add Component Button (Opens Centered Overlay Widget) */}
-                    <button
-                      type="button"
-                      onClick={() => setPickerTarget({ isOpen: true, columnId: col.id, columnIdx: colIdx })}
-                      style={{
-                        width: '100%',
-                        padding: '7px',
-                        marginTop: '4px',
-                        borderRadius: '6px',
-                        border: '1px dashed #2563eb',
-                        backgroundColor: '#ffffff',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        color: '#2563eb',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        transition: 'background 0.12s ease',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; }}
-                    >
-                      <Plus size={13} /> Add Component
-                    </button>
+                      {/* + Add Component Button (Opens Centered Overlay Widget) */}
+                      <button
+                        type="button"
+                        onClick={() => setPickerTarget({ isOpen: true, columnId: col.id, columnIdx: colIdx })}
+                        style={{
+                          width: '100%',
+                          padding: '7px',
+                          marginTop: '4px',
+                          borderRadius: '6px',
+                          border: '1px dashed #2563eb',
+                          backgroundColor: '#ffffff',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          color: '#2563eb',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'background 0.12s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; }}
+                      >
+                        <Plus size={13} /> Add Component
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+
+            <DragOverlay dropAnimation={null}>
+              {activeDragItem ? (
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#ffffff',
+                    border: '2px solid #2563eb',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 10px 25px rgba(37, 99, 235, 0.25)',
+                    cursor: 'grabbing',
+                    width: '280px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <GripVertical size={14} color="#2563eb" />
+                  <Box size={14} color="#2563eb" />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeDragItem.name || activeDragItem.type}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
 
         {/* ========================================================
@@ -10447,24 +10799,31 @@ export const EditorRightSidebar: React.FC = () => {
     return <GlobalUtilityPanel type="toaster" />;
   }
 
+  const isHeaderScope = selectedPageId === 'header-global';
+  const isFooterScope = selectedPageId === 'footer-global';
+  const isTargetFooter = (editorStore.selectedTarget as any)?.editorType === 'footer';
+  const isTargetHeader = (editorStore.selectedTarget as any)?.editorType === 'header';
+
   // Announcement Bar selection check: handles header-global and standalone announcement bar sections
   const selectedRowId = editorStore.selectedTarget?.type === 'row' ? editorStore.selectedTarget.rowId : undefined;
   const selectedRow = selectedRowId ? editorStore.headerRows?.find((r) => r.id === selectedRowId) : undefined;
   const isAnnouncementSelected =
-    selectedSectionId === 'announcement-bar' ||
-    (editorStore.selectedTarget?.type === 'row' &&
-      (editorStore.selectedTarget.rowId === 'announcement-bar' ||
-        editorStore.selectedTarget.rowId === 'row-announcement' ||
-        editorStore.selectedTarget.rowId?.includes('announcement') ||
-        selectedRow?.type === 'announcement')) ||
-    (editorStore.selectedTarget?.type === 'element' &&
-      (editorStore.selectedTarget.elementType === 'announcement-bar' ||
-        editorStore.selectedTarget.elementType === 'promo-text' ||
-        editorStore.selectedTarget.elementId === 'el-announcement-content' ||
-        selectedRow?.type === 'announcement')) ||
-    activeSection?.type === 'AnnouncementBar';
+    !isFooterScope &&
+    !isTargetFooter &&
+    (selectedSectionId === 'announcement-bar' ||
+      (editorStore.selectedTarget?.type === 'row' &&
+        (editorStore.selectedTarget.rowId === 'announcement-bar' ||
+          editorStore.selectedTarget.rowId === 'row-announcement' ||
+          (isTargetHeader && editorStore.selectedTarget.rowId?.includes('announcement')) ||
+          selectedRow?.type === 'announcement')) ||
+      (editorStore.selectedTarget?.type === 'element' &&
+        (editorStore.selectedTarget.elementType === 'announcement-bar' ||
+          editorStore.selectedTarget.elementType === 'promo-text' ||
+          editorStore.selectedTarget.elementId === 'el-announcement-content' ||
+          selectedRow?.type === 'announcement')) ||
+      activeSection?.type === 'AnnouncementBar');
 
-  if (activePanel === 'pages' && isAnnouncementSelected && (isGlobalComponent || activeSection?.type === 'AnnouncementBar')) {
+  if (activePanel === 'pages' && isAnnouncementSelected && (isHeaderScope || activeSection?.type === 'AnnouncementBar')) {
     if (isHidden) return null;
     return (
       <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
@@ -10475,20 +10834,22 @@ export const EditorRightSidebar: React.FC = () => {
 
   // Utility Bar selection check: handles header-global and standalone utility bar sections
   const isUtilitySelected =
-    selectedSectionId === 'utility-bar' ||
-    (editorStore.selectedTarget?.type === 'row' &&
-      (editorStore.selectedTarget.rowId === 'utility-bar' ||
-        editorStore.selectedTarget.rowId === 'row-utility' ||
-        editorStore.selectedTarget.rowId?.includes('utility') ||
-        selectedRow?.type === 'utility')) ||
-    (editorStore.selectedTarget?.type === 'element' &&
-      (editorStore.selectedTarget.elementType === 'utility-bar' ||
-        editorStore.selectedTarget.elementType === 'utility-nav' ||
-        editorStore.selectedTarget.elementId === 'el-utility-content' ||
-        selectedRow?.type === 'utility')) ||
-    activeSection?.type === 'UtilityBar';
+    !isFooterScope &&
+    !isTargetFooter &&
+    (selectedSectionId === 'utility-bar' ||
+      (editorStore.selectedTarget?.type === 'row' &&
+        (editorStore.selectedTarget.rowId === 'utility-bar' ||
+          editorStore.selectedTarget.rowId === 'row-utility' ||
+          (isTargetHeader && editorStore.selectedTarget.rowId?.includes('utility')) ||
+          selectedRow?.type === 'utility')) ||
+      (editorStore.selectedTarget?.type === 'element' &&
+        (editorStore.selectedTarget.elementType === 'utility-bar' ||
+          editorStore.selectedTarget.elementType === 'utility-nav' ||
+          editorStore.selectedTarget.elementId === 'el-utility-content' ||
+          selectedRow?.type === 'utility')) ||
+      activeSection?.type === 'UtilityBar');
 
-  if (activePanel === 'pages' && isUtilitySelected && (isGlobalComponent || activeSection?.type === 'UtilityBar')) {
+  if (activePanel === 'pages' && isUtilitySelected && (isHeaderScope || activeSection?.type === 'UtilityBar')) {
     if (isHidden) return null;
     return (
       <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
@@ -10499,21 +10860,24 @@ export const EditorRightSidebar: React.FC = () => {
 
   // Secondary Navigation / CategoryBar selection check
   const isCategoryBarSelected =
-    selectedSectionId === 'category-bar' ||
-    (editorStore.selectedTarget?.type === 'row' &&
-      (editorStore.selectedTarget.rowId === 'category-bar' ||
-        editorStore.selectedTarget.rowId === 'row-secondary-nav' ||
-        editorStore.selectedTarget.rowId?.includes('secondary') ||
-        editorStore.selectedTarget.rowId?.includes('category') ||
-        selectedRow?.type === 'secondary-nav')) ||
-    (editorStore.selectedTarget?.type === 'element' &&
-      (editorStore.selectedTarget.elementType === 'secondary-nav' ||
-        editorStore.selectedTarget.elementType === 'category-bar' ||
-        editorStore.selectedTarget.elementId === 'el-secondary-nav-content' ||
-        selectedRow?.type === 'secondary-nav')) ||
-    activeSection?.type === 'CategoryBar';
+    !isFooterScope &&
+    !isTargetFooter &&
+    (selectedSectionId === 'category-bar' ||
+      (editorStore.selectedTarget?.type === 'row' &&
+        (editorStore.selectedTarget.rowId === 'category-bar' ||
+          editorStore.selectedTarget.rowId === 'row-secondary-nav' ||
+          (isTargetHeader &&
+            (editorStore.selectedTarget.rowId?.includes('secondary') ||
+              editorStore.selectedTarget.rowId?.includes('category'))) ||
+          selectedRow?.type === 'secondary-nav')) ||
+      (editorStore.selectedTarget?.type === 'element' &&
+        (editorStore.selectedTarget.elementType === 'secondary-nav' ||
+          editorStore.selectedTarget.elementType === 'category-bar' ||
+          editorStore.selectedTarget.elementId === 'el-secondary-nav-content' ||
+          selectedRow?.type === 'secondary-nav')) ||
+      activeSection?.type === 'CategoryBar');
 
-  if (activePanel === 'pages' && isCategoryBarSelected && (isGlobalComponent || activeSection?.type === 'CategoryBar')) {
+  if (activePanel === 'pages' && isCategoryBarSelected && (isHeaderScope || activeSection?.type === 'CategoryBar')) {
     if (isHidden) return null;
     return (
       <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
@@ -10553,6 +10917,13 @@ export const EditorRightSidebar: React.FC = () => {
       }
     }
     if (fEl && fRow) {
+      if (fRow.type === 'category-links') {
+        return (
+          <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
+            <CategoryLinksSectionInspector row={fRow} onClose={closeRightSidebar} />
+          </aside>
+        );
+      }
       return (
         <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
           <ChildItemOverlayInspector
@@ -10573,8 +10944,7 @@ export const EditorRightSidebar: React.FC = () => {
     }
   }
 
-  // Footer selection check: handles Directory, Trust, Newsletter, Social, Bottom
-  const isFooterScope = selectedPageId === 'footer-global';
+  // Footer selection check: handles Directory, Trust, Newsletter, Social, Bottom, Category Directory Links, etc.
   const targetRowIdCandidate = currentSelectedTarget?.type === 'row' ? (currentSelectedTarget as any).rowId : undefined;
   const isFooterSelected =
     (isFooterScope && !isAnnouncementSelected && !isUtilitySelected && !isCategoryBarSelected) ||
@@ -10591,7 +10961,10 @@ export const EditorRightSidebar: React.FC = () => {
         targetRowIdCandidate?.startsWith('row-contact') ||
         targetRowIdCandidate?.startsWith('row-payment') ||
         targetRowIdCandidate?.startsWith('row-bottom') ||
-        targetRowIdCandidate?.startsWith('row-legal'))) ||
+        targetRowIdCandidate?.startsWith('row-legal') ||
+        targetRowIdCandidate?.startsWith('row-seo') ||
+        targetRowIdCandidate?.startsWith('row-category') ||
+        targetRowIdCandidate?.includes('category-links'))) ||
     (FOOTER_TYPES.includes(activeSection?.type || '') && isFooterScope);
 
   if (activePanel === 'pages' && isFooterSelected && (isGlobalComponent || FOOTER_TYPES.includes(activeSection?.type || ''))) {
@@ -10619,6 +10992,10 @@ export const EditorRightSidebar: React.FC = () => {
         targetRow = editorStore.footerRows?.find((r) => r.type === 'payment');
       } else if (selectedSectionId.includes('bottom') || selectedSectionId.includes('legal')) {
         targetRow = editorStore.footerRows?.find((r) => r.type === 'legal');
+      } else if (selectedSectionId.includes('seo')) {
+        targetRow = editorStore.footerRows?.find((r) => r.type === 'seo');
+      } else if (selectedSectionId.includes('category')) {
+        targetRow = editorStore.footerRows?.find((r) => r.type === 'category-links');
       } else if (selectedSectionId.includes('main') || selectedSectionId.includes('directory')) {
         targetRow = editorStore.footerRows?.find((r) => r.type === 'navigation');
       }
