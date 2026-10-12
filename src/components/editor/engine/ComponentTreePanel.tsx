@@ -28,10 +28,6 @@ import {
   FileText,
   SlidersHorizontal,
   Search,
-  User,
-  ShoppingCart,
-  Heart,
-  Globe,
   Code,
   ShoppingBag,
   MousePointerClick,
@@ -43,6 +39,13 @@ import {
   Smartphone,
   Monitor,
   Bookmark,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Menu,
+  ArrowUp,
+  ArrowDown,
+  X,
 } from 'lucide-react';
 import styles from '../../../pages/editor/EditorLayout.module.css';
 import {
@@ -63,19 +66,11 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
-import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection } from '../utils/previewScroll';
-import { resolveFooterRowId } from '../utils/editorNavigation';
-import { FooterComponentPickerModal } from './FooterComponentPickerModal';
+import { scrollPreviewToHeaderSection } from '../utils/previewScroll';
 
 // ─── Shared Sortable Row Component ──────────────────────────
 
-export interface ChildMenuItem {
-  type: string;
-  name: string;
-  icon: React.ReactNode;
-  desc?: string;
-  defaults?: Record<string, any>;
-}
+// ─── Shared Sortable Row Component ──────────────────────────
 
 interface SortableRowProps {
   id: string;
@@ -84,9 +79,6 @@ interface SortableRowProps {
   isVisible: boolean;
   isSelected: boolean;
   isLocked?: boolean;
-  childMenuItems?: ChildMenuItem[];
-  onAddChildItem?: (item: ChildMenuItem) => void;
-  onManageComponents?: () => void;
   onSelect: () => void;
   onToggleVisibility: (e: React.MouseEvent) => void;
   onDuplicate: () => void;
@@ -103,9 +95,6 @@ const SortableRow: React.FC<SortableRowProps> = ({
   isVisible,
   isSelected,
   isLocked,
-  childMenuItems,
-  onAddChildItem,
-  onManageComponents,
   onSelect,
   onToggleVisibility,
   onDuplicate,
@@ -119,6 +108,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
     id,
     disabled: !isDraggable,
   });
+  const [isRowHovered, setIsRowHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isEffectivelyCollapsed = isCollapsed || isDragging;
@@ -131,11 +121,12 @@ const SortableRow: React.FC<SortableRowProps> = ({
     transform: isDraggable ? CSS.Transform.toString(transform) : undefined,
     transition: isDraggable ? transition : undefined,
     opacity: isDragging ? 0.35 : 1,
-    marginBottom: '8px',
-    borderRadius: '8px',
-    border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-    backgroundColor: '#ffffff',
-    boxShadow: isSelected ? '0 1px 4px rgba(37, 99, 235, 0.12)' : '0 1px 2px rgba(0, 0, 0, 0.03)',
+    marginBottom: '4px',
+    borderRadius: '6px',
+    border: isSelected ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+    borderLeft: isSelected ? '3px solid #2563eb' : '3px solid transparent',
+    backgroundColor: isSelected ? '#eff6ff' : isRowHovered ? '#f8fafc' : '#ffffff',
+    boxShadow: isSelected ? '0 1px 3px rgba(37, 99, 235, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.02)',
     position: 'relative',
   };
 
@@ -179,57 +170,66 @@ const SortableRow: React.FC<SortableRowProps> = ({
     <div ref={setNodeRef} style={{ ...style, width: '100%', boxSizing: 'border-box' }}>
       <div
         onClick={onSelect}
+        onMouseEnter={() => setIsRowHovered(true)}
+        onMouseLeave={() => setIsRowHovered(false)}
         style={{
-          backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+          backgroundColor: 'transparent',
           borderBottom: hasExpandedChildren ? '1px solid #f1f5f9' : 'none',
-          borderTopLeftRadius: '8px',
-          borderTopRightRadius: '8px',
-          borderBottomLeftRadius: hasExpandedChildren ? 0 : '8px',
-          borderBottomRightRadius: hasExpandedChildren ? 0 : '8px',
-          padding: '8px 10px',
+          borderTopLeftRadius: '6px',
+          borderTopRightRadius: '6px',
+          borderBottomLeftRadius: hasExpandedChildren ? 0 : '6px',
+          borderBottomRightRadius: hasExpandedChildren ? 0 : '6px',
+          padding: '5px 8px',
+          minHeight: '32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          transition: 'background-color 0.15s ease',
+          transition: 'background-color 0.12s ease',
+          boxSizing: 'border-box',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-          {isDraggable && (
-            <div
-              {...attributes}
-              {...listeners}
-              onClick={(e) => e.stopPropagation()}
-              style={{ cursor: 'grab', display: 'flex', alignItems: 'center', color: '#94a3b8' }}
-              title="Drag to reorder"
-            >
-              <GripVertical size={14} />
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-            {getRowIcon()}
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: isSelected ? 700 : 600,
-                color: isSelected ? '#1d4ed8' : '#0f172a',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {name}
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
+          <div
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '16px',
+              height: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: isRowHovered ? 'grab' : 'default',
+              color: isSelected ? '#2563eb' : isRowHovered ? '#2563eb' : '#64748b',
+              flexShrink: 0,
+              transition: 'color 0.12s ease',
+            }}
+            title={isRowHovered ? 'Drag to reorder section' : name}
+          >
+            {isRowHovered ? <GripVertical size={14} /> : getRowIcon()}
           </div>
+
+          <span
+            style={{
+              fontSize: '12.5px',
+              fontWeight: isSelected ? 600 : 500,
+              color: isSelected ? '#1d4ed8' : '#0f172a',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {name}
+          </span>
         </div>
 
         {/* Right Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           {isLocked ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span title="Default core section (always visible, cannot be deleted)" style={{ display: 'inline-flex', alignItems: 'center', color: '#94a3b8', padding: '4px' }}>
-                <Lock size={13} />
+              <span title="Default core section (always visible, cannot be deleted)" style={{ display: 'inline-flex', alignItems: 'center', color: '#94a3b8', padding: '3px' }}>
+                <Lock size={12} />
               </span>
               {children && (
                 <button
@@ -243,14 +243,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '4px',
+                    padding: '3px',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     color: '#64748b',
                   }}
                 >
-                  {isEffectivelyCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                  {isEffectivelyCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
                 </button>
               )}
             </div>
@@ -265,7 +265,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '4px',
+                  padding: '3px',
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
@@ -275,227 +275,214 @@ const SortableRow: React.FC<SortableRowProps> = ({
               </button>
 
               {/* 3-dot More Options Button */}
-          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!menuOpen) {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const spaceBelow = window.innerHeight - rect.bottom;
-                  const openUpward = spaceBelow < 250;
-
-                  if (openUpward) {
-                    setMenuPos({
-                      top: undefined,
-                      bottom: window.innerHeight - rect.bottom,
-                      left: rect.right + 8,
-                      maxHeight: rect.top - 20,
-                    });
-                  } else {
-                    setMenuPos({
-                      top: rect.top,
-                      bottom: undefined,
-                      left: rect.right + 8,
-                      maxHeight: spaceBelow - 20,
-                    });
-                  }
-                }
-                setMenuOpen(!menuOpen);
-              }}
-              title="More options"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                color: '#64748b',
-              }}
-            >
-              <MoreVertical size={13} />
-            </button>
-
-            {menuOpen && createPortal(
-              <>
-                <div
-                  style={{ position: 'fixed', inset: 0, zIndex: 999998 }}
+              <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setMenuOpen(false);
+                    if (!menuOpen) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const spaceBelow = window.innerHeight - rect.bottom;
+                      const openUpward = spaceBelow < 250;
+
+                      if (openUpward) {
+                        setMenuPos({
+                          top: undefined,
+                          bottom: window.innerHeight - rect.bottom,
+                          left: rect.right + 8,
+                          maxHeight: rect.top - 20,
+                        });
+                      } else {
+                        setMenuPos({
+                          top: rect.top,
+                          bottom: undefined,
+                          left: rect.right + 8,
+                          maxHeight: spaceBelow - 20,
+                        });
+                      }
+                    }
+                    setMenuOpen(!menuOpen);
                   }}
-                />
-                <div
-                  className={styles.dropdownMenu}
+                  title="More options"
                   style={{
-                    position: 'fixed',
-                    top: menuPos.top !== undefined ? `${menuPos.top}px` : 'auto',
-                    bottom: menuPos.bottom !== undefined ? `${menuPos.bottom}px` : 'auto',
-                    left: `${menuPos.left}px`,
-                    right: 'auto',
-                    margin: 0,
-                    zIndex: 999999,
-                    maxHeight: `${menuPos.maxHeight}px`,
-                    overflowY: 'auto',
-                    width: '200px',
-                    minWidth: '200px',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    boxShadow: '0 12px 32px rgba(15, 23, 42, 0.22)',
-                    padding: '4px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '3px',
+                    borderRadius: '4px',
                     display: 'flex',
-                    flexDirection: 'column',
-                    boxSizing: 'border-box',
+                    alignItems: 'center',
+                    color: '#64748b',
                   }}
-                  onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onMoveUp?.();
-                    }}
-                    disabled={!onMoveUp}
-                    style={!onMoveUp ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    <ChevronUp size={14} /> Move Up
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onMoveDown?.();
-                    }}
-                    disabled={!onMoveDown}
-                    style={!onMoveDown ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    <ChevronDown size={14} /> Move Down
-                  </button>
+                  <MoreVertical size={13} />
+                </button>
 
-                  {onManageComponents && (
-                    <button
-                      type="button"
-                      className={styles.dropdownItem}
-                      onClick={() => {
+                {menuOpen && createPortal(
+                  <>
+                    <div
+                      style={{ position: 'fixed', inset: 0, zIndex: 999998 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setMenuOpen(false);
-                        onManageComponents();
                       }}
+                    />
+                    <div
+                      className={styles.dropdownMenu}
+                      style={{
+                        position: 'fixed',
+                        top: menuPos.top !== undefined ? `${menuPos.top}px` : 'auto',
+                        bottom: menuPos.bottom !== undefined ? `${menuPos.bottom}px` : 'auto',
+                        left: `${menuPos.left}px`,
+                        right: 'auto',
+                        margin: 0,
+                        zIndex: 999999,
+                        maxHeight: `${menuPos.maxHeight}px`,
+                        overflowY: 'auto',
+                        width: '200px',
+                        minWidth: '200px',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '8px',
+                        boxShadow: '0 12px 32px rgba(15, 23, 42, 0.22)',
+                        padding: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxSizing: 'border-box',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <SlidersHorizontal size={14} /> Manage Components
-                    </button>
-                  )}
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onMoveUp?.();
+                        }}
+                        disabled={!onMoveUp}
+                        style={!onMoveUp ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        <ChevronUp size={14} /> Move Up
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onMoveDown?.();
+                        }}
+                        disabled={!onMoveDown}
+                        style={!onMoveDown ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        <ChevronDown size={14} /> Move Down
+                      </button>
 
-                  <div className={styles.dropdownDivider} />
+                      <div className={styles.dropdownDivider} />
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onDuplicate();
-                    }}
-                    disabled={isLocked}
-                    title={isLocked ? 'Core section cannot be duplicated' : undefined}
-                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    <Copy size={14} /> Duplicate {isLocked ? '(Locked)' : ''}
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onDuplicate();
+                        }}
+                        disabled={isLocked}
+                        title={isLocked ? 'Core section cannot be duplicated' : undefined}
+                        style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        <Copy size={14} /> Duplicate {isLocked ? '(Locked)' : ''}
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => setMenuOpen(false)}
-                    disabled={isLocked}
-                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    <Clock size={14} /> Schedule visibility
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => setMenuOpen(false)}
+                        disabled={isLocked}
+                        style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        <Clock size={14} /> Schedule visibility
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={(e) => {
-                      setMenuOpen(false);
-                      onToggleVisibility(e);
-                    }}
-                    disabled={isLocked}
-                    title={isLocked ? 'Core section is always visible' : undefined}
-                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
-                    {isVisible ? 'Hide' : 'Show'}
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={(e) => {
+                          setMenuOpen(false);
+                          onToggleVisibility(e);
+                        }}
+                        disabled={isLocked}
+                        title={isLocked ? 'Core section is always visible' : undefined}
+                        style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {isVisible ? 'Hide' : 'Show'}
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Smartphone size={14} /> Hide on mobile
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Smartphone size={14} /> Hide on mobile
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Monitor size={14} /> Hide on desktop
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Monitor size={14} /> Hide on desktop
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Code size={14} /> Copy as code
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Code size={14} /> Copy as code
+                      </button>
 
-                  <button
-                    type="button"
-                    className={styles.dropdownItem}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Bookmark size={14} /> Save as snippet
-                  </button>
+                      <button
+                        type="button"
+                        className={styles.dropdownItem}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <Bookmark size={14} /> Save as snippet
+                      </button>
 
-                  <div className={styles.dropdownDivider} />
+                      <div className={styles.dropdownDivider} />
 
-                  <button
-                    type="button"
-                    className={`${styles.dropdownItem} ${styles.dangerText}`}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onDelete();
-                    }}
-                    disabled={isLocked}
-                    title={isLocked ? 'Core section cannot be deleted' : undefined}
-                    style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-                  >
-                    <Trash2 size={14} /> Delete {isLocked ? '(Locked)' : ''}
-                  </button>
-                </div>
-              </>,
-              document.body
-            )}
-          </div>
-          </>
+                      <button
+                        type="button"
+                        className={`${styles.dropdownItem} ${styles.dangerText}`}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onDelete();
+                        }}
+                        disabled={isLocked}
+                        title={isLocked ? 'Core section cannot be deleted' : undefined}
+                        style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                      >
+                        <Trash2 size={14} /> Delete {isLocked ? '(Locked)' : ''}
+                      </button>
+                    </div>
+                  </>,
+                  document.body
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* Children are always expanded */}
+      {/* Children container */}
       {hasExpandedChildren && (
         <div
           style={{
             backgroundColor: '#fafbfc',
-            padding: '6px 8px 8px 8px',
-            borderBottomLeftRadius: '8px',
-            borderBottomRightRadius: '8px',
+            padding: '4px 6px 6px 6px',
+            borderBottomLeftRadius: '6px',
+            borderBottomRightRadius: '6px',
             display: 'flex',
             flexDirection: 'column',
             gap: '2px',
@@ -505,196 +492,736 @@ const SortableRow: React.FC<SortableRowProps> = ({
           }}
         >
           {children}
-          {childMenuItems && childMenuItems.length > 0 && (
-            <div style={{ marginTop: '6px' }}>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (onManageComponents) {
-                    onManageComponents();
-                  } else {
-                    onAddChildItem?.(childMenuItems[0]);
-                  }
-                }}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '6px', border: '1px dashed #93c5fd', borderRadius: '5px', background: '#eff6ff', color: '#2563eb', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                <Plus size={12} /> Manage components
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>
   );
 };
 
-// ─── Main Shared Component Tree Panel ───────────────────────
+// ─── Header Navbar Zones Tree & Definitions ─────────────────
 
-const HEADER_CHILD_OPTIONS: ChildMenuItem[] = [
-  {
-    type: 'menu',
-    name: 'Menu Button',
-    icon: <Navigation size={13} color="#0ea5e9" />,
-    desc: 'Mobile navigation menu trigger',
-    defaults: { label: 'Menu' },
-  },
-  {
-    type: 'search',
-    name: 'Search Bar',
-    icon: <Search size={13} color="#6366f1" />,
-    desc: 'Live predictive search box',
-    defaults: { placeholder: 'Search products, collections...', variant: 'inline' },
-  },
-  {
-    type: 'cta',
-    name: 'Call to Action',
-    icon: <MousePointerClick size={13} color="#f97316" />,
-    desc: 'Primary conversion button with destination',
-    defaults: { text: 'Shop Now', url: '/shop', variant: 'primary', size: 'sm' },
-  },
-];
+const matchElementKey = (el: any, key: string) => {
+  if (!el) return false;
+  if (key === 'logo') return el.type === 'logo' || el.id === 'el-logo' || el.name === 'Logo';
+  if (key === 'navigation' || key === 'navigation-left' || key === 'navigation-right') {
+    return (
+      el.type === 'navigation' ||
+      el.type === 'navigation-menu' ||
+      el.type === 'primary-nav' ||
+      el.id === 'el-nav-links'
+    );
+  }
+  if (key === 'search') return el.type === 'search' || el.id === 'el-search';
+  if (key === 'actions') return el.type === 'actions' || el.type === 'action-group' || el.id === 'el-actions';
+  if (key === 'cta') return el.type === 'cta' || el.id === 'el-cta';
+  if (key === 'menu') return el.type === 'menu' || el.id === 'el-menu';
+  return el.type === key || el.id === key;
+};
 
-const FOOTER_CHILD_OPTIONS: ChildMenuItem[] = [
-  {
-    type: 'link-group',
-    name: 'Link Directory Column',
-    icon: <Navigation size={13} color="#10b981" />,
-    desc: 'New categorized link column',
-    defaults: {
-      heading: 'Quick Links',
+interface HeaderBlockDef {
+  key: string;
+  name: string;
+  icon: React.FC<{ size?: number; color?: string; style?: React.CSSProperties }>;
+  color: string;
+  elementType: string;
+  defaultProps?: Record<string, any>;
+}
+
+const HEADER_BLOCK_DEFS: Record<string, HeaderBlockDef> = {
+  logo: {
+    key: 'logo',
+    name: 'Logo & Brandname',
+    icon: Sparkles,
+    color: '#f59e0b',
+    elementType: 'logo',
+    defaultProps: {
+      brandName: 'BillionBiz',
+      logoType: 'both',
+      logoWidth: 140,
+      logoHeight: 36,
+      upperText: 'Billion',
+      lowerText: 'Biz',
+      shape: 'rounded',
+    },
+  },
+  navigation: {
+    key: 'navigation',
+    name: 'Navigation Menu',
+    icon: Navigation,
+    color: '#10b981',
+    elementType: 'navigation',
+    defaultProps: {
       links: [
+        { label: 'Home', href: '/' },
+        { label: 'Shop', href: '/shop' },
+        { label: 'Collections', href: '/collections' },
         { label: 'About Us', href: '/about' },
-        { label: 'Careers', href: '/careers' },
         { label: 'Contact', href: '/contact' },
       ],
+      hoverEffect: 'underline',
+      navAlign: 'center',
     },
   },
-  {
-    type: 'brand-description',
-    name: 'Brand Bio / Tagline',
-    icon: <Box size={13} color="#3b82f6" />,
-    desc: 'Company bio and tagline',
-    defaults: { text: 'Empowering online retail with intelligent infrastructure.' },
-  },
-  {
-    type: 'social-links',
-    name: 'Social Links',
-    icon: <Share2 size={13} color="#f59e0b" />,
-    desc: 'Instagram, Twitter/X, Facebook, YouTube',
-    defaults: {
-      heading: 'Connect With Us',
-      showHeading: true,
-      variant: 'circles',
-      size: 16,
-      gap: 8,
-      platforms: [
-        { platform: 'twitter', url: 'https://twitter.com', enabled: true },
-        { platform: 'instagram', url: 'https://instagram.com', enabled: true },
-        { platform: 'facebook', url: 'https://facebook.com', enabled: true },
-        { platform: 'youtube', url: 'https://youtube.com', enabled: true },
-      ],
+  search: {
+    key: 'search',
+    name: 'Search Bar',
+    icon: Search,
+    color: '#6366f1',
+    elementType: 'search',
+    defaultProps: {
+      placeholder: 'Search products, collections...',
+      mode: 'inline',
+      variant: 'inline',
     },
   },
-  {
-    type: 'newsletter-form',
-    name: 'Small Newsletter Signup',
-    icon: <Mail size={13} color="#ec4899" />,
-    desc: 'Inline email signup input & button',
-    defaults: {
-      title: 'Stay in the loop',
-      subtitle: 'Subscribe for weekly releases, stories & member perks.',
-      placeholder: 'Enter your email address...',
-      buttonText: 'Subscribe',
-      buttonStyle: 'solid',
-      layout: 'inline',
-      buttonBg: '#2563eb',
-      buttonColor: '#ffffff',
-      showDisclaimer: true,
-      disclaimerText: 'By subscribing you agree to our Privacy Policy.',
+  actions: {
+    key: 'actions',
+    name: 'Actions',
+    icon: ShoppingBag,
+    color: '#ec4899',
+    elementType: 'actions',
+    defaultProps: {
+      showSearch: true,
+      showWishlist: true,
+      showAccount: true,
+      showCart: true,
     },
   },
-  {
-    type: 'trust-badges',
-    name: 'Trust Badges & Guarantees',
-    icon: <ShieldCheck size={13} color="#10b981" />,
-    desc: 'Security seals & guarantee badges',
-    defaults: {
-      heading: 'Guaranteed Safe Checkout',
-      showHeading: false,
-      items: [
-        { icon: 'shield-check', title: '256-Bit SSL Protection' },
-        { icon: 'truck', title: 'Express Tracked Shipping' },
-        { icon: 'rotate-ccw', title: '30-Day Free Returns' },
-      ],
-      iconColor: '#10b981',
-      fontSize: 12.5,
-      gap: 8,
+  cta: {
+    key: 'cta',
+    name: 'Call to Action',
+    icon: MousePointerClick,
+    color: '#f97316',
+    elementType: 'cta',
+    defaultProps: {
+      text: 'Shop Now',
+      url: '/shop',
+      variant: 'primary',
+      size: 'sm',
     },
   },
-  {
-    type: 'payment-methods',
-    name: 'Payment Methods',
-    icon: <CreditCard size={13} color="#0ea5e9" />,
-    desc: 'Accepted payment credit card icons',
-    defaults: {
-      heading: 'Payment Options',
-      showHeading: true,
-      providers: ['visa', 'mastercard', 'amex', 'paypal', 'applepay', 'googlepay'],
-      iconStyle: 'badge',
-      iconSize: 20,
-      gap: 6,
+  menu: {
+    key: 'menu',
+    name: 'Menu Trigger',
+    icon: Menu,
+    color: '#0ea5e9',
+    elementType: 'menu',
+    defaultProps: {
+      label: 'Menu',
     },
   },
-  {
-    type: 'app-download',
-    name: 'Mobile App Badges',
-    icon: <Smartphone size={13} color="#8b5cf6" />,
-    desc: 'App Store and Google Play download badges',
-    defaults: {
-      heading: 'Download Mobile App',
-      showHeading: true,
-      showAppStore: true,
-      showGooglePlay: true,
-      appStoreUrl: '#',
-      googlePlayUrl: '#',
-    },
-  },
-  {
-    type: 'copyright',
-    name: 'Copyright Notice',
-    icon: <FileText size={13} color="#64748b" />,
-    desc: 'Legal copyright statement',
-    defaults: {
-      text: '© 2026 BillionBiz, Inc. All rights reserved.',
-      fontSize: 12,
-      textColor: '#94a3b8',
-    },
-  },
+};
+
+const getBlockDef = (key: string): HeaderBlockDef => {
+  if (key === 'navigation-left' || key === 'navigation-right') {
+    return HEADER_BLOCK_DEFS.navigation;
+  }
+  return (
+    HEADER_BLOCK_DEFS[key] || {
+      key,
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      icon: Box,
+      color: '#64748b',
+      elementType: key,
+    }
+  );
+};
+
+const AVAILABLE_BLOCKS = [
+  { key: 'logo', name: 'Logo & Brandname', icon: Sparkles, color: '#f59e0b', elementType: 'logo' },
+  { key: 'navigation', name: 'Navigation Menu', icon: Navigation, color: '#10b981', elementType: 'navigation' },
+  { key: 'search', name: 'Search Bar', icon: Search, color: '#6366f1', elementType: 'search' },
+  { key: 'actions', name: 'Actions', icon: ShoppingBag, color: '#ec4899', elementType: 'actions' },
+  { key: 'cta', name: 'Call to Action', icon: MousePointerClick, color: '#f97316', elementType: 'cta' },
+  { key: 'menu', name: 'Menu Trigger', icon: Menu, color: '#0ea5e9', elementType: 'menu' },
 ];
+
+interface HeaderNavbarZonesTreeProps {
+  row: any;
+}
+
+const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) => {
+  const store = useEditorContextStore();
+  const currentDevice = (
+    store.viewport === 'mobile' ? 'mobile' : store.viewport === 'tablet' ? 'tablet' : 'desktop'
+  ) as 'desktop' | 'tablet' | 'mobile';
+
+  const [openAddSlot, setOpenAddSlot] = useState<'left' | 'center' | 'right' | null>(null);
+  const [hoveredItemKey, setHoveredItemKey] = useState<string | null>(null);
+  const [dragOverInfo, setDragOverInfo] = useState<{
+    slot: 'left' | 'center' | 'right';
+    index: number;
+    position: 'before' | 'after';
+  } | null>(null);
+  const [dragOverZone, setDragOverZone] = useState<'left' | 'center' | 'right' | null>(null);
+
+  const fallbackArrangement = {
+    desktop: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta', 'menu'] },
+    tablet: { left: ['logo'], center: ['navigation'], right: ['actions'], disabled: ['search', 'cta', 'menu'] },
+    mobile: { left: ['menu'], center: ['logo'], right: ['actions'], disabled: ['search', 'cta'] },
+  };
+
+  const responsiveArrangement = {
+    desktop: {
+      left: [...(row.layout?.responsiveArrangement?.desktop?.left ?? fallbackArrangement.desktop.left)],
+      center: [...(row.layout?.responsiveArrangement?.desktop?.center ?? fallbackArrangement.desktop.center)],
+      right: [...(row.layout?.responsiveArrangement?.desktop?.right ?? fallbackArrangement.desktop.right)],
+      disabled: [...(row.layout?.responsiveArrangement?.desktop?.disabled ?? fallbackArrangement.desktop.disabled)],
+    },
+    tablet: {
+      left: [...(row.layout?.responsiveArrangement?.tablet?.left ?? fallbackArrangement.tablet.left)],
+      center: [...(row.layout?.responsiveArrangement?.tablet?.center ?? fallbackArrangement.tablet.center)],
+      right: [...(row.layout?.responsiveArrangement?.tablet?.right ?? fallbackArrangement.tablet.right)],
+      disabled: [...(row.layout?.responsiveArrangement?.tablet?.disabled ?? fallbackArrangement.tablet.disabled)],
+    },
+    mobile: {
+      left: [...(row.layout?.responsiveArrangement?.mobile?.left ?? fallbackArrangement.mobile.left)],
+      center: [...(row.layout?.responsiveArrangement?.mobile?.center ?? fallbackArrangement.mobile.center)],
+      right: [...(row.layout?.responsiveArrangement?.mobile?.right ?? fallbackArrangement.mobile.right)],
+      disabled: [...(row.layout?.responsiveArrangement?.mobile?.disabled ?? fallbackArrangement.mobile.disabled)],
+    },
+  };
+
+  const deviceSlots = responsiveArrangement[currentDevice];
+
+  const ZONES: Array<{
+    slot: 'left' | 'center' | 'right';
+    label: string;
+    icon: React.FC<{ size?: number; color?: string }>;
+  }> = [
+    { slot: 'left', label: 'Start', icon: AlignLeft },
+    { slot: 'center', label: 'Center', icon: AlignCenter },
+    { slot: 'right', label: 'End', icon: AlignRight },
+  ];
+
+  const handleAddBlock = (slot: 'left' | 'center' | 'right', key: string) => {
+    setOpenAddSlot(null);
+    const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+    (['left', 'center', 'right', 'disabled'] as const).forEach((s) => {
+      nextArrangement[currentDevice][s] = nextArrangement[currentDevice][s].filter((k: string) => k !== key);
+    });
+    nextArrangement[currentDevice][slot].push(key);
+
+    let nextElements = [...(row.elements || [])];
+    let matchedEl = nextElements.find((e: any) => matchElementKey(e, key));
+    if (!matchedEl) {
+      const def = getBlockDef(key);
+      matchedEl = {
+        id: `el-${def.elementType}-${Date.now().toString(36)}`,
+        type: def.elementType,
+        name: def.name,
+        props: def.defaultProps || {},
+      };
+      nextElements.push(matchedEl);
+    } else {
+      nextElements = nextElements.map((e: any) => (e.id === matchedEl.id ? { ...e, isVisible: true } : e));
+    }
+
+    store.updateHeaderRow(row.id, {
+      elements: nextElements,
+      layout: { ...row.layout, responsiveArrangement: nextArrangement },
+    });
+
+    store.selectTarget({
+      type: 'element',
+      editorType: 'header',
+      rowId: row.id,
+      elementId: matchedEl.id,
+      elementType: matchedEl.type,
+    });
+    useLandingEditorStore.getState().setSelectedPageId('header-global');
+    useLandingEditorStore.getState().setSelectedSectionId('header-main');
+    useLandingEditorStore.getState().setRightSidebarOpen(true);
+    scrollPreviewToHeaderSection('row-primary-nav');
+  };
+
+  const handleSelectItem = (key: string) => {
+    let nextElements = [...(row.elements || [])];
+    let matchedEl = nextElements.find((e: any) => matchElementKey(e, key));
+    if (!matchedEl) {
+      const def = getBlockDef(key);
+      matchedEl = {
+        id: `el-${def.elementType}-${Date.now().toString(36)}`,
+        type: def.elementType,
+        name: def.name,
+        props: def.defaultProps || {},
+      };
+      nextElements.push(matchedEl);
+      store.updateHeaderRow(row.id, { elements: nextElements });
+    }
+    store.selectTarget({
+      type: 'element',
+      editorType: 'header',
+      rowId: row.id,
+      elementId: matchedEl.id,
+      elementType: matchedEl.type,
+    });
+    useLandingEditorStore.getState().setSelectedPageId('header-global');
+    useLandingEditorStore.getState().setSelectedSectionId('header-main');
+    useLandingEditorStore.getState().setRightSidebarOpen(true);
+    scrollPreviewToHeaderSection('row-primary-nav');
+  };
+
+  const handleMoveUp = (slot: 'left' | 'center' | 'right', index: number) => {
+    const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+    const currentList = nextArrangement[currentDevice][slot];
+    if (index > 0) {
+      [currentList[index - 1], currentList[index]] = [currentList[index], currentList[index - 1]];
+    } else {
+      const prevSlot = slot === 'right' ? 'center' : slot === 'center' ? 'left' : null;
+      if (prevSlot) {
+        const [item] = currentList.splice(0, 1);
+        nextArrangement[currentDevice][prevSlot].push(item);
+      }
+    }
+    store.updateHeaderRow(row.id, {
+      layout: { ...row.layout, responsiveArrangement: nextArrangement },
+    });
+  };
+
+  const handleMoveDown = (slot: 'left' | 'center' | 'right', index: number) => {
+    const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+    const currentList = nextArrangement[currentDevice][slot];
+    if (index < currentList.length - 1) {
+      [currentList[index], currentList[index + 1]] = [currentList[index + 1], currentList[index]];
+    } else {
+      const nextSlot = slot === 'left' ? 'center' : slot === 'center' ? 'right' : null;
+      if (nextSlot) {
+        const [item] = currentList.splice(index, 1);
+        nextArrangement[currentDevice][nextSlot].unshift(item);
+      }
+    }
+    store.updateHeaderRow(row.id, {
+      layout: { ...row.layout, responsiveArrangement: nextArrangement },
+    });
+  };
+
+  const handleDeleteItem = (slot: 'left' | 'center' | 'right', key: string) => {
+    const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+    nextArrangement[currentDevice][slot] = nextArrangement[currentDevice][slot].filter((k: string) => k !== key);
+    if (!nextArrangement[currentDevice].disabled.includes(key)) {
+      nextArrangement[currentDevice].disabled.push(key);
+    }
+    store.updateHeaderRow(row.id, {
+      layout: { ...row.layout, responsiveArrangement: nextArrangement },
+    });
+  };
+
+  const isItemSelected = (key: string) => {
+    const target = store.selectedTarget;
+    if (
+      target.type !== 'element' ||
+      target.editorType !== 'header' ||
+      target.rowId !== row.id
+    ) {
+      return false;
+    }
+    const targetElementId = target.elementId;
+    const el = row.elements?.find((e: any) => e.id === targetElementId);
+    return el ? matchElementKey(el, key) : false;
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', boxSizing: 'border-box' }}>
+      {ZONES.map((zone) => {
+        const keys: string[] = deviceSlots[zone.slot] || [];
+        const isAddOpen = openAddSlot === zone.slot;
+        const isZoneDragOver = dragOverZone === zone.slot;
+
+        return (
+          <div
+            key={zone.slot}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDragOverZone(zone.slot);
+            }}
+            onDragLeave={() => {
+              setDragOverZone(null);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const dragData = (window as any).__bb_dragged_navbar_item;
+              if (dragData) {
+                const { slot: fromSlot, key: fromKey } = dragData;
+                (window as any).__bb_dragged_navbar_item = null;
+                setDragOverZone(null);
+                setDragOverInfo(null);
+                if (fromSlot !== zone.slot) {
+                  const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+                  nextArrangement[currentDevice][fromSlot] = nextArrangement[currentDevice][fromSlot].filter((k: string) => k !== fromKey);
+                  nextArrangement[currentDevice][zone.slot].push(fromKey);
+                  store.updateHeaderRow(row.id, {
+                    layout: { ...row.layout, responsiveArrangement: nextArrangement },
+                  });
+                }
+              }
+            }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: isZoneDragOver ? '#eff6ff' : '#ffffff',
+              border: isZoneDragOver ? '1.5px dashed #2563eb' : '1px solid #e2e8f0',
+              borderRadius: '6px',
+              padding: '4px',
+              transition: 'all 0.12s ease',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Zone Header with + Add block */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '4px 6px',
+                backgroundColor: '#f8fafc',
+                borderRadius: '4px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#475569',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <zone.icon size={13} color="#64748b" />
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}>{zone.label}</span>
+                <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>({keys.length})</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenAddSlot(isAddOpen ? null : zone.slot);
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 7px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#2563eb',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'all 0.12s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#eff6ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }}
+                title={`Add block into ${zone.label} zone`}
+              >
+                <Plus size={11} />
+                <span>Add block</span>
+              </button>
+            </div>
+
+            {/* Inline Add Block Picker Dropdown */}
+            {isAddOpen && (
+              <div
+                style={{
+                  marginTop: '4px',
+                  marginBottom: '4px',
+                  padding: '4px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  boxShadow: '0 6px 16px rgba(15,23,42,0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  zIndex: 30,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', borderBottom: '1px solid #f1f5f9', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Add to {zone.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => setOpenAddSlot(null)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#94a3b8' }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+                {AVAILABLE_BLOCKS.map((blk) => (
+                  <button
+                    key={blk.key}
+                    type="button"
+                    onClick={() => handleAddBlock(zone.slot, blk.key)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '5px 8px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      backgroundColor: 'transparent',
+                      color: '#0f172a',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <blk.icon size={13} color={blk.color} />
+                    <span style={{ flex: 1, fontWeight: 500 }}>{blk.name}</span>
+                    <Plus size={11} color="#94a3b8" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Zone Items Tree */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '3px' }}>
+              {keys.length === 0 ? (
+                <div
+                  style={{
+                    padding: '6px 8px',
+                    textAlign: 'center',
+                    fontSize: '11px',
+                    color: '#94a3b8',
+                    fontStyle: 'italic',
+                    borderRadius: '4px',
+                  }}
+                >
+                  Empty — click + Add block
+                </div>
+              ) : (
+                keys.map((key, idx) => {
+                  const def = getBlockDef(key);
+                  const selected = isItemSelected(key);
+                  const isHovered = hoveredItemKey === `${zone.slot}-${key}`;
+                  const isLast = idx === keys.length - 1;
+                  const isDragTarget =
+                    dragOverInfo?.slot === zone.slot && dragOverInfo?.index === idx;
+
+                  return (
+                    <div
+                      key={`${zone.slot}-${key}-${idx}`}
+                      style={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        minHeight: '28px',
+                        paddingLeft: '18px',
+                        margin: '1px 0',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {/* Tree Branch Vertical Line */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '7px',
+                          top: 0,
+                          bottom: isLast ? '50%' : 0,
+                          width: '1.5px',
+                          backgroundColor: '#cbd5e1',
+                        }}
+                      />
+                      {/* Tree Branch Elbow */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '7px',
+                          top: '50%',
+                          width: '9px',
+                          height: '1.5px',
+                          backgroundColor: '#cbd5e1',
+                          borderBottomLeftRadius: isLast ? '3px' : 0,
+                        }}
+                      />
+
+                      {/* Item Capsule */}
+                      <div
+                        draggable
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          (window as any).__bb_dragged_navbar_item = { slot: zone.slot, key, index: idx };
+                          e.dataTransfer.setData('text/plain', key);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const pos = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after';
+                          setDragOverInfo({ slot: zone.slot, index: idx, position: pos });
+                        }}
+                        onDragLeave={() => {
+                          setDragOverInfo(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const dragData = (window as any).__bb_dragged_navbar_item;
+                          if (dragData) {
+                            const { slot: fromSlot, key: fromKey } = dragData;
+                            (window as any).__bb_dragged_navbar_item = null;
+                            const pos = dragOverInfo?.position || 'after';
+                            setDragOverInfo(null);
+                            setDragOverZone(null);
+
+                            const nextArrangement = JSON.parse(JSON.stringify(responsiveArrangement));
+                            nextArrangement[currentDevice][fromSlot] = nextArrangement[currentDevice][fromSlot].filter((k: string) => k !== fromKey);
+                            const targetList = nextArrangement[currentDevice][zone.slot];
+                            const insertIdx = pos === 'after' ? idx + 1 : idx;
+                            targetList.splice(insertIdx, 0, fromKey);
+
+                            store.updateHeaderRow(row.id, {
+                              layout: { ...row.layout, responsiveArrangement: nextArrangement },
+                            });
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectItem(key);
+                        }}
+                        onMouseEnter={() => setHoveredItemKey(`${zone.slot}-${key}`)}
+                        onMouseLeave={() => setHoveredItemKey(null)}
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '4px 7px',
+                          borderRadius: '5px',
+                          backgroundColor: selected ? '#eff6ff' : isHovered ? '#f1f5f9' : 'transparent',
+                          color: selected ? '#1d4ed8' : '#334155',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: selected ? 600 : 500,
+                          transition: 'all 0.12s ease',
+                          border: selected ? '1px solid #bfdbfe' : '1px solid transparent',
+                          borderTop: isDragTarget && dragOverInfo?.position === 'before' ? '2px solid #2563eb' : undefined,
+                          borderBottom: isDragTarget && dragOverInfo?.position === 'after' ? '2px solid #2563eb' : undefined,
+                          boxSizing: 'border-box',
+                        }}
+                      >
+                        {/* Icon & Name — swap to Grip on hover */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                          <div
+                            style={{
+                              width: '14px',
+                              height: '14px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              cursor: isHovered ? 'grab' : 'default',
+                            }}
+                            title={isHovered ? 'Drag to reorder within or between zones' : def.name}
+                          >
+                            {isHovered ? <GripVertical size={13} color="#2563eb" /> : <def.icon size={13} color={def.color} />}
+                          </div>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {def.name}
+                          </span>
+                        </div>
+
+                        {/* Reorder and Delete Actions */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '2px',
+                            opacity: isHovered || selected ? 1 : 0,
+                            transition: 'opacity 0.12s ease',
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleMoveUp(zone.slot, idx)}
+                            title="Move up"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: '2px',
+                              cursor: 'pointer',
+                              color: '#64748b',
+                              borderRadius: '3px',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <ArrowUp size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveDown(zone.slot, idx)}
+                            title="Move down"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: '2px',
+                              cursor: 'pointer',
+                              color: '#64748b',
+                              borderRadius: '3px',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <ArrowDown size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(zone.slot, key)}
+                            title="Remove block"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: '2px',
+                              cursor: 'pointer',
+                              color: '#ef4444',
+                              borderRadius: '3px',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+
+
 
 export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> = ({
   editorType: overrideEditorType,
 }) => {
   const store = useEditorContextStore();
   const editorType = overrideEditorType || (store.editorType === 'page' ? 'header' : store.editorType);
+
+  if (editorType === 'footer') {
+    return null;
+  }
+
   const isHeaderPreviewActive = Boolean(store.presetPreview?.isActive && store.presetPreview?.editorType === 'header');
   const headerRows = isHeaderPreviewActive && store.presetPreview?.previewRows
     ? (store.presetPreview.previewRows as any[])
     : store.headerRows;
   const [addHeaderMenuOpen, setAddHeaderMenuOpen] = useState(false);
-  const [addFooterMenuOpen, setAddFooterMenuOpen] = useState(false);
-  const [pickerTarget, setPickerTarget] = useState<{
-    isOpen: boolean;
-    rowId: string;
-    columnId: string;
-    columnIdx: number;
-  }>({
-    isOpen: false,
-    rowId: '',
-    columnId: '',
-    columnIdx: 0,
-  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -705,18 +1232,10 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    if (editorType === 'header') {
-      const oldIndex = store.headerRows.findIndex((r) => r.id === active.id);
-      const newIndex = store.headerRows.findIndex((r) => r.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        store.reorderHeaderRows(oldIndex, newIndex);
-      }
-    } else {
-      const oldIndex = store.footerRows.findIndex((r) => r.id === active.id);
-      const newIndex = store.footerRows.findIndex((r) => r.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        store.reorderFooterRows(oldIndex, newIndex);
-      }
+    const oldIndex = store.headerRows.findIndex((r) => r.id === active.id);
+    const newIndex = store.headerRows.findIndex((r) => r.id === over.id);
+    if (oldIndex !== -1 && newIndex !== -1) {
+      store.reorderHeaderRows(oldIndex, newIndex);
     }
   };
 
@@ -734,17 +1253,16 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
         }}
       >
         <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
-          {editorType === 'header' ? 'Header Stack' : 'Footer Stack'}
+          Header Stack
         </div>
         <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-          {editorType === 'header' ? `${headerRows.length} sections` : `${store.footerRows.length} rows`}
+          {`${headerRows.length} sections`}
         </div>
       </div>
 
       {/* Header and Footer Stack List */}
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '0 16px', width: '100%', boxSizing: 'border-box' }}>
-        {editorType === 'header' ? (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext
               items={headerRows.map((r) => r.id)}
               strategy={verticalListSortingStrategy}
@@ -785,11 +1303,6 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                   scrollPreviewToHeaderSection(row.id);
                 };
 
-                const childMenuItems =
-                  row.type === 'primary-nav'
-                    ? HEADER_CHILD_OPTIONS
-                    : undefined;
-
                 return (
                   <SortableRow
                     key={row.id}
@@ -799,21 +1312,6 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     isVisible={row.isVisible}
                     isSelected={isSelected}
                     isLocked={isLockedRow}
-                    childMenuItems={childMenuItems}
-                    onAddChildItem={() => {
-                      store.selectTarget({ type: 'row', editorType: 'header', rowId: row.id });
-                      store.setActiveTab('content');
-                      useLandingEditorStore.getState().setSelectedPageId('header-global');
-                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                      useLandingEditorStore.getState().setRightSidebarOpen(true);
-                    }}
-                    onManageComponents={() => {
-                      store.selectTarget({ type: 'row', editorType: 'header', rowId: row.id });
-                      store.setActiveTab('content');
-                      useLandingEditorStore.getState().setSelectedPageId('header-global');
-                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                      useLandingEditorStore.getState().setRightSidebarOpen(true);
-                    }}
                     onSelect={handleSelect}
                     onToggleVisibility={(e) => {
                       e.stopPropagation();
@@ -824,700 +1322,18 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
                     onMoveUp={rIdx > 0 ? () => store.reorderHeaderRows(rIdx, rIdx - 1) : undefined}
                     onMoveDown={rIdx < headerRows.length - 1 ? () => store.reorderHeaderRows(rIdx, rIdx + 1) : undefined}
                   >
-                    {/* Navbar children remain in the component tab and can be reordered from their drag handles. */}
-                    {row.type === 'primary-nav' ? row.elements.filter((el: any) => {
-                      const key = el.type === 'logo' ? 'logo' : el.type === 'navigation' || el.type === 'primary-nav' || el.type === 'navigation-menu' ? 'navigation' : el.type === 'actions' || el.type === 'action-group' ? 'actions' : el.type;
-                      const arrangement = row.layout?.responsiveArrangement;
-                      return !arrangement || [arrangement.desktop, arrangement.tablet, arrangement.mobile].some((deviceSlots) =>
-                        (['left', 'center', 'right'] as const).some((slot) => deviceSlots[slot].includes(key))
-                      );
-                    }).map((el: any, elIdx: number, visibleElements: any[]) => {
-                      const isLast = elIdx === visibleElements.length - 1;
-                      const isElSelected =
-                        store.selectedTarget.type === 'element' &&
-                        store.selectedTarget.editorType === 'header' &&
-                        store.selectedTarget.rowId === row.id &&
-                        store.selectedTarget.elementId === el.id;
-
-                      const isLockedEl = false;
-
-                      let elDisplayName = el.name;
-                      if (el.id === 'el-logo' || el.type === 'logo' || el.name === 'Logo') {
-                        elDisplayName = 'Logo & Brandname';
-                      } else if (el.id === 'el-nav-links' || el.type === 'navigation' || el.type === 'primary-nav') {
-                        elDisplayName = 'Navigation';
-                      } else if (el.id === 'el-actions' || el.type === 'actions' || el.type === 'action-group') {
-                        elDisplayName = 'Actions';
-                      } else if (el.type === 'search') {
-                        elDisplayName = 'Search';
-                      } else if (el.type === 'cta') {
-                        elDisplayName = 'CTA';
-                      }
-
-                      return (
-                        <div
-                          key={el.id}
-                          style={{
-                            position: 'relative',
-                            display: 'flex',
-                            alignItems: 'center',
-                            minHeight: '28px',
-                            paddingLeft: '20px',
-                            margin: '1px 0',
-                          }}
-                        >
-                          {/* Tree Branch Vertical Line */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: '8px',
-                              top: 0,
-                              bottom: isLast ? '50%' : 0,
-                              width: '1.5px',
-                              backgroundColor: '#cbd5e1',
-                            }}
-                          />
-                          {/* Tree Branch Horizontal Elbow */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: '8px',
-                              top: '50%',
-                              width: '10px',
-                              height: '1.5px',
-                              backgroundColor: '#cbd5e1',
-                              borderBottomLeftRadius: isLast ? '3px' : 0,
-                            }}
-                          />
-
-                          {/* Element Item — no separate box border */}
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              store.selectTarget({
-                                type: 'element',
-                                editorType: 'header',
-                                rowId: row.id,
-                                elementId: el.id,
-                                elementType: el.type,
-                              });
-                              useLandingEditorStore.getState().setSelectedPageId('header-global');
-                              useLandingEditorStore.getState().setSelectedSectionId('header-main');
-                              useLandingEditorStore.getState().setRightSidebarOpen(true);
-                              scrollPreviewToHeaderSection('row-primary-nav');
-                            }}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '5px 8px',
-                              borderRadius: '6px',
-                              backgroundColor: isElSelected ? '#eff6ff' : 'transparent',
-                              color: isElSelected ? '#1d4ed8' : '#334155',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: isElSelected ? 600 : 500,
-                              transition: 'all 0.12s ease',
-                              border: isElSelected ? '1px solid #bfdbfe' : '1px solid transparent',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isElSelected) {
-                                e.currentTarget.style.backgroundColor = '#f1f5f9';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isElSelected) {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                              }
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                              {(() => {
-                                const c = isElSelected ? '#2563eb' : '#64748b';
-                                switch (el.type) {
-                                  case 'logo':
-                                    return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                  case 'navigation-menu':
-                                  case 'navigation':
-                                  case 'primary-nav':
-                                    return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
-                                  case 'mega-menu':
-                                    return <Layers size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
-                                  case 'secondary-nav':
-                                    return <Layers size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                  case 'search':
-                                    return <Search size={13} color={isElSelected ? '#2563eb' : '#6366f1'} style={{ flexShrink: 0 }} />;
-                                  case 'cta':
-                                    return <MousePointerClick size={13} color={isElSelected ? '#2563eb' : '#f97316'} style={{ flexShrink: 0 }} />;
-                                  case 'action-group':
-                                  case 'actions':
-                                    return <ShoppingBag size={13} color={isElSelected ? '#2563eb' : '#ec4899'} style={{ flexShrink: 0 }} />;
-                                  case 'account':
-                                    return <User size={13} color={isElSelected ? '#2563eb' : '#3b82f6'} style={{ flexShrink: 0 }} />;
-                                  case 'cart':
-                                    return <ShoppingCart size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
-                                  case 'wishlist':
-                                    return <Heart size={13} color={isElSelected ? '#2563eb' : '#f43f5e'} style={{ flexShrink: 0 }} />;
-                                  case 'announcement-bar':
-                                  case 'promo-text':
-                                    return <Megaphone size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                  case 'utility-bar':
-                                  case 'utility-links':
-                                    return <Phone size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                  case 'localization':
-                                    return <Globe size={13} color={c} style={{ flexShrink: 0 }} />;
-                                  case 'promo-bar':
-                                    return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#d946ef'} style={{ flexShrink: 0 }} />;
-                                  case 'custom-row':
-                                  case 'custom-html':
-                                    return <Code size={13} color={c} style={{ flexShrink: 0 }} />;
-                                  default:
-                                    return <Box size={13} color={c} style={{ flexShrink: 0 }} />;
-                                }
-                              })()}
-                              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {elDisplayName}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                              {isLockedEl ? (
-                                <div
-                                  title="Locked"
-                                  style={{
-                                    padding: '2px 4px',
-                                    color: '#94a3b8',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    cursor: 'default',
-                                  }}
-                                >
-                                  <Lock size={11} />
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    store.deleteHeaderElement(row.id, el.id);
-                                  }}
-                                  title="Delete element"
-                                  style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    padding: '2px 4px',
-                                    cursor: 'pointer',
-                                    color: '#94a3b8',
-                                    borderRadius: '4px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  <Trash2 size={11} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }) : null}
+                    {row.type === 'primary-nav' ? (
+                      <HeaderNavbarZonesTree row={row} />
+                    ) : null}
                   </SortableRow>
                 );
               })}
             </SortableContext>
           </DndContext>
-        ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext
-              items={store.footerRows.map((r) => r.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {store.footerRows.map((row, fIdx) => {
-                const isMainFooter = Boolean(
-                  row.type === 'navigation' ||
-                  row.id === 'row-main-nav' ||
-                  row.isLocked
-                );
-                const rowDisplayName = isMainFooter
-                  ? 'Footer Directory'
-                  : (row.type === 'trust' ? 'Trust & Guarantees' :
-                     row.type === 'newsletter' ? 'Newsletter / Email Signup' :
-                     row.type === 'social' ? 'Social / Community' :
-                     row.type === 'app' ? 'App Download' :
-                     row.type === 'contact' ? 'Contact / Store Information' :
-                     row.type === 'payment' ? 'Payment & Security' :
-                     row.type === 'legal' ? 'Legal & Bottom Bar' :
-                     row.type === 'seo' ? 'SEO / Rich Content' :
-                     row.type === 'category-links' ? 'Category Directory Links' :
-                     row.name || 'Footer Section');
-
-                const isSelected =
-                  store.selectedTarget.type === 'row' &&
-                  store.selectedTarget.editorType === 'footer' &&
-                  (store.selectedTarget.rowId === row.id || resolveFooterRowId(store.selectedTarget.rowId, store.footerRows) === row.id);
-
-                const handleSelect = () => {
-                  store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
-                  useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                  useLandingEditorStore.getState().setRightSidebarOpen(true);
-                  scrollPreviewToFooterSection(row.id);
-                };
-
-                const childMenuItems = isMainFooter ? FOOTER_CHILD_OPTIONS : undefined;
-
-                return (
-                  <SortableRow
-                    key={row.id}
-                    id={row.id}
-                    name={rowDisplayName}
-                    type={row.type}
-                    isVisible={row.isVisible}
-                    isSelected={isSelected}
-                    isLocked={isMainFooter}
-                    childMenuItems={childMenuItems}
-                    onAddChildItem={(childItem) => {
-                      const targetColId =
-                        row.columns && row.columns.length > 0
-                          ? row.columns[row.columns.length - 1].id
-                          : `col-${Date.now().toString(36)}`;
-                      store.addFooterElement(row.id, targetColId, childItem.type as any, childItem.name, childItem.defaults);
-                    }}
-                    onSelect={handleSelect}
-                    onToggleVisibility={(e) => {
-                      e.stopPropagation();
-                      if (isMainFooter) return; // Permanently locked & visible
-                      store.toggleFooterRowVisibility(row.id);
-                    }}
-                    onDuplicate={() => {
-                      if (isMainFooter) return; // Cannot duplicate Footer Directory
-                      store.duplicateFooterRow(row.id);
-                    }}
-                    onDelete={() => {
-                      if (isMainFooter) return; // Cannot delete Footer Directory
-                      store.deleteFooterRow(row.id);
-                    }}
-                    onManageComponents={() => {
-                      store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
-                      store.setActiveTab('content');
-                      useLandingEditorStore.getState().setSelectedPageId('footer-global');
-                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                      useLandingEditorStore.getState().setRightSidebarOpen(true);
-                      scrollPreviewToFooterSection(row.id);
-                    }}
-                    onMoveUp={!isMainFooter && fIdx > 0 ? () => store.reorderFooterRows(fIdx, fIdx - 1) : undefined}
-                    onMoveDown={!isMainFooter && fIdx < store.footerRows.length - 1 ? () => store.reorderFooterRows(fIdx, fIdx + 1) : undefined}
-                  >
-                    {/* Columns & Elements with Tree Branch Lines — ONLY rendered for the Main Footer Section */}
-                    {isMainFooter ? row.columns.map((col, cIdx) => {
-                      const isLastCol = cIdx === row.columns.length - 1;
-                      return (
-                        <div key={col.id} style={{ position: 'relative', margin: '2px 0', width: '100%', boxSizing: 'border-box' }}>
-                          {/* Column level connector line */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: '8px',
-                              top: 0,
-                              bottom: isLastCol ? 'calc(100% - 13px)' : 0,
-                              width: '1.5px',
-                              backgroundColor: '#cbd5e1',
-                            }}
-                          />
-                          {/* Column level horizontal elbow */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: '8px',
-                              top: '13px',
-                              width: '10px',
-                              height: '1.5px',
-                              backgroundColor: '#cbd5e1',
-                            }}
-                          />
-
-                          {/* Column Header: clicking focuses Footer Directory Columns tab (no column overlay) */}
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              store.selectTarget({ type: 'row', editorType: 'footer', rowId: row.id });
-                              store.setActiveTab('content');
-                              useLandingEditorStore.getState().setSelectedPageId('footer-global');
-                              useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                              useLandingEditorStore.getState().setRightSidebarOpen(true);
-                            }}
-                            style={{
-                              paddingLeft: '22px',
-                              paddingRight: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              paddingTop: '4px',
-                              paddingBottom: '4px',
-                              cursor: 'pointer',
-                              borderRadius: '4px',
-                              width: '100%',
-                              boxSizing: 'border-box',
-                            }}
-                            title="Manage column in Columns tab"
-                          >
-                            <span
-                              style={{
-                                fontSize: '10.5px',
-                                fontWeight: 700,
-                                color: '#64748b',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                flex: 1,
-                                minWidth: 0,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                marginRight: '6px',
-                              }}
-                            >
-                              Column {cIdx + 1}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setPickerTarget({
-                                  isOpen: true,
-                                  rowId: row.id,
-                                  columnId: col.id,
-                                  columnIdx: cIdx,
-                                });
-                              }}
-                              title={`Add child item to Column ${cIdx + 1}`}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                padding: '2px 7px',
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                color: '#2563eb',
-                                backgroundColor: '#eff6ff',
-                                border: '1px solid #bfdbfe',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                flexShrink: 0,
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#dbeafe';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#eff6ff';
-                              }}
-                            >
-                              <Plus size={10} /> Add Item
-                            </button>
-                          </div>
-
-                          {/* Nested Elements in Column with sub-branch lines */}
-                          <div style={{ position: 'relative', paddingLeft: '14px', width: '100%', boxSizing: 'border-box' }}>
-                            {col.elements.map((el, elIdx) => {
-                              const isLastEl = elIdx === col.elements.length - 1;
-                              const isElSelected =
-                                store.selectedTarget.type === 'element' &&
-                                store.selectedTarget.editorType === 'footer' &&
-                                store.selectedTarget.rowId === row.id &&
-                                store.selectedTarget.elementId === el.id;
-
-                              const isVisible = el.props?.isVisible !== false;
-
-                              return (
-                                <div
-                                  key={el.id}
-                                  style={{
-                                    position: 'relative',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    minHeight: '28px',
-                                    paddingLeft: '14px',
-                                    margin: '1px 0',
-                                    width: '100%',
-                                    boxSizing: 'border-box',
-                                  }}
-                                >
-                                  {/* Sub-branch vertical connector */}
-                                  <div
-                                    style={{
-                                      position: 'absolute',
-                                      left: '4px',
-                                      top: 0,
-                                      bottom: isLastEl ? '50%' : 0,
-                                      width: '1.5px',
-                                      backgroundColor: '#cbd5e1',
-                                    }}
-                                  />
-                                  {/* Sub-branch horizontal elbow */}
-                                  <div
-                                    style={{
-                                      position: 'absolute',
-                                      left: '4px',
-                                      top: '50%',
-                                      width: '8px',
-                                      height: '1.5px',
-                                      backgroundColor: '#cbd5e1',
-                                      borderBottomLeftRadius: isLastEl ? '3px' : 0,
-                                    }}
-                                  />
-
-                                  {/* Element Card */}
-                                  <div
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      store.selectTarget({
-                                        type: 'element',
-                                        editorType: 'footer',
-                                        rowId: row.id,
-                                        elementId: el.id,
-                                        elementType: el.type,
-                                      });
-                                      useLandingEditorStore.getState().setSelectedPageId('footer-global');
-                                      useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                                      useLandingEditorStore.getState().setRightSidebarOpen(true);
-                                    }}
-                                    style={{
-                                      flex: 1,
-                                      minWidth: 0,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      padding: '4px 6px',
-                                      borderRadius: '6px',
-                                      backgroundColor: isElSelected ? '#eff6ff' : 'transparent',
-                                      color: isElSelected ? '#1d4ed8' : '#334155',
-                                      fontSize: '12px',
-                                      fontWeight: isElSelected ? 600 : 500,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.12s ease',
-                                      border: isElSelected ? '1px solid #bfdbfe' : '1px solid transparent',
-                                      opacity: isVisible ? 1 : 0.6,
-                                      boxSizing: 'border-box',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!isElSelected) {
-                                        e.currentTarget.style.backgroundColor = '#f1f5f9';
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      if (!isElSelected) {
-                                        e.currentTarget.style.backgroundColor = 'transparent';
-                                      }
-                                    }}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                                      <GripVertical size={11} color="#94a3b8" style={{ cursor: 'grab', flexShrink: 0 }} />
-                                      {(() => {
-                                        const c = isElSelected ? '#2563eb' : '#64748b';
-                                        switch (el.type) {
-                                          case 'logo':
-                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                          case 'group':
-                                            return <Layers size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
-                                          case 'column-heading':
-                                            return <FileText size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                          case 'brand-description':
-                                          case 'brand-mission':
-                                          case 'brand-story':
-                                            return <Box size={13} color={isElSelected ? '#2563eb' : '#3b82f6'} style={{ flexShrink: 0 }} />;
-                                          case 'brand-rating':
-                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                          case 'store-locator':
-                                            return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
-                                          case 'whatsapp-contact':
-                                            return <Phone size={13} color={isElSelected ? '#2563eb' : '#22c55e'} style={{ flexShrink: 0 }} />;
-                                          case 'support-cta':
-                                            return <MousePointerClick size={13} color={isElSelected ? '#2563eb' : '#f97316'} style={{ flexShrink: 0 }} />;
-                                          case 'contact':
-                                          case 'address':
-                                            return <Phone size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                          case 'business-hours':
-                                            return <Clock size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                          case 'social-links':
-                                          case 'social-icons':
-                                          case 'social-follow':
-                                          case 'community-cta':
-                                            return <Share2 size={13} color={isElSelected ? '#2563eb' : '#f59e0b'} style={{ flexShrink: 0 }} />;
-                                          case 'newsletter-form':
-                                            return <Mail size={13} color={isElSelected ? '#2563eb' : '#ec4899'} style={{ flexShrink: 0 }} />;
-                                          case 'payment-methods':
-                                          case 'cod-availability':
-                                            return <CreditCard size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                          case 'trust-badges':
-                                          case 'guarantees':
-                                          case 'security-badges':
-                                            return <ShieldCheck size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
-                                          case 'shipping-highlights':
-                                            return <Sparkles size={13} color={isElSelected ? '#2563eb' : '#0ea5e9'} style={{ flexShrink: 0 }} />;
-                                          case 'app-download':
-                                          case 'app-store-badge':
-                                          case 'google-play-badge':
-                                          case 'qr-code':
-                                            return <Smartphone size={13} color={isElSelected ? '#2563eb' : '#8b5cf6'} style={{ flexShrink: 0 }} />;
-                                          case 'promo-card':
-                                          case 'image-text':
-                                            return <Bookmark size={13} color={isElSelected ? '#2563eb' : '#f43f5e'} style={{ flexShrink: 0 }} />;
-                                          case 'copyright':
-                                            return <FileText size={13} color={isElSelected ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />;
-                                          case 'link-group':
-                                          case 'legal-link-group':
-                                          case 'featured-link':
-                                          case 'navigation-menu':
-                                            return <Navigation size={13} color={isElSelected ? '#2563eb' : '#10b981'} style={{ flexShrink: 0 }} />;
-                                          default:
-                                            return <Box size={13} color={c} style={{ flexShrink: 0 }} />;
-                                        }
-                                      })()}
-                                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
-                                        {el.name}
-                                      </span>
-                                    </div>
-
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0, marginLeft: '4px' }}>
-                                      {/* Visibility Toggle 👁 */}
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          store.updateFooterElement(row.id, el.id, {
-                                            props: { ...el.props, isVisible: !isVisible },
-                                          });
-                                        }}
-                                        title={isVisible ? 'Hide element' : 'Show element'}
-                                        style={{
-                                          background: 'none',
-                                          border: 'none',
-                                          padding: '2px',
-                                          cursor: 'pointer',
-                                          color: isVisible ? '#64748b' : '#ef4444',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        {isVisible ? <Eye size={12} /> : <EyeOff size={12} />}
-                                      </button>
-
-                                      {/* Delete Element */}
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          store.deleteFooterElement(row.id, el.id);
-                                        }}
-                                        title="Delete element"
-                                        style={{
-                                          background: 'none',
-                                          border: 'none',
-                                          padding: '2px',
-                                          cursor: 'pointer',
-                                          color: '#94a3b8',
-                                          borderRadius: '4px',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          flexShrink: 0,
-                                        }}
-                                      >
-                                        <Trash2 size={12} />
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {/* Nested Group Items in Tree */}
-                                  {el.type === 'group' && Array.isArray(el.props?.elements) && el.props.elements.length > 0 && (
-                                    <div style={{ width: '100%', paddingLeft: '14px', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      {(el.props.elements as any[]).map((subEl: any, sIdx: number) => {
-                                        const isSubLast = sIdx === (el.props.elements as any[]).length - 1;
-                                        return (
-                                          <div
-                                            key={subEl.id}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              store.selectTarget({
-                                                type: 'element',
-                                                editorType: 'footer',
-                                                rowId: row.id,
-                                                elementId: el.id,
-                                                elementType: el.type,
-                                              });
-                                              useLandingEditorStore.getState().setSelectedSectionId(row.id);
-                                              useLandingEditorStore.getState().setRightSidebarOpen(true);
-                                            }}
-                                            style={{
-                                              position: 'relative',
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'space-between',
-                                              padding: '3px 6px 3px 12px',
-                                              borderRadius: '4px',
-                                              backgroundColor: '#f8fafc',
-                                              border: '1px solid #e2e8f0',
-                                              fontSize: '11px',
-                                              color: '#475569',
-                                              cursor: 'pointer',
-                                            }}
-                                          >
-                                            <div
-                                              style={{
-                                                position: 'absolute',
-                                                left: '4px',
-                                                top: 0,
-                                                bottom: isSubLast ? '50%' : 0,
-                                                width: '1px',
-                                                backgroundColor: '#cbd5e1',
-                                              }}
-                                            />
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0, flex: 1 }}>
-                                              <Box size={10} color="#8b5cf6" style={{ flexShrink: 0 }} />
-                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                {subEl.name || subEl.type}
-                                              </span>
-                                            </div>
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                store.deleteFooterElement(row.id, subEl.id);
-                                              }}
-                                              title="Delete from group"
-                                              style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                padding: '2px',
-                                                cursor: 'pointer',
-                                                color: '#94a3b8',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                              }}
-                                            >
-                                              <Trash2 size={10} />
-                                            </button>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    }) : null}
-                  </SortableRow>
-                );
-              })}
-            </SortableContext>
-          </DndContext>
-        )}
       </div>
 
       {/* Sticky section/component actions */}
-      {editorType === 'header' ? <div
+      <div
         style={{
           position: 'relative',
           padding: '12px 16px 16px',
@@ -1547,105 +1363,7 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
         <button type="button" onClick={() => setAddHeaderMenuOpen((open) => !open)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd', borderRadius: '8px', color: '#1d4ed8', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
           <Plus size={15} /> Add Header Section
         </button>
-      </div> : <div
-        style={{
-          position: 'relative',
-          padding: '12px 16px 16px',
-          borderTop: '1px solid #e2e8f0',
-          backgroundColor: '#ffffff',
-          flexShrink: 0,
-        }}
-      >
-        {addFooterMenuOpen && (
-          <div style={{
-            position: 'absolute',
-            bottom: '68px',
-            left: '16px',
-            right: '16px',
-            padding: '6px',
-            background: '#ffffff',
-            border: '1px solid #cbd5e1',
-            borderRadius: '8px',
-            boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
-            zIndex: 20
-          }}>
-            {[
-              { type: 'trust', name: 'Trust & Guarantees' },
-              { type: 'newsletter', name: 'Newsletter / Email Signup' },
-              { type: 'social', name: 'Social / Community' },
-              { type: 'app', name: 'App Download' },
-              { type: 'contact', name: 'Contact / Store Information' },
-              { type: 'payment', name: 'Payment & Security' },
-              { type: 'legal', name: 'Copyright & Legal' },
-              { type: 'seo', name: 'SEO / Rich Content' },
-              { type: 'category-links', name: 'Category Directory Links' },
-            ].map((option) => {
-              const exists = store.footerRows.some((row) =>
-                row.type === option.type || (option.type === 'navigation' && (row.type === 'navigation' || row.id === 'row-main-nav'))
-              );
-              const unavailable = exists;
-              return (
-                <button
-                  key={option.type}
-                  type="button"
-                  disabled={unavailable}
-                  onClick={() => {
-                    store.addFooterRow(option.type as any, option.name);
-                    setAddFooterMenuOpen(false);
-                    useLandingEditorStore.getState().setRightSidebarOpen(true);
-                  }}
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    border: 0,
-                    borderRadius: '5px',
-                    background: unavailable ? '#f8fafc' : '#ffffff',
-                    color: unavailable ? '#94a3b8' : '#0f172a',
-                    cursor: unavailable ? 'not-allowed' : 'pointer',
-                    fontSize: '12px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span>{option.name}</span>
-                  <span>{unavailable ? 'Unavailable' : 'Add'}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setAddFooterMenuOpen((open) => !open)}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            padding: '10px 14px',
-            background: '#eff6ff',
-            border: '1.5px dashed #93c5fd',
-            borderRadius: '8px',
-            color: '#1d4ed8',
-            fontSize: '13px',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          <Plus size={15} /> Add Footer Section
-        </button>
-      </div>}
-
-      {/* Centered Add Component Modal for Columns */}
-      <FooterComponentPickerModal
-        isOpen={pickerTarget.isOpen}
-        rowId={pickerTarget.rowId}
-        columnId={pickerTarget.columnId}
-        columnIdx={pickerTarget.columnIdx}
-        onClose={() => setPickerTarget({ isOpen: false, rowId: '', columnId: '', columnIdx: 0 })}
-      />
+      </div>
     </div>
   );
 };

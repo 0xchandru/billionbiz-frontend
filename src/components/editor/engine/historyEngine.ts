@@ -5,6 +5,7 @@
 // ============================================================
 
 import type { HistoryEntry, EditorType, HeaderRow, FooterRow, GlobalHeaderSettings, GlobalFooterSettings } from './types';
+import type { FooterTreeNode } from './footerTreeTypes';
 
 export interface HistoryState {
   past: HistoryEntry[];
@@ -30,6 +31,7 @@ export function createSnapshot(
     headerSettings?: GlobalHeaderSettings;
     footerRows?: FooterRow[];
     footerSettings?: GlobalFooterSettings;
+    footerTree?: FooterTreeNode[];
   }
 ): HistoryEntry {
   const now = Date.now();

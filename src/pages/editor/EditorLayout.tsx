@@ -11,6 +11,7 @@ import { useSiteStore, type PageData } from '../../store/siteStore';
 import type { EditorPanelType } from '../../store/landingEditorStore';
 import { useEditorContextStore } from '../../store/editorContextStore';
 import { EditorSwitchConfirmModal } from '../../components/editor/ui/EditorSwitchConfirmModal';
+import { FooterComponentPicker } from '../../components/editor/engine/FooterComponentPicker';
 import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection, scrollPreviewToSection } from '../../components/editor/utils/previewScroll';
 
 const resolveHeaderRowIdFromSection = resolveHeaderRowId;
@@ -330,6 +331,7 @@ const EditorLayout: React.FC = () => {
           }}
         />
       )}
+      <FooterComponentPicker />
     </div>
   );
 };

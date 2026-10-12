@@ -3,6 +3,8 @@
 // Unified type system for Page / Header / Footer editors
 // ============================================================
 
+import type { FooterTreeNode } from './footerTreeTypes';
+
 // ─── Editor Context ───────────────────────────────────────
 
 export type EditorType = 'page' | 'header' | 'footer';
@@ -109,7 +111,8 @@ export type SelectedTarget =
   | { type: 'section'; pageId: string; sectionId: string }
   | { type: 'row'; editorType: 'header' | 'footer'; rowId: string }
   | { type: 'column'; editorType: 'footer'; rowId: string; columnId: string }
-  | { type: 'element'; editorType: 'header' | 'footer'; rowId: string; elementId: string; elementType: string };
+  | { type: 'element'; editorType: 'header' | 'footer'; rowId: string; elementId: string; elementType: string }
+  | { type: 'footer-node'; nodeId: string; nodeType: string };
 
 // ─── Header Types ─────────────────────────────────────────
 
@@ -377,6 +380,7 @@ export interface FooterElement {
 
 export interface FooterColumn {
   id: string;
+  name?: string;
   width: string; // 'auto', 'fill', '200px', '25%', etc.
   widthMode?: 'fit' | 'fit-max' | 'fill' | 'custom';
   maxWidth?: string | number;
@@ -393,10 +397,20 @@ export interface FooterDirectorySubRow {
   name: string;
   columns: FooterColumn[];
   layout?: Partial<FooterRowLayout>;
+  behavior?: Record<string, any>;
+  responsive?: {
+    showOnDesktop?: boolean;
+    showOnTablet?: boolean;
+    showOnMobile?: boolean;
+    mobileLayout?: 'stack' | 'accordion' | 'carousel';
+    mobileColumnCount?: number;
+  };
 }
 
 export interface FooterRowLayout {
-  container: 'full' | 'constrained' | 'boxed' | 'custom';
+  container: 'full' | 'constrained' | 'boxed' | 'narrow' | 'standard' | 'wide' | 'custom';
+  containerWidth?: 'narrow' | 'standard' | 'wide' | 'full' | 'custom' | string;
+  customWidth?: number;
   columns: number;
   gap: number;
   gapY?: number;
@@ -415,7 +429,7 @@ export interface FooterRowLayout {
   qrSize?: number;
   splitRatio?: string;
   feedColumns?: number;
-  columnsContainerWidth?: 'auto' | 'full' | 'custom' | string;
+  columnsContainerWidth?: 'auto' | 'full' | 'narrow' | 'standard' | 'wide' | 'custom' | string;
   columnsContainerCustomWidth?: number | string;
   columnsContainerAlignment?: 'left' | 'center' | 'right' | 'flex-start' | 'flex-end';
   columnsContainerAlign?: 'left' | 'center' | 'right' | 'flex-start' | 'flex-end';
@@ -460,6 +474,7 @@ export interface FooterRow {
   layout: FooterRowLayout;
   styling: FooterRowStyling;
   behavior?: Record<string, any>;
+  children?: FooterTreeNode[];
   responsive?: {
     showOnDesktop?: boolean;
     showOnTablet?: boolean;
@@ -773,6 +788,7 @@ export interface HistoryEntry {
     headerSettings?: GlobalHeaderSettings;
     footerRows?: FooterRow[];
     footerSettings?: GlobalFooterSettings;
+    footerTree?: FooterTreeNode[];
   };
 }
 

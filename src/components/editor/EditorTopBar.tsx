@@ -209,6 +209,9 @@ export const EditorTopBar: React.FC = () => {
     return () => clearTimeout(autoSaveTimer);
   }, [hasUnsavedChanges, pages, theme, settings, markSaved, isTheme, isStoreBrand, isSettings, isPageEditor, activeScopeName]);
 
+  const editorEngineStore = useEditorContextStore();
+  const isGlobalHeaderOrFooter = selectedPageId === 'header-global' || selectedPageId === 'footer-global';
+
   // Keyboard Shortcuts: Ctrl/Cmd+K for Command Palette, Ctrl+S for Save, Ctrl+Z/Y for undo/redo, Alt+1..4 for tabs, Escape for panels/modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -296,6 +299,9 @@ export const EditorTopBar: React.FC = () => {
           if (isTheme && canRedo) {
             redoTheme();
             showToast('Redone design change');
+          } else if (isGlobalHeaderOrFooter) {
+            editorEngineStore.redo();
+            showToast(`Redone ${selectedPageId === 'header-global' ? 'header' : 'footer'} edit`);
           }
           return;
         }
@@ -305,6 +311,9 @@ export const EditorTopBar: React.FC = () => {
           if (isTheme && canUndo) {
             undoTheme();
             showToast('Undone design change');
+          } else if (isGlobalHeaderOrFooter) {
+            editorEngineStore.undo();
+            showToast(`Undone ${selectedPageId === 'header-global' ? 'header' : 'footer'} edit`);
           }
           return;
         }
@@ -316,7 +325,7 @@ export const EditorTopBar: React.FC = () => {
   }, [
     isTheme, canUndo, canRedo, undoTheme, redoTheme, hasUnsavedChanges, isSettings, isStoreBrand,
     isCommandPaletteOpen, isAiDrawerOpen, isHistoryModalOpen, isPublishModalOpen, isSetupModalOpen,
-    isRightSidebarOpen, setRightSidebarOpen, setActivePanel
+    isRightSidebarOpen, setRightSidebarOpen, setActivePanel, isGlobalHeaderOrFooter, selectedPageId, editorEngineStore
   ]);
 
   const handlePublish = () => {
@@ -367,9 +376,6 @@ export const EditorTopBar: React.FC = () => {
   const storeName = settings.storeName || settings.siteName || 'Shoum';
   const cleanStoreName = storeName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'shoum';
   const storeUrl = settings.storeUrl || settings.storeDomain || `${cleanStoreName}.billionbiz.store`;
-
-  const editorEngineStore = useEditorContextStore();
-  const isGlobalHeaderOrFooter = selectedPageId === 'header-global' || selectedPageId === 'footer-global';
 
   const undoDisabled = isTheme
     ? !canUndo

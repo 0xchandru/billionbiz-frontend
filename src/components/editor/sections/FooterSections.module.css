@@ -55,6 +55,27 @@
 }
 
 /* ── Container Modes ── */
+.containerNarrow {
+  max-width: 1024px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.containerStandard {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.containerWide {
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 .containerConstrained {
   max-width: 1280px;
   margin-left: auto;

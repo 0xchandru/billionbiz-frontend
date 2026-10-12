@@ -165,6 +165,9 @@ export const TemplatesRightInspector: React.FC<TemplatesRightInspectorProps> = (
       editorType,
       templateId,
     });
+    if (!isHeader) {
+      store.previewFooterTemplate(templateId);
+    }
   };
 
   const handleSelectTheme = (themeId: string) => {
@@ -175,6 +178,9 @@ export const TemplatesRightInspector: React.FC<TemplatesRightInspectorProps> = (
   };
 
   const handleApplyAll = () => {
+    if (!isHeader && selectedTemplateId) {
+      store.applyFooterTreeTemplate(selectedTemplateId);
+    }
     store.commitStagedPreset(editorType, 'keep-content');
     setAppliedSuccessMessage(
       `${isHeader ? 'Header' : 'Footer'} Template & Theme applied successfully!`
@@ -186,6 +192,9 @@ export const TemplatesRightInspector: React.FC<TemplatesRightInspectorProps> = (
 
   const handleDiscard = () => {
     store.discardStagedPreset();
+    if (!isHeader) {
+      store.cancelPendingFooterTemplate();
+    }
   };
 
   return (

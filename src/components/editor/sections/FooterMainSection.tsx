@@ -29,6 +29,7 @@ import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import { getEditorPath } from '../utils/editorNavigation';
 import type { FooterColumn, FooterElement } from '../engine/types';
 import { computeFooterPaletteVariables, isColorDark } from '../engine/footerDirectoryModel';
+import { FooterTreeRenderer } from './FooterTreeRenderer';
 import styles from './FooterSections.module.css';
 
 interface FooterMainSectionProps {
@@ -359,6 +360,18 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
 
   const paletteVars = computeFooterPaletteVariables(styling);
 
+  const treeToRender = store.pendingFooterTree || (store.footerTree && store.footerTree.length > 0 ? store.footerTree : activeRow?.children);
+
+  if (treeToRender && treeToRender.length > 0) {
+    return (
+      <FooterTreeRenderer
+        tree={treeToRender}
+        isEditorInteractive={isEditorInteractive}
+        device={device as any}
+      />
+    );
+  }
+
   return (
     <footer
       id={activeRow?.id || 'footer-row-main'}
@@ -382,20 +395,34 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
     >
       <div
         className={
-          containerMode === 'boxed'
-            ? styles.containerBoxed
+          containerMode === 'boxed' || containerMode === 'narrow'
+            ? styles.containerNarrow
+            : containerMode === 'wide'
+            ? styles.containerWide
             : containerMode === 'full'
             ? styles.containerFull
-            : styles.containerConstrained
+            : styles.containerStandard
         }
+        style={{
+          width: '100%',
+          maxWidth:
+            containerMode === 'full' ||
+            (activeRow?.rows && activeRow.rows.some((r: any) => {
+              const w = String(r.layout?.containerWidth || r.layout?.columnsContainerWidth || '').toLowerCase();
+              return w === 'full' || w === 'wide';
+            }))
+              ? '100%'
+              : undefined,
+          margin: '0 auto',
+        }}
       >
         {(activeRow?.rows && activeRow.rows.length > 0 ? activeRow.rows : [{ id: 'row-default', name: 'Row 1', columns, layout }]).map((rowBand: any, rIdx: number) => {
-          const rowLayout = { ...layout, ...(rowBand.layout || {}) };
+          const rowLayout = { ...layout, ...rowBand.layout };
           const rowCols: FooterColumn[] = rowBand.columns || [];
           const rowJustify = (() => {
             const jc = rowLayout.justifyContent || rowLayout.alignment;
-            if (jc === 'left' || jc === 'start') return 'flex-start';
-            if (jc === 'right' || jc === 'end') return 'flex-end';
+            if (jc === 'left' || jc === 'start' || jc === 'flex-start') return 'flex-start';
+            if (jc === 'right' || jc === 'end' || jc === 'flex-end') return 'flex-end';
             if (jc === 'center') return 'center';
             if (jc === 'space-between') return 'space-between';
             if (jc === 'space-around') return 'space-around';
@@ -403,21 +430,43 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
             return isCentered ? 'center' : 'space-between';
           })();
 
-          const containerAlign = rowLayout.columnsContainerAlignment || (rowLayout.columnsContainerAlign === 'center' ? 'center' : rowLayout.columnsContainerAlign === 'right' ? 'flex-end' : 'flex-start');
-          const containerWidthMode = rowLayout.columnsContainerWidth || 'full';
-          const containerWidth =
-            containerWidthMode === 'auto' || containerWidthMode === 'fit-content'
-              ? 'fit-content'
-              : containerWidthMode === 'custom'
-              ? (typeof rowLayout.columnsContainerCustomWidth === 'number' ? `${rowLayout.columnsContainerCustomWidth}px` : (rowLayout.columnsContainerCustomWidth || '960px'))
-              : '100%';
+          // 4 Width Sizing Options: narrow (1024px), standard (1280px), wide (1440px), full (100%)
+          const widthMode = String(rowLayout.containerWidth || rowLayout.columnsContainerWidth || rowLayout.container || layout.containerWidth || layout.container || 'standard').toLowerCase();
+
+          let rowMaxWidth = '1280px';
+          let rowWidth = '100%';
+
+          if (widthMode === 'narrow' || widthMode === 'boxed') {
+            rowMaxWidth = '1024px';
+          } else if (widthMode === 'wide') {
+            rowMaxWidth = '1440px';
+          } else if (widthMode === 'full') {
+            rowMaxWidth = '100%';
+          } else if (widthMode === 'custom') {
+            const customVal = rowLayout.customWidth || rowLayout.columnsContainerCustomWidth || 1200;
+            rowMaxWidth = typeof customVal === 'number' ? `${customVal}px` : customVal;
+          } else if (widthMode === 'auto' || widthMode === 'fit-content') {
+            rowMaxWidth = '100%';
+            rowWidth = 'fit-content';
+          } else {
+            // standard / constrained default (1280px)
+            rowMaxWidth = '1280px';
+          }
+
+          const rawAlign = String(rowLayout.columnsContainerAlignment || rowLayout.columnsContainerAlign || 'center').toLowerCase();
+          const parentJustify =
+            rawAlign === 'left' || rawAlign === 'flex-start' || rawAlign === 'start'
+              ? 'flex-start'
+              : rawAlign === 'right' || rawAlign === 'flex-end' || rawAlign === 'end'
+              ? 'flex-end'
+              : 'center';
 
           return (
             <div
               key={rowBand.id || rIdx}
               style={{
                 display: 'flex',
-                justifyContent: containerAlign === 'center' ? 'center' : containerAlign === 'right' || containerAlign === 'flex-end' ? 'flex-end' : 'flex-start',
+                justifyContent: parentJustify,
                 width: '100%',
                 marginBottom: rIdx < (activeRow?.rows?.length || 1) - 1 ? `${rowLayout.gapY ?? 32}px` : 0,
               }}
@@ -431,9 +480,9 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                   alignItems: rowLayout.alignItems || (rowLayout.verticalAlignment === 'center' ? 'center' : rowLayout.verticalAlignment === 'bottom' ? 'flex-end' : rowLayout.verticalAlignment === 'stretch' ? 'stretch' : 'flex-start'),
                   gap: isMobile ? '28px' : `${rowLayout.gap ?? 40}px`,
                   rowGap: isMobile ? '28px' : `${rowLayout.gapY ?? rowLayout.gap ?? 40}px`,
-                  maxWidth: isCentered && rowCols.length === 1 ? '680px' : '100%',
+                  maxWidth: isCentered && rowCols.length === 1 ? '680px' : rowMaxWidth,
                   margin: isCentered && rowCols.length === 1 ? '0 auto' : undefined,
-                  width: containerWidth,
+                  width: rowWidth,
                   boxSizing: 'border-box',
                 }}
               >
@@ -1122,6 +1171,7 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                             style={{
                               display: 'flex',
                               flexDirection: isStacked ? 'column' : 'row',
+                              alignItems: isStacked ? 'stretch' : 'center',
                               gap: '8px',
                               width: '100%',
                               boxSizing: 'border-box',
@@ -1136,6 +1186,8 @@ export const FooterMainSection: React.FC<FooterMainSectionProps> = ({
                               className={styles.columnNewsletterInput}
                               style={{
                                 height: '42px',
+                                minHeight: '42px',
+                                maxHeight: '42px',
                                 padding: '10px 14px',
                                 borderRadius: btnStyle === 'pill' ? '24px' : '8px',
                                 backgroundColor: inputBg,

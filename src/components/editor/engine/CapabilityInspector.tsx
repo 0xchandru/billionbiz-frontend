@@ -35,7 +35,7 @@ import {
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import styles from '../../../pages/editor/EditorLayout.module.css';
-import { AnnouncementBarRightEditor, UtilityBarRightEditor, FooterDirectoryRightEditor } from '../EditorRightSidebar';
+import { AnnouncementBarRightEditor, UtilityBarRightEditor } from '../EditorRightSidebar';
 import {
   COMPONENT_REGISTRY,
   CAPABILITY_LABELS,
@@ -183,10 +183,7 @@ export const CapabilityInspector: React.FC = () => {
         return <HeaderSectionInspector row={mainRow} onClose={closeRightSidebar} />;
       }
     } else {
-      const mainFooterRow = footerRows.find((r) => r.type === 'navigation') || footerRows[0];
-      if (mainFooterRow) {
-        return <FooterDirectoryRightEditor row={mainFooterRow} onClose={closeRightSidebar} />;
-      }
+      return null;
     }
 
     const headerTabs = [
@@ -1130,8 +1127,8 @@ export const CapabilityInspector: React.FC = () => {
          footerRows[0])
       : undefined;
 
-    if (!isHeader && footerRow) {
-      return <FooterDirectoryRightEditor row={footerRow} onClose={closeRightSidebar} />;
+    if (!isHeader) {
+      return null;
     }
     const row = headerRow || footerRow;
 
@@ -2298,8 +2295,8 @@ export const CapabilityInspector: React.FC = () => {
       if (isHeader && effectiveHeaderRows[0]) {
         return <HeaderSectionInspector row={effectiveHeaderRows[0]} onClose={closeRightSidebar} />;
       }
-      if (!isHeader && footerRows[0]) {
-        return <FooterDirectoryRightEditor row={footerRows[0]} onClose={closeRightSidebar} />;
+      if (!isHeader) {
+        return null;
       }
       return null;
     }

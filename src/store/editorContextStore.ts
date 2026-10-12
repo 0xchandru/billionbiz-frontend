@@ -62,6 +62,19 @@ import {
 } from '../components/editor/engine/historyEngine';
 import { runEditorAudit } from '../components/editor/engine/auditEngine';
 import { useSiteStore } from './siteStore';
+import type { FooterTreeNode } from '../components/editor/engine/footerTreeTypes';
+import {
+  createDefaultFooterTree,
+  findNodeById,
+  insertNode,
+  removeNode,
+  updateNode,
+  moveNode,
+  cloneNodeWithNewIds,
+  getAncestorPath,
+  findParentNode,
+} from '../components/editor/engine/footerTreeEngine';
+import { FOOTER_TREE_TEMPLATES } from '../components/editor/engine/footerTreeTemplates';
 
 interface EditorContextState {
   // ─── Core Context ───
@@ -87,6 +100,15 @@ interface EditorContextState {
   // ─── Footer State ───
   footerRows: FooterRow[];
   footerSettings: GlobalFooterSettings;
+  footerTree: FooterTreeNode[];
+  selectedFooterNodeId: string | null;
+  footerRightSidebarMode: 'inspector' | 'templates';
+  pendingFooterTemplateId: string | null;
+  pendingFooterTree: FooterTreeNode[] | null;
+  footerExpandedNodeIds: string[];
+  isFooterComponentPickerOpen: boolean;
+  footerPickerTargetParentId: string | null;
+  footerPickerTargetIndex?: number;
 
   // ─── History ───
   history: HistoryState;
@@ -165,6 +187,28 @@ interface EditorContextState {
   ) => void;
   updateFooterSettings: (updates: Partial<GlobalFooterSettings>) => void;
 
+  // ─── Actions: Footer Tree Architecture ───
+  setFooterTree: (tree: FooterTreeNode[]) => void;
+  selectFooterNode: (nodeId: string | null) => void;
+  setFooterRightSidebarMode: (mode: 'inspector' | 'templates') => void;
+  toggleFooterNodeExpanded: (nodeId: string) => void;
+  expandFooterAncestors: (nodeId: string) => void;
+  addFooterTreeNode: (newNode: FooterTreeNode, parentId?: string | null, index?: number) => void;
+  updateFooterTreeNode: (nodeId: string, updates: Partial<FooterTreeNode>) => void;
+  updateFooterTreeNodeProps: (nodeId: string, propUpdates: Record<string, any>) => void;
+  updateFooterTreeNodeLayout: (nodeId: string, layoutUpdates: Record<string, any>) => void;
+  updateFooterTreeNodeStyling: (nodeId: string, stylingUpdates: Record<string, any>) => void;
+  updateFooterTreeNodeResponsive: (nodeId: string, responsiveUpdates: Record<string, any>) => void;
+  deleteFooterTreeNode: (nodeId: string) => void;
+  duplicateFooterTreeNode: (nodeId: string) => void;
+  moveFooterTreeNode: (nodeId: string, newParentId: string | null, targetIndex: number) => void;
+  openFooterComponentPicker: (parentId?: string | null, targetIndex?: number) => void;
+  closeFooterComponentPicker: () => void;
+  previewFooterTemplate: (templateId: string) => void;
+  applyFooterTreeTemplate: (templateId: string) => void;
+  applyPendingFooterTemplate: () => void;
+  cancelPendingFooterTemplate: () => void;
+
   // ─── Actions: History ───
   undo: () => void;
   redo: () => void;
@@ -218,6 +262,7 @@ const initialHeaderRows = createDefaultHeaderStack();
 const initialHeaderSettings = createDefaultHeaderGlobalSettings();
 const initialFooterRows = createDefaultFooterStack();
 const initialFooterSettings = createDefaultFooterGlobalSettings();
+const initialFooterTree = initialFooterRows[0]?.children || createDefaultFooterTree();
 
 export const useEditorContextStore = create<EditorContextState>()(
   persist(
@@ -243,6 +288,15 @@ export const useEditorContextStore = create<EditorContextState>()(
       headerSettings: initialHeaderSettings,
       footerRows: initialFooterRows,
       footerSettings: initialFooterSettings,
+      footerTree: initialFooterTree,
+      selectedFooterNodeId: null,
+      footerRightSidebarMode: 'inspector',
+      pendingFooterTemplateId: null,
+      pendingFooterTree: null,
+      footerExpandedNodeIds: ['fg-nav-group', 'fg-sub-1', 'fg-sub-2', 'fg-bottom-bar'],
+      isFooterComponentPickerOpen: false,
+      footerPickerTargetParentId: null,
+      footerPickerTargetIndex: undefined,
 
       // History & Audit
       history: createInitialHistoryState(50),
@@ -1382,6 +1436,318 @@ export const useEditorContextStore = create<EditorContextState>()(
       },
 
       // ──────────────────────────────────────────────────────────
+      // Recursive Footer Tree Architecture Actions
+      // ──────────────────────────────────────────────────────────
+      setFooterTree: (tree) => {
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: tree } : r
+        );
+        set({
+          footerTree: tree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Updated footer tree');
+      },
+
+      selectFooterNode: (nodeId) => {
+        if (!nodeId || nodeId === 'root' || nodeId === 'footer-main') {
+          set({
+            selectedFooterNodeId: null,
+            selectedTarget: { type: 'row', editorType: 'footer', rowId: 'footer-main' },
+            footerRightSidebarMode: 'inspector',
+          });
+          return;
+        }
+
+        const effectiveTree = get().pendingFooterTree || get().footerTree;
+        const node = findNodeById(effectiveTree, nodeId);
+        if (node) {
+          const ancestors = getAncestorPath(effectiveTree, nodeId) || [];
+          const currentExpanded = get().footerExpandedNodeIds;
+          const mergedExpanded = Array.from(new Set([...currentExpanded, ...ancestors]));
+
+          set({
+            selectedFooterNodeId: nodeId,
+            selectedTarget: { type: 'footer-node', nodeId, nodeType: node.nodeType },
+            footerRightSidebarMode: 'inspector',
+            footerExpandedNodeIds: mergedExpanded,
+          });
+        }
+      },
+
+      setFooterRightSidebarMode: (mode) => {
+        set({ footerRightSidebarMode: mode });
+      },
+
+      toggleFooterNodeExpanded: (nodeId) => {
+        set((state) => {
+          const isExp = state.footerExpandedNodeIds.includes(nodeId);
+          return {
+            footerExpandedNodeIds: isExp
+              ? state.footerExpandedNodeIds.filter((id) => id !== nodeId)
+              : [...state.footerExpandedNodeIds, nodeId],
+          };
+        });
+      },
+
+      expandFooterAncestors: (nodeId) => {
+        const effectiveTree = get().pendingFooterTree || get().footerTree;
+        const ancestors = getAncestorPath(effectiveTree, nodeId) || [];
+        set((state) => ({
+          footerExpandedNodeIds: Array.from(
+            new Set([...state.footerExpandedNodeIds, ...ancestors])
+          ),
+        }));
+      },
+
+      addFooterTreeNode: (newNode, parentId = null, index) => {
+        const currentTree = get().footerTree;
+        const nextTree = insertNode(currentTree, parentId, newNode, index);
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        const nextExpanded = parentId
+          ? Array.from(new Set([...get().footerExpandedNodeIds, parentId]))
+          : get().footerExpandedNodeIds;
+
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+          selectedFooterNodeId: newNode.id,
+          selectedTarget: { type: 'footer-node', nodeId: newNode.id, nodeType: newNode.nodeType },
+          footerExpandedNodeIds: nextExpanded,
+          footerRightSidebarMode: 'inspector',
+          isFooterComponentPickerOpen: false,
+        });
+        get().pushSnapshot(`Added footer node: ${newNode.name}`);
+      },
+
+      updateFooterTreeNode: (nodeId, updates) => {
+        const currentTree = get().footerTree;
+        const nextTree = updateNode(currentTree, nodeId, updates);
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+      },
+
+      updateFooterTreeNodeProps: (nodeId, propUpdates) => {
+        const currentTree = get().footerTree;
+        const node = findNodeById(currentTree, nodeId);
+        const nextTree = updateNode(currentTree, nodeId, {
+          props: { ...(node?.props || {}), ...propUpdates },
+        });
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Updated block properties');
+      },
+
+      updateFooterTreeNodeLayout: (nodeId, layoutUpdates) => {
+        const currentTree = get().footerTree;
+        const node = findNodeById(currentTree, nodeId);
+        const nextTree = updateNode(currentTree, nodeId, {
+          layout: { ...(node?.layout || {}), ...layoutUpdates } as any,
+        });
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Updated layout');
+      },
+
+      updateFooterTreeNodeStyling: (nodeId, stylingUpdates) => {
+        const currentTree = get().footerTree;
+        const node = findNodeById(currentTree, nodeId);
+        const nextTree = updateNode(currentTree, nodeId, {
+          styling: { ...(node?.styling || {}), ...stylingUpdates } as any,
+        });
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Updated style');
+      },
+
+      updateFooterTreeNodeResponsive: (nodeId, responsiveUpdates) => {
+        const currentTree = get().footerTree;
+        const node = findNodeById(currentTree, nodeId);
+        const nextTree = updateNode(currentTree, nodeId, {
+          responsive: { ...(node?.responsive || {}), ...responsiveUpdates } as any,
+        });
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Updated responsive settings');
+      },
+
+      deleteFooterTreeNode: (nodeId) => {
+        const currentTree = get().footerTree;
+        const nextTree = removeNode(currentTree, nodeId);
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        const selectedId = get().selectedFooterNodeId === nodeId ? null : get().selectedFooterNodeId;
+        const selectedTarget =
+          selectedId === null
+            ? ({ type: 'row', editorType: 'footer', rowId: 'footer-main' } as SelectedTarget)
+            : get().selectedTarget;
+
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+          selectedFooterNodeId: selectedId,
+          selectedTarget,
+        });
+        get().pushSnapshot('Deleted footer node');
+      },
+
+      duplicateFooterTreeNode: (nodeId) => {
+        const currentTree = get().footerTree;
+        const node = findNodeById(currentTree, nodeId);
+        if (!node) return;
+        const cloned = cloneNodeWithNewIds(node);
+        cloned.name = node.name;
+        const { parent, index } = findParentNode(currentTree, nodeId);
+        const nextTree = insertNode(currentTree, parent ? parent.id : null, cloned, index + 1);
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+          selectedFooterNodeId: cloned.id,
+          selectedTarget: { type: 'footer-node', nodeId: cloned.id, nodeType: cloned.nodeType },
+        });
+        get().pushSnapshot(`Duplicated footer node: ${node.name}`);
+      },
+
+      moveFooterTreeNode: (nodeId, newParentId, targetIndex) => {
+        const currentTree = get().footerTree;
+        const nextTree = moveNode(currentTree, nodeId, newParentId, targetIndex);
+        const rows = get().footerRows;
+        const newRows = rows.map((r) =>
+          r.id === 'footer-main' ? { ...r, children: nextTree } : r
+        );
+        set({
+          footerTree: nextTree,
+          footerRows: newRows,
+        });
+        get().pushSnapshot('Moved footer node');
+      },
+
+      openFooterComponentPicker: (parentId = null, targetIndex) => {
+        set({
+          isFooterComponentPickerOpen: true,
+          footerPickerTargetParentId: parentId,
+          footerPickerTargetIndex: targetIndex,
+        });
+      },
+
+      closeFooterComponentPicker: () => {
+        set({
+          isFooterComponentPickerOpen: false,
+          footerPickerTargetParentId: null,
+          footerPickerTargetIndex: undefined,
+        });
+      },
+
+      previewFooterTemplate: (templateId) => {
+        const tpl = FOOTER_TREE_TEMPLATES.find((t) => t.id === templateId);
+        if (tpl) {
+          set({
+            pendingFooterTemplateId: templateId,
+            pendingFooterTree: JSON.parse(JSON.stringify(tpl.tree)),
+          });
+        }
+      },
+
+      applyFooterTreeTemplate: (templateId: string) => {
+        const tpl = FOOTER_TREE_TEMPLATES.find((t) => t.id === templateId);
+        if (!tpl) return;
+        const cloned = JSON.parse(JSON.stringify(tpl.tree));
+        const { footerRows } = get();
+        const targetRow = footerRows.find((r) => r.id === 'footer-main') || footerRows[0];
+        const newRows = targetRow
+          ? footerRows.map((r) => (r.id === targetRow.id ? { ...r, id: 'footer-main', children: cloned } : r))
+          : [{ ...createDefaultFooterStack()[0], children: cloned }];
+
+        // Auto-expand top groups in left sidebar tree so user sees the new group hierarchy
+        const topGroupIds = cloned.filter((n: any) => n.nodeType === 'group').map((n: any) => n.id);
+
+        set({
+          footerTree: cloned,
+          footerRows: newRows,
+          footerExpandedNodeIds: topGroupIds,
+          pendingFooterTemplateId: null,
+          pendingFooterTree: null,
+          selectedFooterNodeId: null,
+          selectedTarget: { type: 'row', editorType: 'footer', rowId: 'footer-main' },
+        });
+        get().pushSnapshot(`Applied footer template: ${tpl.name}`);
+      },
+
+      applyPendingFooterTemplate: () => {
+        const { pendingFooterTemplateId, pendingFooterTree, footerRows } = get();
+        if (pendingFooterTemplateId) {
+          get().applyFooterTreeTemplate(pendingFooterTemplateId);
+          return;
+        }
+        if (pendingFooterTree) {
+          const cloned = JSON.parse(JSON.stringify(pendingFooterTree));
+          const targetRow = footerRows.find((r) => r.id === 'footer-main') || footerRows[0];
+          const newRows = targetRow
+            ? footerRows.map((r) => (r.id === targetRow.id ? { ...r, id: 'footer-main', children: cloned } : r))
+            : [{ ...createDefaultFooterStack()[0], children: cloned }];
+          const topGroupIds = cloned.filter((n: any) => n.nodeType === 'group').map((n: any) => n.id);
+          set({
+            footerTree: cloned,
+            footerRows: newRows,
+            footerExpandedNodeIds: topGroupIds,
+            pendingFooterTemplateId: null,
+            pendingFooterTree: null,
+            selectedFooterNodeId: null,
+            selectedTarget: { type: 'row', editorType: 'footer', rowId: 'footer-main' },
+            footerRightSidebarMode: 'inspector',
+          });
+          get().pushSnapshot('Applied footer template');
+        }
+      },
+
+      cancelPendingFooterTemplate: () => {
+        set({
+          pendingFooterTemplateId: null,
+          pendingFooterTree: null,
+        });
+      },
+
+      // ──────────────────────────────────────────────────────────
       // History Actions
       // ──────────────────────────────────────────────────────────
       pushSnapshot: (description: string) => {
@@ -1391,6 +1757,7 @@ export const useEditorContextStore = create<EditorContextState>()(
           headerSettings: state.headerSettings,
           footerRows: state.footerRows,
           footerSettings: state.footerSettings,
+          footerTree: state.footerTree,
         });
         set((s) => ({ history: pushHistoryEntry(s.history, entry) }));
         // Also re-run audit on every change
@@ -1414,6 +1781,9 @@ export const useEditorContextStore = create<EditorContextState>()(
         if (entryToRestore.snapshot.footerSettings) {
           set({ footerSettings: entryToRestore.snapshot.footerSettings });
         }
+        if (entryToRestore.snapshot.footerTree) {
+          set({ footerTree: entryToRestore.snapshot.footerTree });
+        }
         get().runAudit();
       },
 
@@ -1433,6 +1803,9 @@ export const useEditorContextStore = create<EditorContextState>()(
         }
         if (entryToRestore.snapshot.footerSettings) {
           set({ footerSettings: entryToRestore.snapshot.footerSettings });
+        }
+        if (entryToRestore.snapshot.footerTree) {
+          set({ footerTree: entryToRestore.snapshot.footerTree });
         }
         get().runAudit();
       },
@@ -1992,6 +2365,13 @@ export const useEditorContextStore = create<EditorContextState>()(
           });
           get().pushSnapshot(`Applied template: ${template.name} (${option})`);
         } else {
+          const treeTpl = FOOTER_TREE_TEMPLATES.find((t) => t.id === templateId);
+          if (treeTpl) {
+            get().applyFooterTreeTemplate(treeTpl.id);
+            set({ presetPreview: null });
+            return;
+          }
+
           const template = FOOTER_TEMPLATES.find((t) => t.id === templateId);
           if (!template) return;
 
@@ -2116,8 +2496,18 @@ export const useEditorContextStore = create<EditorContextState>()(
           let baseSettings: Partial<GlobalFooterSettings> = {};
 
           if (templateId) {
+            const treeTpl = FOOTER_TREE_TEMPLATES.find((t) => t.id === templateId);
+            if (treeTpl) {
+              set({
+                pendingFooterTemplateId: templateId,
+                pendingFooterTree: JSON.parse(JSON.stringify(treeTpl.tree)),
+              });
+            }
             const tpl = FOOTER_TEMPLATES.find((t) => t.id === templateId);
             baseRows = tpl ? JSON.parse(JSON.stringify(tpl.rows)) : JSON.parse(JSON.stringify(state.footerRows));
+            if (treeTpl && baseRows.length > 0) {
+              baseRows[0].children = JSON.parse(JSON.stringify(treeTpl.tree));
+            }
             if (tpl?.globalOverrides) baseSettings = { ...tpl.globalOverrides };
           } else if (variantId) {
             const v = FOOTER_VARIANTS.find((item) => item.id === variantId);
@@ -2210,6 +2600,15 @@ export const useEditorContextStore = create<EditorContextState>()(
           });
           get().pushSnapshot(`Applied header template & theme: ${preview.presetName}`);
         } else {
+          if (preview.stagedTemplateId) {
+            const treeTpl = FOOTER_TREE_TEMPLATES.find((t) => t.id === preview.stagedTemplateId);
+            if (treeTpl) {
+              get().applyFooterTreeTemplate(treeTpl.id);
+              set({ presetPreview: null });
+              return;
+            }
+          }
+
           const newRows = JSON.parse(JSON.stringify(preview.previewRows)) as FooterRow[];
 
           set({
@@ -2251,6 +2650,13 @@ export const useEditorContextStore = create<EditorContextState>()(
           isSavePresetModalOpen: false,
           userPresets: [],
           presetPreview: null,
+          footerTree: createDefaultFooterTree(),
+          selectedFooterNodeId: null,
+          footerRightSidebarMode: 'inspector',
+          pendingFooterTemplateId: null,
+          pendingFooterTree: null,
+          footerExpandedNodeIds: [],
+          isFooterComponentPickerOpen: false,
         });
         useEditorContextStore.persist?.clearStorage?.();
       },
@@ -2262,6 +2668,7 @@ export const useEditorContextStore = create<EditorContextState>()(
         headerSettings: state.headerSettings,
         footerRows: state.footerRows,
         footerSettings: state.footerSettings,
+        footerTree: state.footerTree,
         userPresets: state.userPresets,
         density: state.density,
       }),

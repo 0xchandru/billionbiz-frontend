@@ -15,8 +15,9 @@ import { BrandPanel } from './panels/BrandPanel';
 import { DesignPanel } from './panels/DesignPanel';
 import { SettingsPanel } from './panels/SettingsPanel';
 import { ComponentTreePanel } from './engine/ComponentTreePanel';
+import { FooterTreePanel } from './engine/FooterTreePanel';
 import { useEditorContextStore } from '../../store/editorContextStore';
-import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection } from './utils/previewScroll';
+import { scrollPreviewToHeaderSection } from './utils/previewScroll';
 
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
@@ -27,7 +28,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import styles from '../../pages/editor/EditorLayout.module.css';
 import type { EditorPanelType } from '../../store/landingEditorStore';
-import { getEditorPath, resolveHeaderRowId, resolveFooterRowId } from './utils/editorNavigation';
+import { getEditorPath, resolveHeaderRowId } from './utils/editorNavigation';
 
 // ─── Icon mapping for pages matching user specification ───
 const pageIconMap: Record<string, React.FC<{ size?: number }>> = {
@@ -189,11 +190,7 @@ export const EditorLeftSidebar: React.FC = () => {
     } else if (selectedPageId === 'footer-global') {
       const context = useEditorContextStore.getState();
       context.setEditorType('footer');
-      if (context.selectedTarget.type !== 'element') {
-        const currentSectionId = useLandingEditorStore.getState().selectedSectionId;
-        const targetRowId = resolveFooterRowId(currentSectionId, context.footerRows);
-        context.selectTarget({ type: 'row', editorType: 'footer', rowId: targetRowId });
-      }
+      context.selectTarget({ type: 'none' });
     } else {
       const context = useEditorContextStore.getState();
       context.setEditorType('page');
@@ -404,16 +401,28 @@ export const EditorLeftSidebar: React.FC = () => {
   // ─── TAB 1: PAGES PANEL ───
   const renderPagesPanel = () => {
     if (pagesNavLevel === 'page-detail') {
-      if (selectedPageId === 'header-global' || selectedPageId === 'footer-global') {
-        const isHeaderEditor = selectedPageId === 'header-global';
+      if (selectedPageId === 'header-global') {
         return (
           <div className={styles.contextPanelInner} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
             {renderEditorDetailHeader(
-              isHeaderEditor ? 'Header Editor' : 'Footer Editor',
-              isHeaderEditor ? 'Universal Storefront Header' : 'Universal Storefront Footer'
+              'Header Editor',
+              'Universal Storefront Header'
             )}
             <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
-              <ComponentTreePanel editorType={isHeaderEditor ? 'header' : 'footer'} />
+              <ComponentTreePanel editorType="header" />
+            </div>
+          </div>
+        );
+      }
+      if (selectedPageId === 'footer-global') {
+        return (
+          <div className={styles.contextPanelInner} style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
+            {renderEditorDetailHeader(
+              'Footer Editor',
+              'Universal Storefront Footer'
+            )}
+            <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden' }}>
+              <FooterTreePanel />
             </div>
           </div>
         );
@@ -625,7 +634,6 @@ export const EditorLeftSidebar: React.FC = () => {
                       }
 
                       if (gc.id === 'footer-global') {
-                        let targetRowId = 'row-main-nav';
                         let targetSectionId = 'footer-main';
 
                         navigateToPage('footer-global', targetSectionId);
@@ -633,13 +641,8 @@ export const EditorLeftSidebar: React.FC = () => {
                         useEditorContextStore.getState().setEditorType('footer');
 
                         setSelectedSectionId(targetSectionId);
-                        useEditorContextStore.getState().selectTarget({
-                          type: 'row',
-                          editorType: 'footer',
-                          rowId: targetRowId,
-                        });
-                        setRightSidebarOpen(true);
-                        scrollPreviewToFooterSection(targetRowId);
+                        useEditorContextStore.getState().selectTarget({ type: 'none' });
+                        setRightSidebarOpen(false);
                         return;
                       }
                     }}

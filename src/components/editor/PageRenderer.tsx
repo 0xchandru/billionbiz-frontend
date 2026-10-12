@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PageData, SectionData } from '../../store/siteStore';
 import { SectionRenderer } from './SectionRenderer';
-import { scrollPreviewToHeaderSection, scrollPreviewToFooterSection } from './utils/previewScroll';
+import { scrollPreviewToHeaderSection } from './utils/previewScroll';
 import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { getDefaultTheme } from './theme/themePresets';
@@ -23,6 +23,7 @@ import {
 import styles from '../../pages/editor/EditorLayout.module.css';
 import { useEditorContextStore } from '../../store/editorContextStore';
 import HeaderNavbarSection from './sections/HeaderNavbarSection';
+import { FooterTreeRenderer } from './sections/FooterTreeRenderer';
 import { getEditorPath } from './utils/editorNavigation';
 
 const WhatsAppSvg: React.FC<{ size?: number }> = ({ size = 26 }) => (
@@ -236,11 +237,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     (r) => r.isVisible !== false && r.type === 'primary-nav' && r.layout?.variantId === 'side-rail'
   );
 
-  const footerRows = useEditorContextStore((s) => s.footerRows);
-  const isFooterPresetPreviewActive = Boolean(presetPreview?.isActive && presetPreview.editorType === 'footer');
-  const currentFooterRows = isFooterPresetPreviewActive && presetPreview?.previewRows
-    ? (presetPreview.previewRows as any[])
-    : (footerRows && footerRows.length > 0) ? footerRows : [];
+
 
   const headerTypes = ['AnnouncementBar', 'UtilityBar', 'Header', 'CategoryBar'];
   const footerTypes = [
@@ -294,48 +291,14 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     });
   }
 
-  // Map footer row types to section types
-  const footerSectionTypeByRow: Record<string, string> = {
-    trust: 'FooterTrust',
-    newsletter: 'FooterNewsletter',
-    navigation: 'FooterMain',
-    brand: 'FooterMain',
-    social: 'FooterSocial',
-    app: 'FooterApp',
-    contact: 'FooterContact',
-    payment: 'FooterPayment',
-    legal: 'FooterBottom',
-    seo: 'FooterSeo',
-    'category-links': 'FooterCategoryLinks',
-    custom: 'FooterMain',
-  };
-
-  // Derive footer sections dynamically from currentFooterRows
-  const derivedFooterSections: SectionData[] = currentFooterRows
-    .filter((row) => row.isVisible !== false)
-    .map((row) => {
-      const sectionType = footerSectionTypeByRow[row.type] || 'FooterMain';
-      return {
-        id: row.id,
-        type: sectionType,
-        name: row.name,
-        props: {
-          rowId: row.id,
-          rowType: row.type,
-          ...row,
-        },
-        isHidden: row.isVisible === false,
-      } as SectionData;
-    });
-
-  const footerSections = derivedFooterSections.length > 0 ? derivedFooterSections : [
+  const footerSections: SectionData[] = [
     {
-      id: 'row-main-nav',
+      id: 'footer-main',
       type: 'FooterMain',
       name: 'Footer',
       props: {},
       isHidden: false,
-    } as SectionData,
+    },
   ];
 
   const bodySections = validSections.filter(
@@ -410,11 +373,13 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
     if (!isPages) return;
     const executeSwitch = () => {
       if (selectedPageId !== 'footer-global') {
-        navigateToPage('footer-global', section.id);
-        navigate(getEditorPath('footer-global', section.id));
+        navigateToPage('footer-global', section?.id || 'footer-main');
+        navigate(getEditorPath('footer-global', section?.id || 'footer-main'));
         useEditorContextStore.getState().setEditorType('footer');
       }
-      selectFooterSection(section);
+      setSelectedSectionId(section?.id || 'footer-main');
+      useEditorContextStore.getState().selectTarget({ type: 'none' });
+      setRightSidebarOpen(false);
     };
 
     if (selectedPageId !== 'footer-global') {
@@ -427,33 +392,6 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
       return;
     }
     executeSwitch();
-  };
-
-  const selectFooterSection = (section: any) => {
-    const targetRow = currentFooterRows.find(
-      (r) =>
-        r.id === section.id ||
-        (section.type === 'FooterTrust' && r.type === 'trust') ||
-        (section.type === 'FooterNewsletter' && r.type === 'newsletter') ||
-        (section.type === 'FooterSocial' && r.type === 'social') ||
-        (section.type === 'FooterApp' && r.type === 'app') ||
-        (section.type === 'FooterContact' && r.type === 'contact') ||
-        (section.type === 'FooterPayment' && r.type === 'payment') ||
-        (section.type === 'FooterBottom' && r.type === 'legal') ||
-        (section.type === 'FooterSeo' && r.type === 'seo') ||
-        (section.type === 'FooterCategoryLinks' && r.type === 'category-links') ||
-        (section.type === 'FooterMain' && (r.type === 'navigation' || r.type === 'brand'))
-    );
-    const rowId = targetRow ? targetRow.id : (section.id || 'row-main-nav');
-
-    setSelectedSectionId(section.id);
-    useEditorContextStore.getState().selectTarget({
-      type: 'row',
-      editorType: 'footer',
-      rowId,
-    });
-    setRightSidebarOpen(true);
-    scrollPreviewToFooterSection(rowId);
   };
 
   const handleBodySectionClick = (section: any) => {
@@ -700,26 +638,32 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
           </div>
 
           {/* Footer Sections */}
-          {effectiveFooterSections.map((section, index) => {
-            if (isSectionHidden(section)) return null;
-            const isFooterEditor = isPages && selectedPageId === 'footer-global';
-            const isFooterInteractive = isPages;
-            return (
-              <div 
-                key={section.id || `footer-${index}`}
-                className={isFooterInteractive ? styles.previewSectionClickable : styles.previewSectionStatic}
-                onClick={isFooterInteractive ? () => handleFooterSectionClick(section) : undefined}
-                style={{ cursor: isFooterInteractive ? 'pointer' : 'default' }}
-              >
-                <SectionRenderer
-                  section={section}
-                  overrideDevice={overrideDevice}
-                  isEditorInteractive={isFooterEditor}
-                  useEditorModel={true}
-                />
-              </div>
-            );
-          })}
+          {selectedPageId === 'footer-global' ? (
+            <FooterTreeRenderer
+              isEditorInteractive={true}
+              device={(overrideDevice || device) as any}
+            />
+          ) : (
+            effectiveFooterSections.map((section, index) => {
+              if (isSectionHidden(section)) return null;
+              const isFooterInteractive = isPages;
+              return (
+                <div 
+                  key={section.id || `footer-${index}`}
+                  className={isFooterInteractive ? styles.previewSectionClickable : styles.previewSectionStatic}
+                  onClick={isFooterInteractive ? () => handleFooterSectionClick(section) : undefined}
+                  style={{ cursor: isFooterInteractive ? 'pointer' : 'default' }}
+                >
+                  <SectionRenderer
+                    section={section}
+                    overrideDevice={overrideDevice}
+                    isEditorInteractive={false}
+                    useEditorModel={true}
+                  />
+                </div>
+              );
+            })
+          )}
         </>
       )}
       </div>
