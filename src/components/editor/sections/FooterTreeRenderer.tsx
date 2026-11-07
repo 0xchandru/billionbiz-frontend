@@ -510,7 +510,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   };
   const widthMode = activeOverride?.width?.mode || baseLayout.width?.mode || 'fill';
   const widthValue = activeOverride?.width?.value ?? baseLayout.width?.value;
-  const widthUnit = activeOverride?.width?.unit || baseLayout.width?.unit || 'px';
+  const widthUnit = activeOverride?.width?.unit || baseLayout.width?.unit || '%';
   const heightMode = activeOverride?.height?.mode || baseLayout.height?.mode || 'fit';
   const heightValue = activeOverride?.height?.value ?? baseLayout.height?.value;
 
@@ -551,9 +551,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       if (isHorizontalParent) {
         // In a horizontal parent (row):
         if (isMobile) {
-          computedFlex = '1 1 100%';
-          computedWidth = '100%';
-          computedMinWidth = '100%';
+          computedFlex = '1 1 0px';
+          computedWidth = 'auto';
+          computedMinWidth = 0;
         } else if (isTablet) {
           computedFlex = '1 1 calc(50% - 16px)';
           computedWidth = 'auto';
@@ -574,31 +574,12 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       computedFlex = isHorizontalParent ? '0 1 auto' : '0 0 auto';
       computedWidth = 'auto';
       computedMinWidth = 0;
-    } else if (widthMode === 'custom' && widthValue) {
-      const customVal = `${widthValue}${widthUnit}`;
-      if (activeOverride?.width) {
-        computedFlex = '0 0 auto';
-        computedWidth = customVal;
-        computedMinWidth = 0;
-      } else if (isHorizontalParent) {
-        if (isMobile) {
-          computedFlex = '1 1 100%';
-          computedWidth = '100%';
-          computedMinWidth = '100%';
-        } else if (isTablet) {
-          computedFlex = '1 1 calc(50% - 16px)';
-          computedWidth = 'auto';
-          computedMinWidth = '180px';
-        } else {
-          computedFlex = '0 0 auto';
-          computedWidth = customVal;
-          computedMinWidth = '180px';
-        }
-      } else {
-        computedFlex = '0 0 auto';
-        computedWidth = customVal;
-        computedMinWidth = 0;
-      }
+    } else if (widthMode === 'custom') {
+      // Custom sizing should use the chosen value and unit at every breakpoint.
+      // SizingSetting presents 100% when a newly selected Custom mode has no value yet.
+      computedFlex = '0 0 auto';
+      computedWidth = `${widthValue ?? 100}${widthUnit}`;
+      computedMinWidth = 0;
     }
 
     const maxWidthVal = activeOverride?.maxWidth ?? baseLayout.maxWidth;
@@ -619,6 +600,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       flexWrap: groupWrap ? 'wrap' : 'nowrap',
       width: computedWidth,
       flex: computedFlex,
+      alignSelf: !isHorizontalParent && (widthMode === 'fit' || widthMode === 'custom') ? 'flex-start' : undefined,
       maxWidth: computedMaxWidth || '100%',
       minWidth: computedMinWidth,
       boxSizing: 'border-box',
@@ -726,7 +708,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
           <NodeRenderer
             key={child.id}
             node={child}
-            parentDirection={direction}
+            parentDirection={mobileDefaultStack ? 'vertical' : direction}
             ensureForeground={Boolean(groupBackgroundImageUrl && styling.bgType === 'image')}
             isEditorInteractive={isEditorInteractive}
             device={device}
