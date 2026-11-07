@@ -418,6 +418,11 @@ export interface FooterRowLayout {
   verticalAlignment: 'top' | 'center' | 'bottom' | 'stretch' | 'flex-start' | 'flex-end';
   paddingX: number;
   paddingY: number;
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  sectionGap?: number;
   maxWidth?: number;
   variantId?: string;
   justifyContent?: 'space-between' | 'space-around' | 'space-evenly' | 'flex-start' | 'center' | 'flex-end';
@@ -439,10 +444,18 @@ export interface FooterRowLayout {
 }
 
 export interface FooterRowStyling {
-  bgType: 'theme' | 'custom';
+  bgType: 'theme' | 'custom' | 'inherit' | 'color' | 'gradient' | 'image';
   bgColor: string;
   bgGradient?: string;
   bgImage?: string;
+  bgSize?: 'cover' | 'contain' | 'auto';
+  bgPosition?: string;
+  bgOpacity?: number;
+  bgBlur?: number;
+  bgEffectMode?: 'opacity' | 'blur';
+  bgGradientStart?: string;
+  bgGradientEnd?: string;
+  bgGradientDirection?: string;
   textColor: string;
   titleColor?: string;
   titleFontSize?: number;
@@ -481,7 +494,16 @@ export interface FooterRow {
     showOnMobile?: boolean;
     mobileLayout?: 'stack' | 'accordion' | 'carousel';
     mobileColumnCount?: number;
+    desktop?: FooterRowBreakpointOverrides;
+    tablet?: FooterRowBreakpointOverrides;
+    mobile?: FooterRowBreakpointOverrides;
   };
+}
+
+export interface FooterRowBreakpointOverrides {
+  visible?: boolean;
+  padding?: { top: number; right: number; bottom: number; left: number };
+  sectionGap?: number;
 }
 
 // ─── Global Settings Types ────────────────────────────────

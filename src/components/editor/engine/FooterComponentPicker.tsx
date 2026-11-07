@@ -24,12 +24,14 @@ import {
   CreditCard,
   Copyright,
   Layers,
-  ArrowRight,
   PhoneCall,
   ShieldCheck,
   Smartphone,
   Globe,
   Code,
+  MousePointerClick,
+  ShoppingBag,
+  Plus,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import {
@@ -37,10 +39,10 @@ import {
   createNodeFromDef,
   findNodeById,
 } from './footerTreeEngine';
-import type { FooterNodeCategory, FooterComponentDefinition, FooterTreeNode } from './footerTreeTypes';
+import type { FooterComponentDefinition, FooterTreeNode } from './footerTreeTypes';
 import { createDefaultGroupLayout } from './footerTreeTypes';
 
-const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> = {
+const ICON_MAP: Record<string, React.FC<{ size?: number; color?: string; className?: string }>> = {
   LayoutGrid,
   Heading,
   Type,
@@ -61,18 +63,35 @@ const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> 
   Smartphone,
   Globe,
   Code,
+  MousePointerClick,
+  ShoppingBag,
 };
 
-const CATEGORIES: { id: FooterNodeCategory | 'all'; label: string }[] = [
-  { id: 'all', label: 'All Components' },
-  { id: 'layout', label: 'Layout' },
-  { id: 'content', label: 'Content' },
-  { id: 'navigation', label: 'Navigation' },
-  { id: 'actions', label: 'Actions' },
+type PickerCategory = 'basic' | 'decorative' | 'footer' | 'forms' | 'layout' | 'links';
+type PickerTab = 'blocks' | 'apps';
+
+const SHOPIFY_FOOTER_BLOCKS = new Set([
+  'group', 'heading', 'text', 'image', 'logo', 'icon', 'link-list', 'policy-links',
+  'social-links', 'button', 'newsletter', 'divider', 'payment-icons', 'copyright',
+]);
+const CATEGORY_ORDER: Array<{ id: PickerCategory; label: string }> = [
+  { id: 'basic', label: 'Basic' },
+  { id: 'decorative', label: 'Decorative' },
+  { id: 'footer', label: 'Footer' },
   { id: 'forms', label: 'Forms' },
-  { id: 'structure', label: 'Structure' },
-  { id: 'store-info', label: 'Store Info' },
+  { id: 'layout', label: 'Layout' },
+  { id: 'links', label: 'Links' },
 ];
+
+const getPickerCategory = (def: FooterComponentDefinition): PickerCategory => {
+  if (def.name === 'Jumbo text') return 'decorative';
+  if (def.name === 'Follow on Shop' || ['policy-links', 'social-links', 'payment-icons', 'copyright'].includes(def.nodeType)) return 'footer';
+  if (def.nodeType === 'group' || def.nodeType === 'divider') return 'layout';
+  if (def.nodeType === 'link-list') return 'links';
+  if (def.nodeType === 'newsletter') return 'forms';
+  if (['button', 'heading', 'icon', 'image', 'logo', 'text'].includes(def.nodeType)) return 'basic';
+  return 'basic';
+};
 
 export const FooterComponentPicker: React.FC = () => {
   const {
@@ -85,7 +104,30 @@ export const FooterComponentPicker: React.FC = () => {
   } = useEditorContextStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<FooterNodeCategory | 'all'>('all');
+  const [activeTab, setActiveTab] = useState<PickerTab>('blocks');
+
+  const pickerComponents = useMemo(() => {
+    const heading = FOOTER_COMPONENT_DEFS.find((def) => def.nodeType === 'heading');
+    const button = FOOTER_COMPONENT_DEFS.find((def) => def.nodeType === 'button');
+    const extras: FooterComponentDefinition[] = [];
+    if (heading) {
+      extras.push({
+        ...heading,
+        name: 'Jumbo text',
+        description: 'Large display text for a bold footer statement',
+        defaultProps: { ...heading.defaultProps, text: 'Your store name', level: 'h2', fontSize: 48, fontWeight: 700 },
+      });
+    }
+    if (button) {
+      extras.push({
+        ...button,
+        name: 'Follow on Shop',
+        description: 'Add a Shop follow button to help customers keep up with your store',
+        defaultProps: { ...button.defaultProps, label: 'Follow on Shop', link: '/collections/all', variant: 'secondary' },
+      });
+    }
+    return [...FOOTER_COMPONENT_DEFS, ...extras];
+  }, []);
 
   // Determine parent context
   const parentNode = useMemo(() => {
@@ -98,25 +140,29 @@ export const FooterComponentPicker: React.FC = () => {
 
   // Filter components
   const filteredComponents = useMemo(() => {
-    return FOOTER_COMPONENT_DEFS.filter((def) => {
+    if (activeTab === 'apps') return [];
+    return pickerComponents.filter((def) => {
+      if (!SHOPIFY_FOOTER_BLOCKS.has(def.nodeType) && !['Jumbo text', 'Follow on Shop'].includes(def.name)) return false;
       // Must be allowed for parent
       if (!def.allowedParents.includes(parentType)) return false;
-
-      // Category filter
-      if (activeCategory !== 'all' && def.category !== activeCategory) return false;
 
       // Search filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = def.name.toLowerCase().includes(q);
         const matchesDesc = def.description.toLowerCase().includes(q);
-        const matchesCat = def.category.toLowerCase().includes(q);
+        const matchesCat = getPickerCategory(def).toLowerCase().includes(q);
         if (!matchesName && !matchesDesc && !matchesCat) return false;
       }
 
       return true;
     });
-  }, [parentType, activeCategory, searchQuery]);
+  }, [pickerComponents, parentType, searchQuery, activeTab]);
+
+  const groupedComponents = useMemo(() => CATEGORY_ORDER.map((category) => ({
+    ...category,
+    blocks: filteredComponents.filter((definition) => getPickerCategory(definition) === category.id),
+  })).filter((category) => category.blocks.length > 0), [filteredComponents]);
 
   if (!isFooterComponentPickerOpen) return null;
 
@@ -140,7 +186,12 @@ export const FooterComponentPicker: React.FC = () => {
       }
     }
 
-    const newNode = createNodeFromDef(def, overrides);
+    const specialProps = def.name === 'Jumbo text'
+      ? { text: 'Your store name', level: 'h2', fontSize: 48, fontWeight: 700 }
+      : def.name === 'Follow on Shop'
+        ? { label: 'Follow on Shop', link: '/collections/all', variant: 'secondary' }
+        : undefined;
+    const newNode = createNodeFromDef(def, { ...overrides, name: def.name, ...(specialProps ? { props: specialProps } : {}) });
     addFooterTreeNode(newNode, footerPickerTargetParentId, footerPickerTargetIndex);
   };
 
@@ -197,7 +248,7 @@ export const FooterComponentPicker: React.FC = () => {
                 gap: '8px',
               }}
             >
-              Add Component
+              Add block
               <span
                 style={{
                   fontSize: '12px',
@@ -211,9 +262,6 @@ export const FooterComponentPicker: React.FC = () => {
                 Into {parentName}
               </span>
             </h2>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-              Select a component to insert into your footer layout
-            </p>
           </div>
           <button
             onClick={closeFooterComponentPicker}
@@ -237,7 +285,7 @@ export const FooterComponentPicker: React.FC = () => {
         </div>
 
         {/* Search bar & Categories */}
-        <div style={{ padding: '16px 24px 12px 24px', backgroundColor: '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '14px 18px 12px', backgroundColor: '#fff', borderBottom: '1px solid #e4e7ec' }}>
           {/* Search Input */}
           <div
             style={{
@@ -246,15 +294,15 @@ export const FooterComponentPicker: React.FC = () => {
               gap: '10px',
               backgroundColor: '#ffffff',
               border: '1px solid #cbd5e1',
-              borderRadius: '10px',
-              padding: '8px 12px',
-              marginBottom: '12px',
+              borderRadius: '8px',
+              padding: '7px 10px',
+              marginBottom: '10px',
             }}
           >
             <Search size={16} color="#94a3b8" />
             <input
               type="text"
-              placeholder="Search components (e.g. Group, Heading, Newsletter, Social)..."
+              placeholder="Search blocks"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -283,173 +331,91 @@ export const FooterComponentPicker: React.FC = () => {
             )}
           </div>
 
-          {/* Category Chips */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '6px',
-              overflowX: 'auto',
-              paddingBottom: '4px',
-            }}
-          >
-            {CATEGORIES.map((cat) => {
-              const active = activeCategory === cat.id;
+          {/* Shopify-style Blocks / Apps switch */}
+          <div role="tablist" aria-label="Block source" style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+            {(['blocks', 'apps'] as const).map((tab) => {
+              const active = activeTab === tab;
               return (
                 <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(tab)}
                   style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: active ? 600 : 500,
+                    padding: '7px 14px',
+                    borderRadius: '7px',
                     border: active ? '1px solid #2563eb' : '1px solid #e2e8f0',
                     backgroundColor: active ? '#eff6ff' : '#ffffff',
                     color: active ? '#1d4ed8' : '#64748b',
+                    fontSize: '12px',
+                    fontWeight: active ? 600 : 500,
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease',
+                    textTransform: 'capitalize',
                   }}
                 >
-                  {cat.label}
+                  {tab === 'blocks' ? 'Blocks' : 'Apps'}
                 </button>
               );
             })}
           </div>
+
         </div>
 
-        {/* Components Grid */}
+        {/* Shopify-style grouped block list */}
         <div
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '20px 24px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '12px',
-            maxHeight: '52vh',
+            padding: '4px 18px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '58vh',
           }}
         >
           {filteredComponents.length === 0 ? (
             <div
               style={{
-                gridColumn: '1 / -1',
-                padding: '48px 16px',
+                padding: '44px 16px',
                 textAlign: 'center',
                 color: '#94a3b8',
               }}
             >
-              <LayoutGrid size={36} style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
-              <p style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: '#475569' }}>
-                No components found
+              <LayoutGrid size={30} style={{ margin: '0 auto 10px auto', opacity: 0.5 }} />
+              <p style={{ margin: '0 0 4px 0', fontSize: 14, fontWeight: 600, color: '#475569' }}>
+                {activeTab === 'apps' ? 'No app blocks available' : 'No blocks found'}
               </p>
-              <p style={{ margin: 0, fontSize: '13px' }}>
-                Try adjusting your search query or selecting a different category.
+              <p style={{ margin: 0, fontSize: 12 }}>
+                {activeTab === 'apps' ? 'Installed apps can add footer blocks here.' : 'Try another search.'}
               </p>
             </div>
           ) : (
-            filteredComponents.map((def) => {
-              const IconComp = ICON_MAP[def.icon] || LayoutGrid;
-              const isGroup = def.nodeType === 'group';
-
-              return (
-                <div
-                  key={def.nodeType}
-                  onClick={() => handleSelectComponent(def)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '14px',
-                    padding: '14px 16px',
-                    borderRadius: '12px',
-                    border: isGroup ? '1.5px solid #bfdbfe' : '1px solid #e2e8f0',
-                    backgroundColor: isGroup ? '#f8faff' : '#ffffff',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#3b82f6';
-                    e.currentTarget.style.backgroundColor = isGroup ? '#eff6ff' : '#f8fafc';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = isGroup ? '#bfdbfe' : '#e2e8f0';
-                    e.currentTarget.style.backgroundColor = isGroup ? '#f8faff' : '#ffffff';
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '10px',
-                      backgroundColor: isGroup ? '#dbeafe' : '#f1f5f9',
-                      color: isGroup ? '#1d4ed8' : '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <IconComp size={20} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span
-                        style={{
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          color: '#0f172a',
-                        }}
-                      >
-                        {def.name}
-                      </span>
-                      {isGroup && (
-                        <span
-                          style={{
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            color: '#2563eb',
-                            backgroundColor: '#dbeafe',
-                            padding: '1px 6px',
-                            borderRadius: '6px',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          Container
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      style={{
-                        margin: '4px 0 0 0',
-                        fontSize: '12px',
-                        color: '#64748b',
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {def.description}
-                    </p>
-                  </div>
-                  <ArrowRight
-                    size={16}
-                    color="#94a3b8"
-                    style={{ alignSelf: 'center', flexShrink: 0, opacity: 0.7 }}
-                  />
+            groupedComponents.map((group) => (
+              <section key={group.id} style={{ paddingTop: 12 }}>
+                <h3 style={{ margin: '0 0 6px', padding: '0 2px', color: '#475467', fontSize: 12, fontWeight: 600 }}>{group.label}</h3>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {group.blocks.map((def) => {
+                    const IconComp = ICON_MAP[def.icon] || LayoutGrid;
+                    return (
+                      <button key={`${def.nodeType}-${def.name}`} type="button" onClick={() => handleSelectComponent(def)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 4px', border: 0, borderBottom: '1px solid #f2f4f7', background: '#fff', textAlign: 'left', color: '#202223', cursor: 'pointer' }}>
+                        <IconComp size={17} color="#475467" />
+                        <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{def.name}</span>
+                        <Plus size={15} color="#667085" />
+                      </button>
+                    );
+                  })}
                 </div>
-              );
-            })
+              </section>
+            ))
           )}
         </div>
 
         {/* Footer info bar */}
         <div
           style={{
-            padding: '12px 24px',
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #f1f5f9',
+            padding: '10px 18px',
+            backgroundColor: '#fff',
+            borderTop: '1px solid #e4e7ec',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -458,7 +424,9 @@ export const FooterComponentPicker: React.FC = () => {
           }}
         >
           <span>
-            {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''} available
+            {activeTab === 'apps'
+              ? 'No apps installed'
+              : `${filteredComponents.length} block${filteredComponents.length !== 1 ? 's' : ''} available`}
           </span>
           <button
             onClick={closeFooterComponentPicker}

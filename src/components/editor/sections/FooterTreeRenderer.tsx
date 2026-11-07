@@ -23,10 +23,50 @@ import {
   Headphones,
   Globe,
   ChevronDown,
+  Star,
+  Heart,
+  Apple,
+  ArrowRight,
+  Banana,
+  BottleWine,
+  Box,
+  Carrot,
+  MessageCircle,
+  CheckSquare,
+  Clipboard,
+  Milk,
+  MilkOff,
+  WashingMachine,
+  Eye,
+  Flame,
+  Leaf,
+  BriefcaseBusiness,
+  Zap,
+  Brush,
+  LockKeyhole,
+  Nut,
+  PawPrint,
+  Plane,
+  Sprout,
+  Tag,
+  BadgeHelp,
+  Ruler,
+  Utensils,
+  Shirt,
+  Footprints,
+  PersonStanding,
+  Snowflake,
+  Timer,
+  Citrus,
+  SprayCan,
+  WheatOff,
+  Music2,
+  Video,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
 import type { FooterTreeNode } from '../engine/footerTreeTypes';
+import { sanitizeFooterRichText } from '../engine/footerRichText';
 
 // ─── SOCIAL ICONS ─────────────────────────────────────────────
 
@@ -66,9 +106,96 @@ const SocialIconRenderer: React.FC<{ platform: string; size?: number }> = ({ pla
           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
         </svg>
       );
+    case 'spotify':
+      return <Music2 size={size} />;
+    case 'whatsapp':
+      return <MessageCircle size={size} />;
+    case 'tiktok':
+      return <Music2 size={size} />;
+    case 'pinterest':
+      return <span style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'currentColor', color: 'var(--footer-icon-cutout, #fff)', fontFamily: 'Georgia, serif', fontSize: size * 0.75, fontWeight: 700 }}>P</span>;
+    case 'tumblr':
+      return <span style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Georgia, serif', fontSize: size, fontWeight: 700 }}>t</span>;
+    case 'vimeo':
+      return <Video size={size} />;
+    case 'threads':
+      return <span style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.9, fontWeight: 600 }}>@</span>;
+    case 'snapchat':
+      return <span style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.85, fontWeight: 700 }}>👻</span>;
+    case 'bluesky':
+      return <Globe size={size} />;
     default:
       return <ExternalLink size={size} />;
   }
+};
+
+const FOOTER_ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  star: Star,
+  heart: Heart,
+  shield: ShieldCheck,
+  check: CheckCircle2,
+  phone: Phone,
+  mail: Mail,
+  map: MapPin,
+  clock: Clock,
+  truck: Truck,
+  support: Headphones,
+  globe: Globe,
+  refresh: RotateCcw,
+  apple: Apple,
+  arrow: ArrowRight,
+  banana: Banana,
+  bottle: BottleWine,
+  box: Box,
+  carrot: Carrot,
+  'chat-bubble': MessageCircle,
+  'check-box': CheckSquare,
+  clipboard: Clipboard,
+  dairy: Milk,
+  'dairy-free': MilkOff,
+  dryer: WashingMachine,
+  eye: Eye,
+  fire: Flame,
+  'gluten-free': WheatOff,
+  leaf: Leaf,
+  leather: BriefcaseBusiness,
+  'lightning-bolt': Zap,
+  lipstick: Brush,
+  lock: LockKeyhole,
+  'map-pin': MapPin,
+  'nut-free': Nut,
+  pants: BriefcaseBusiness,
+  'paw-print': PawPrint,
+  pepper: Citrus,
+  perfume: SprayCan,
+  plane: Plane,
+  plant: Sprout,
+  'price-tag': Tag,
+  'question-mark': BadgeHelp,
+  recycle: RotateCcw,
+  return: RotateCcw,
+  ruler: Ruler,
+  'serving-dish': Utensils,
+  shirt: Shirt,
+  shoe: Footprints,
+  silhouette: PersonStanding,
+  snowflake: Snowflake,
+  stopwatch: Timer,
+  washing: WashingMachine,
+  'social-bluesky': Globe,
+  'social-facebook': ExternalLink,
+  'social-instagram': ExternalLink,
+  'social-linkedin': ExternalLink,
+  'social-pinterest': ExternalLink,
+  'social-snapchat': ExternalLink,
+  'social-spotify': Music2,
+  'social-threads': MessageCircle,
+  'social-tiktok': Music2,
+  'social-tumblr': ExternalLink,
+  'social-x': ExternalLink,
+  'social-vimeo': Video,
+  'social-youtube': ExternalLink,
+  'social-whatsapp': MessageCircle,
 };
 
 // ─── PAYMENT BADGES ──────────────────────────────────────────
@@ -171,6 +298,25 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
   };
 
   const isVertical = props.layout === 'vertical';
+  const integrated = props.integratedButton !== false && !isVertical;
+  const inputBorder = props.inputBorder || 'all';
+  const inputBorderWidth = props.inputStyle === 'custom' ? Number(props.inputBorderThickness ?? 1) : 1;
+  const inputBorderColor = status === 'error' ? '#ef4444' : props.inputStyle === 'custom' ? (props.inputBorderColor || '#d0d5dd') : '#cbd5e1';
+  const inputRadius = props.inputStyle === 'custom' ? Number(props.inputRadius ?? 100) : 6;
+  const textSizes: Record<string, number> = { paragraph: 14, h1: 32, h2: 26, h3: 20, h4: 17, h5: 15, h6: 14 };
+  const headingPreset = props.headingPreset || 'h3';
+  const inputPreset = props.inputTextPreset || 'paragraph';
+  const buttonStyle = props.buttonStyle || 'link';
+  const submitColor = buttonStyle === 'custom' ? (props.buttonBackground || '#111827') : buttonStyle === 'primary' ? '#111827' : 'transparent';
+  const submitTextColor = buttonStyle === 'custom' ? (props.buttonTextColor || '#ffffff') : buttonStyle === 'link' ? (props.buttonColor || '#111827') : buttonStyle === 'secondary' ? '#111827' : '#ffffff';
+  const controlRadius = integrated ? `${inputRadius}px 0 0 ${inputRadius}px` : `${inputRadius}px`;
+  const submitRadius = integrated ? `0 ${inputRadius}px ${inputRadius}px 0` : `${inputRadius}px`;
+  const borderStyle: React.CSSProperties['border'] = inputBorder === 'none'
+    ? 'none'
+    : inputBorder === 'underline'
+      ? 'none'
+      : `${inputBorderWidth}px solid ${inputBorderColor}`;
+  const customWidth = props.widthMode === 'custom' && props.customWidth ? `${props.customWidth}px` : undefined;
 
   return (
     <div
@@ -178,14 +324,15 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
-        width: '100%',
+        width: customWidth || '100%',
         height: 'fit-content',
-        maxWidth: props.maxWidth ? `${props.maxWidth}px` : '100%',
+        maxWidth: props.maxWidth ? `${props.maxWidth}px` : customWidth || '100%',
         boxSizing: 'border-box',
+        color: props.color || 'inherit',
       }}
     >
       {props.heading && (
-        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'inherit' }}>
+        <h4 style={{ margin: 0, fontSize: `${textSizes[headingPreset] || 20}px`, fontWeight: 700, color: props.headingColor || 'inherit' }}>
           {props.heading}
         </h4>
       )}
@@ -219,7 +366,7 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
             display: 'flex',
             flexDirection: isVertical ? 'column' : 'row',
             alignItems: isVertical ? 'stretch' : 'center',
-            gap: '8px',
+            gap: integrated ? 0 : '8px',
             width: '100%',
             maxWidth: '100%',
             boxSizing: 'border-box',
@@ -243,11 +390,13 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
               maxHeight: '40px',
               lineHeight: '40px',
               padding: '0 14px',
-              borderRadius: '6px',
-              border: status === 'error' ? '1px solid #ef4444' : '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
-              fontSize: '13px',
+              borderRadius: controlRadius,
+              border: borderStyle,
+              borderBottom: inputBorder === 'underline' ? `${inputBorderWidth}px solid ${inputBorderColor}` : undefined,
+              borderRight: integrated && inputBorder === 'all' ? 'none' : undefined,
+              backgroundColor: props.inputStyle === 'custom' ? (props.inputBackground || '#ffffff') : '#ffffff',
+              color: props.inputStyle === 'custom' ? (props.inputColor || '#0f172a') : '#0f172a',
+              fontSize: `${textSizes[inputPreset] || 14}px`,
               outline: 'none',
               boxSizing: 'border-box',
             }}
@@ -260,10 +409,11 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
               minHeight: '40px',
               maxHeight: '40px',
               padding: '0 18px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
+              borderRadius: submitRadius,
+              border: buttonStyle === 'secondary' ? '1px solid #cfd4dc' : buttonStyle === 'primary' || buttonStyle === 'custom' ? 'none' : '0',
+              borderLeft: integrated && buttonStyle === 'secondary' ? '1px solid #cfd4dc' : undefined,
+              backgroundColor: submitColor,
+              color: submitTextColor,
               fontSize: '13px',
               fontWeight: 600,
               cursor: status === 'loading' ? 'not-allowed' : 'pointer',
@@ -274,10 +424,11 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
               whiteSpace: 'nowrap',
               flexShrink: 0,
               width: isVertical ? '100%' : 'auto',
+              textDecoration: buttonStyle === 'link' ? 'underline' : 'none',
               boxSizing: 'border-box',
             }}
           >
-            {status === 'loading' ? <Loader2 size={14} className="animate-spin" /> : props.buttonText || 'Subscribe'}
+            {status === 'loading' ? <Loader2 size={14} className="animate-spin" /> : props.buttonDisplay === 'text' ? (props.buttonText || 'Subscribe') : '→'}
           </button>
         </form>
       )}
@@ -302,6 +453,7 @@ const NewsletterBlock: React.FC<{ props: any; isInteractive?: boolean }> = ({ pr
 interface NodeRendererProps {
   node: FooterTreeNode;
   parentDirection?: 'horizontal' | 'vertical';
+  ensureForeground?: boolean;
   isEditorInteractive?: boolean;
   device?: 'desktop' | 'tablet' | 'mobile';
   selectedId: string | null;
@@ -314,6 +466,7 @@ interface NodeRendererProps {
 const NodeRenderer: React.FC<NodeRendererProps> = ({
   node,
   parentDirection = 'horizontal',
+  ensureForeground = false,
   isEditorInteractive,
   device,
   selectedId,
@@ -322,6 +475,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   onHover,
   onAddChild,
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isSelected = selectedId === node.id;
   const isNodeHovered = hoveredId === node.id;
   const isMobile = device === 'mobile';
@@ -339,7 +493,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   };
 
   const responsive = node.responsive || {};
-  const activeOverride = isMobile ? responsive.mobile : isTablet ? responsive.tablet : undefined;
+  const activeOverride = isMobile ? responsive.mobile : isTablet ? responsive.tablet : responsive.desktop;
 
   // If node is explicitly hidden on this breakpoint, do not render
   if (activeOverride?.visible === false) return null;
@@ -348,8 +502,17 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   const gap = activeOverride?.gap ?? baseLayout.gap ?? 24;
   const mainAxis = activeOverride?.mainAxisDistribution || baseLayout.mainAxisDistribution || 'start';
   const crossAxis = activeOverride?.crossAxisAlignment || baseLayout.crossAxisAlignment || 'stretch';
-  const padding = activeOverride?.padding || baseLayout.padding || { top: 0, right: 0, bottom: 0, left: 0 };
+  const padding = {
+    top: activeOverride?.padding?.top ?? baseLayout.padding?.top ?? 0,
+    right: activeOverride?.padding?.right ?? baseLayout.padding?.right ?? 0,
+    bottom: activeOverride?.padding?.bottom ?? baseLayout.padding?.bottom ?? 0,
+    left: activeOverride?.padding?.left ?? baseLayout.padding?.left ?? 0,
+  };
   const widthMode = activeOverride?.width?.mode || baseLayout.width?.mode || 'fill';
+  const widthValue = activeOverride?.width?.value ?? baseLayout.width?.value;
+  const widthUnit = activeOverride?.width?.unit || baseLayout.width?.unit || 'px';
+  const heightMode = activeOverride?.height?.mode || baseLayout.height?.mode || 'fit';
+  const heightValue = activeOverride?.height?.value ?? baseLayout.height?.value;
 
   // Flexbox CSS translation
   const justifyContentMap: Record<string, string> = {
@@ -374,6 +537,11 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   if (node.nodeType === 'group') {
     const children = node.children || [];
     const styling = node.styling || { bgType: 'inherit' };
+    const groupProps = node.props || {};
+    const groupBackgroundImageUrl = groupProps.backgroundImageUrl || styling.bgImage;
+    const groupImageEffect = styling.bgEffectMode || 'opacity';
+    const groupImageOpacity = groupImageEffect === 'opacity' ? Math.max(0, Math.min(100, styling.bgOpacity ?? 100)) / 100 : 1;
+    const groupImageBlurPx = groupImageEffect === 'blur' ? Math.max(0, Math.min(100, styling.bgBlur ?? 0)) / 5 : 0;
 
     let computedFlex = 'none';
     let computedWidth = 'auto';
@@ -406,9 +574,13 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       computedFlex = isHorizontalParent ? '0 1 auto' : '0 0 auto';
       computedWidth = 'auto';
       computedMinWidth = 0;
-    } else if (widthMode === 'custom' && baseLayout.width?.value) {
-      const customVal = `${baseLayout.width.value}${baseLayout.width.unit || 'px'}`;
-      if (isHorizontalParent) {
+    } else if (widthMode === 'custom' && widthValue) {
+      const customVal = `${widthValue}${widthUnit}`;
+      if (activeOverride?.width) {
+        computedFlex = '0 0 auto';
+        computedWidth = customVal;
+        computedMinWidth = 0;
+      } else if (isHorizontalParent) {
         if (isMobile) {
           computedFlex = '1 1 100%';
           computedWidth = '100%';
@@ -431,10 +603,12 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
 
     const maxWidthVal = activeOverride?.maxWidth ?? baseLayout.maxWidth;
     const computedMaxWidth = maxWidthVal ? `${maxWidthVal}px` : undefined;
+    const mobileDefaultStack = isMobile && !activeOverride?.direction && baseLayout.direction === 'horizontal';
+    const groupWrap = activeOverride?.wrap ?? baseLayout.wrap ?? direction === 'horizontal';
 
     const groupStyle: React.CSSProperties = {
       display: 'flex',
-      flexDirection: direction === 'horizontal' ? (isMobile ? 'column' : 'row') : 'column',
+      flexDirection: mobileDefaultStack ? 'column' : direction === 'horizontal' ? 'row' : 'column',
       justifyContent: justifyContentMap[mainAxis] || 'flex-start',
       alignItems: alignItemsMap[crossAxis] || (direction === 'horizontal' ? (isMobile ? 'stretch' : 'center') : 'stretch'),
       gap: `${gap}px`,
@@ -442,18 +616,25 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       paddingRight: `${padding.right}px`,
       paddingBottom: `${padding.bottom}px`,
       paddingLeft: `${padding.left}px`,
-      flexWrap: direction === 'horizontal' ? 'wrap' : 'nowrap',
+      flexWrap: groupWrap ? 'wrap' : 'nowrap',
       width: computedWidth,
       flex: computedFlex,
       maxWidth: computedMaxWidth || '100%',
       minWidth: computedMinWidth,
       boxSizing: 'border-box',
       position: 'relative',
+      zIndex: ensureForeground ? 1 : undefined,
       borderRadius: styling.borderRadius ? `${styling.borderRadius}px` : undefined,
       borderWidth: styling.borderWidth ? `${styling.borderWidth}px` : undefined,
       borderColor: styling.borderColor || undefined,
       borderStyle: styling.borderWidth ? (styling.borderStyle || 'solid') : undefined,
       backgroundColor: styling.bgType === 'color' ? styling.bgColor : undefined,
+      backgroundImage: styling.bgType === 'gradient'
+        ? styling.bgGradient || `linear-gradient(${styling.bgGradientDirection || '90deg'}, ${styling.bgGradientStart || styling.bgColor || '#1d4ed8'}, ${styling.bgGradientEnd || '#7c3aed'})`
+        : groupProps.backgroundOverlay && styling.bgType === 'color'
+          ? 'linear-gradient(rgba(0,0,0,.24), rgba(0,0,0,.24))'
+        : undefined,
+      height: heightMode === 'custom' && heightValue ? `${heightValue}${activeOverride?.height?.unit || baseLayout.height?.unit || 'px'}` : heightMode === 'fill' ? '100%' : undefined,
       boxShadow: styling.boxShadow || undefined,
     };
 
@@ -469,6 +650,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
     return (
       <div
         style={{ ...groupStyle, ...editorOutlineStyle }}
+        role={groupProps.link && !isEditorInteractive ? 'link' : undefined}
+        tabIndex={groupProps.link && !isEditorInteractive ? 0 : undefined}
+        aria-label={groupProps.link ? `Link to ${groupProps.link}` : undefined}
         onMouseOver={(e) => {
           if (!isEditorInteractive) return;
           e.stopPropagation();
@@ -480,11 +664,38 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
           onHover(null);
         }}
         onClick={(e) => {
-          if (!isEditorInteractive) return;
-          e.stopPropagation();
-          onSelect(node.id);
+          if (isEditorInteractive) {
+            e.stopPropagation();
+            onSelect(node.id);
+            return;
+          }
+          if (groupProps.link && e.target === e.currentTarget) window.location.href = groupProps.link;
+        }}
+        onKeyDown={(e) => {
+          if (isEditorInteractive || !groupProps.link || (e.key !== 'Enter' && e.key !== ' ')) return;
+          window.location.href = groupProps.link;
         }}
       >
+        {styling.bgType === 'image' && groupBackgroundImageUrl && (
+          <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none', borderRadius: 'inherit' }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: groupImageBlurPx > 0 ? '-24px' : 0,
+                backgroundImage: `url("${groupBackgroundImageUrl}")`,
+                backgroundSize: styling.bgSize || 'cover',
+                backgroundPosition: styling.bgPosition || 'center',
+                backgroundRepeat: 'no-repeat',
+                opacity: groupImageOpacity,
+                filter: groupImageBlurPx > 0 ? `blur(${groupImageBlurPx}px)` : undefined,
+              }}
+            />
+            {groupProps.backgroundOverlay && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.24)' }} />}
+          </div>
+        )}
+        {groupProps.backgroundMediaType === 'video' && groupProps.backgroundVideoUrl && (
+          <video src={groupProps.backgroundVideoUrl} autoPlay muted loop playsInline aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, width: '100%', height: '100%', objectFit: 'cover', filter: groupProps.backgroundOverlay ? 'brightness(.76)' : undefined, borderRadius: 'inherit' }} />
+        )}
         {/* Shopify-style Group tag badge on top of selected group */}
         {isSelected && isEditorInteractive && (
           <div
@@ -516,6 +727,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
             key={child.id}
             node={child}
             parentDirection={direction}
+            ensureForeground={Boolean(groupBackgroundImageUrl && styling.bgType === 'image')}
             isEditorInteractive={isEditorInteractive}
             device={device}
             selectedId={selectedId}
@@ -547,7 +759,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
     'localization',
   ].includes(node.nodeType);
 
-  const effectiveWidthMode = props.widthMode || (isNaturalFit ? 'fit' : 'fill');
+  const effectiveWidthMode = activeOverride?.width?.mode || (isMobile && props.mobileWidthMode) || props.widthMode || (isNaturalFit ? 'fit' : 'fill');
+  const effectiveCustomWidth = activeOverride?.width?.value ?? (isMobile ? (props.mobileCustomWidth || props.customWidth) : props.customWidth);
+  const effectiveCustomWidthUnit = activeOverride?.width?.unit || 'px';
 
   let leafFlex: string | undefined = undefined;
   let leafWidth: string = 'auto';
@@ -568,9 +782,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
         leafWidth = 'auto';
         leafMinWidth = '140px';
       }
-    } else if (effectiveWidthMode === 'custom' && props.customWidth) {
+    } else if (effectiveWidthMode === 'custom' && effectiveCustomWidth) {
       leafFlex = '0 0 auto';
-      leafWidth = `${props.customWidth}px`;
+      leafWidth = `${effectiveCustomWidth}${effectiveCustomWidthUnit}`;
       leafMinWidth = 0;
     } else {
       // fit
@@ -584,9 +798,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       leafFlex = '0 0 auto';
       leafWidth = '100%';
       leafMinWidth = 0;
-    } else if (effectiveWidthMode === 'custom' && props.customWidth) {
+    } else if (effectiveWidthMode === 'custom' && effectiveCustomWidth) {
       leafFlex = '0 0 auto';
-      leafWidth = `${props.customWidth}px`;
+      leafWidth = `${effectiveCustomWidth}${effectiveCustomWidthUnit}`;
       leafMinWidth = 0;
     } else {
       // fit
@@ -596,27 +810,49 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
     }
   }
 
-  const leafAlignSelf = effectiveWidthMode === 'fill'
-    ? 'stretch'
-    : (crossAxis === 'stretch'
-        ? (isHorizontalParent ? 'stretch' : 'flex-start')
-        : (crossAxis === 'center' ? 'center' : (crossAxis === 'end' ? 'flex-end' : 'flex-start')));
+  // Let the parent group's align-items control child placement. An explicit
+  // align-self here used to override the group's cross-axis alignment for leaves.
+  const leafAlignSelf = props.alignSelf;
+
+  const maxWidthCss = props.maxWidth === 'narrow'
+    ? '320px'
+    : props.maxWidth === 'normal'
+      ? '480px'
+      : props.maxWidth === 'none'
+        ? '100%'
+        : typeof props.maxWidth === 'number'
+          ? `${props.maxWidth}px`
+          : '100%';
+  const leafPaddingValue = activeOverride?.padding || props.padding;
+  const leafPadding = typeof leafPaddingValue === 'number'
+    ? `${leafPaddingValue}px`
+    : leafPaddingValue && typeof leafPaddingValue === 'object'
+      ? `${leafPaddingValue.top || 0}px ${leafPaddingValue.right || 0}px ${leafPaddingValue.bottom || 0}px ${leafPaddingValue.left || 0}px`
+      : undefined;
+  const leafHeight = activeOverride?.height?.mode === 'custom' && activeOverride.height.value
+    ? `${activeOverride.height.value}${activeOverride.height.unit || 'px'}`
+    : activeOverride?.height?.mode === 'fill'
+      ? '100%'
+      : node.nodeType === 'newsletter'
+        ? 'fit-content'
+        : undefined;
 
   const leafContainerStyle: React.CSSProperties = {
     boxSizing: 'border-box',
     position: 'relative',
+    zIndex: ensureForeground ? 1 : undefined,
     flex: leafFlex,
     width: leafWidth,
     minWidth: leafMinWidth,
     alignSelf: leafAlignSelf,
-    height: node.nodeType === 'newsletter' ? 'fit-content' : undefined,
-    maxWidth: props.maxWidth ? `${props.maxWidth}px` : '100%',
-    backgroundColor: props.bgColor || undefined,
+    height: leafHeight,
+    maxWidth: maxWidthCss,
+    backgroundColor: props.hasBackground ? (props.backgroundColor || '#f2f4f7') : (props.bgColor || undefined),
     borderRadius: props.borderRadius ? `${props.borderRadius}px` : '4px',
     borderWidth: props.borderWidth ? `${props.borderWidth}px` : undefined,
     borderColor: props.borderColor || undefined,
     borderStyle: props.borderWidth ? 'solid' : undefined,
-    padding: props.padding ? `${props.padding}px` : undefined,
+    padding: leafPadding,
     margin: props.margin ? `${props.margin}px` : undefined,
     opacity: props.opacity !== undefined ? Number(props.opacity) : undefined,
     ...(isEditorInteractive
@@ -635,15 +871,21 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
   };
 
   const renderLeafContent = () => {
+    const typePreset = props.typographyPreset || 'default';
+    const typePresetSizes: Record<string, number> = { paragraph: 14, h1: 32, h2: 28, h3: 22, h4: 18, h5: 16, h6: 14 };
+    const textFontSize = typePreset === 'custom' ? (props.fontSize || 16) : (typePresetSizes[typePreset] || props.fontSize || 14);
+
     switch (node.nodeType) {
       case 'heading': {
-        const validLevels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
-        const Tag = (validLevels.includes(props.level) ? props.level : 'h3') as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+        const requestedLevel = props.level || (typePreset.startsWith('h') ? typePreset : 'h3');
+        const headingLevel = /^h[1-6]$/.test(requestedLevel) ? Number(requestedLevel.slice(1)) : 3;
         return (
-          <Tag
+          <div
+            role="heading"
+            aria-level={headingLevel}
             style={{
               margin: 0,
-              fontSize: `${props.fontSize || 16}px`,
+              fontSize: `${textFontSize}px`,
               fontWeight: props.fontWeight || 700,
               color: props.color || 'inherit',
               textAlign: props.alignment || 'left',
@@ -651,18 +893,17 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
             }}
-          >
-            {props.text || 'Heading'}
-          </Tag>
+            dangerouslySetInnerHTML={{ __html: sanitizeFooterRichText(props.text || 'Heading') }}
+          />
         );
       }
 
       case 'text':
         return (
-          <p
+          <div
             style={{
               margin: 0,
-              fontSize: `${props.fontSize || 14}px`,
+              fontSize: `${textFontSize}px`,
               lineHeight: props.lineHeight || 1.6,
               color: props.color || 'inherit',
               textAlign: props.alignment || 'left',
@@ -670,9 +911,8 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
             }}
-          >
-            {props.text || ''}
-          </p>
+            dangerouslySetInnerHTML={{ __html: sanitizeFooterRichText(props.text || '') }}
+          />
         );
 
       case 'logo': {
@@ -682,8 +922,15 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
         const lowerText = props.lowerText || 'BIZ COUTURE';
         const logoText = props.text || props.brandName || 'BillionBiz';
 
-        const logoHeight = props.logoHeight || props.height || 40;
+        const logoHeight = isMobile && props.customMobileSize ? (props.mobileHeight || 40) : (props.logoHeight || props.height || 40);
         const logoWidth = props.logoWidth || props.desktopWidth || props.width || 140;
+        const logoWidthCss = props.sizeUnit === '%' ? `${logoWidth}%` : `${logoWidth}px`;
+        const logoFontFamily = ({
+          body: 'var(--font-body-family, inherit)',
+          subheading: 'var(--font-subheading-family, var(--font-body-family, inherit))',
+          heading: 'var(--font-heading-family, inherit)',
+          accent: 'var(--font-accent-family, var(--font-heading-family, inherit))',
+        } as Record<string, string>)[props.fontPreset] || props.fontFamily || 'inherit';
         const imageUrl = props.imageUrl || props.image || props.src;
 
         const shape = props.shape || 'none';
@@ -766,8 +1013,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                   src={imageUrl}
                   alt={logoText}
                   style={{
-                    maxWidth: `${logoWidth}px`,
+                    maxWidth: logoWidthCss,
                     maxHeight: `${logoHeight}px`,
+                    width: props.sizeUnit === '%' ? logoWidthCss : undefined,
                     height: `${logoHeight}px`,
                     objectFit: props.objectFit || 'contain',
                     borderRadius: shape === 'circle' ? '50%' : 'inherit',
@@ -787,7 +1035,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                         color: firstLineColor,
                         letterSpacing: firstLineSpacing,
                         lineHeight: 1.15,
-                        fontFamily: props.fontFamily || 'inherit',
+                        fontFamily: logoFontFamily,
                       }}
                     >
                       {upperText}
@@ -799,7 +1047,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                         color: secondLineColor,
                         letterSpacing: secondLineSpacing,
                         lineHeight: 1.2,
-                        fontFamily: props.fontFamily || 'inherit',
+                        fontFamily: logoFontFamily,
                         textTransform: 'uppercase',
                       }}
                     >
@@ -814,7 +1062,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                       color: firstLineColor,
                       letterSpacing: firstLineSpacing,
                       lineHeight: 1.15,
-                      fontFamily: props.fontFamily || 'inherit',
+                      fontFamily: logoFontFamily,
                     }}
                   >
                     {logoText}
@@ -827,87 +1075,207 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       }
 
       case 'image':
-        return props.src ? (
-          <img
-            src={props.src}
-            alt={props.alt || ''}
-            style={{
-              width: typeof props.width === 'number' ? `${props.width}px` : props.width || '100%',
-              height: typeof props.height === 'number' ? `${props.height}px` : props.height || 'auto',
-              objectFit: props.objectFit || 'contain',
+        {
+          const imageWidthMode = activeOverride?.width?.mode || (isMobile && props.mobileWidthMode) || props.widthMode || 'fill';
+          const imageCustomWidth = activeOverride?.width?.value ?? (isMobile ? (props.mobileCustomWidth || props.customWidth) : props.customWidth);
+          const imageCustomWidthUnit = activeOverride?.width?.unit || 'px';
+          const aspectRatio = ({ portrait: '3 / 4', square: '1 / 1', landscape: '4 / 3' } as Record<string, string>)[props.aspectRatio] || undefined;
+          const imageWidth = imageWidthMode === 'fit' ? 'fit-content' : imageWidthMode === 'custom' && imageCustomWidth ? `${imageCustomWidth}${imageCustomWidthUnit}` : '100%';
+          const imageHeightMode = activeOverride?.height?.mode || props.heightMode || 'fit';
+          const imageHeight = activeOverride?.height?.mode === 'custom' && activeOverride.height.value
+            ? `${activeOverride.height.value}${activeOverride.height.unit || 'px'}`
+            : imageHeightMode === 'fill'
+              ? '100%'
+              : undefined;
+          const image = props.src ? (
+            <div style={{
+              width: imageWidth,
+              maxWidth: '100%',
+              height: imageHeight,
+              aspectRatio: imageHeight ? undefined : aspectRatio,
+              overflow: 'hidden',
+              border: props.borderStyle === 'solid' ? `${props.borderWidth || 1}px solid ${props.borderColor || '#d0d5dd'}` : undefined,
+              borderRadius: props.borderStyle === 'solid' ? `${props.borderRadius || 0}px` : undefined,
+              boxSizing: 'border-box',
               display: 'block',
+            }}>
+              <img
+                src={props.src}
+                alt={props.alt || ''}
+                style={{
+                  width: aspectRatio || imageWidthMode !== 'fit' ? '100%' : 'auto',
+                  maxWidth: '100%',
+                  height: imageHeight || aspectRatio ? '100%' : 'auto',
+                  objectFit: imageHeightMode === 'fill' || imageHeight ? 'cover' : aspectRatio ? 'contain' : (props.objectFit || 'contain'),
+                  display: 'block',
+                }}
+              />
+            </div>
+          ) : (
+            <div
+              role="img"
+              aria-label={props.alt || 'Image placeholder'}
+              style={{
+                width: imageWidth,
+                maxWidth: '100%',
+                height: 80,
+                backgroundColor: '#f1f5f9',
+                border: '1px dashed #cbd5e1',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#94a3b8',
+                fontSize: '12px',
+              }}
+            >
+              Upload image
+            </div>
+          );
+
+          if (!props.link) return image;
+          return (
+            <a
+              href={props.link}
+              target={props.openInNewTab ? '_blank' : undefined}
+              rel={props.openInNewTab ? 'noopener noreferrer' : undefined}
+              onClick={(e) => {
+                if (isEditorInteractive) e.preventDefault();
+              }}
+              style={{ display: 'inline-flex', maxWidth: '100%' }}
+            >
+              {image}
+            </a>
+          );
+        }
+
+      case 'icon': {
+        const iconName = String(props.iconName || 'star').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const iconSize = Number(props.size) || 24;
+        const imageUrl = props.imageUrl || props.image || '';
+        const IconComponent = FOOTER_ICON_MAP[iconName] || Star;
+        const icon = imageUrl
+          ? <img src={imageUrl} alt={props.alt || ''} style={{ width: iconSize, height: iconSize, objectFit: 'contain', display: 'block' }} />
+          : iconName === 'none'
+            ? null
+            : iconName.startsWith('social-')
+              ? <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: props.color || 'currentColor' }}><SocialIconRenderer platform={iconName.slice('social-'.length)} size={iconSize} /></span>
+              : <IconComponent size={iconSize} color={props.color || 'currentColor'} strokeWidth={Number(props.strokeWidth) || 2} />;
+        return props.link ? (
+          <a
+            href={props.link}
+            target={props.openInNewTab ? '_blank' : undefined}
+            rel={props.openInNewTab ? 'noopener noreferrer' : undefined}
+            aria-label={props.alt || props.iconName || 'Icon link'}
+            onClick={(e) => {
+              if (isEditorInteractive) e.preventDefault();
             }}
-          />
-        ) : (
-          <div
-            style={{
-              width: `${props.width || 200}px`,
-              height: '80px',
-              backgroundColor: '#f1f5f9',
-              border: '1px dashed #cbd5e1',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#94a3b8',
-              fontSize: '12px',
-            }}
+            style={{ display: 'inline-flex', color: 'inherit' }}
           >
-            Image placeholder
-          </div>
+            {icon}
+          </a>
+        ) : (
+          <span role="img" aria-label={props.alt || props.iconName || 'Icon'} style={{ display: 'inline-flex', color: 'inherit' }}>
+            {icon}
+          </span>
         );
+      }
 
       case 'link-list': {
         const links = props.links || [];
+        const presetSize: Record<string, number> = { paragraph: 14, h1: 32, h2: 26, h3: 20, h4: 17, h5: 15, h6: 14 };
+        const mobileAccordion = isMobile && (props.accordionOnMobileCustomized ? props.accordionOnMobile !== false : true);
+        const menuHeading = props.heading || node.name || 'Menu';
+        const linkList = (
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: `${props.verticalGap ?? props.gap ?? 8}px` }}>
+            {links.map((link: any, idx: number) => (
+              <li key={idx}>
+                <a
+                  href={link.href || '#'}
+                  onClick={(e) => { if (isEditorInteractive) e.preventDefault(); }}
+                  style={{ color: 'inherit', textDecoration: 'none', fontSize: `${presetSize[props.linkPreset] || props.fontSize || 13}px`, opacity: 0.75, transition: 'opacity 0.15s ease' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.75')}
+                >{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        );
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-            {props.heading && (
-              <h4
-                style={{
-                  margin: 0,
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  color: 'inherit',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {props.heading}
-              </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', color: props.color || 'inherit', backgroundColor: props.backgroundColor || undefined }}>
+            {mobileAccordion ? (
+              <details open={mobileMenuOpen} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <summary
+                  aria-expanded={mobileMenuOpen}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setMobileMenuOpen((open) => !open);
+                  }}
+                  style={{ listStyle: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: `${presetSize[props.headingPreset] || 20}px`, fontWeight: 700 }}
+                >
+                  <span>{menuHeading}</span>
+                  <span aria-hidden="true" style={{ width: 22, height: 22, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '1px solid currentColor', borderRadius: '50%', fontSize: 16, fontWeight: 400, lineHeight: 1 }}>{mobileMenuOpen ? '−' : '+'}</span>
+                </summary>
+                {mobileMenuOpen && linkList}
+              </details>
+            ) : (
+              <>
+                {props.heading && <h4 style={{ margin: 0, fontSize: `${presetSize[props.headingPreset] || 20}px`, fontWeight: 700, color: 'inherit' }}>{props.heading}</h4>}
+                {linkList}
+              </>
             )}
+          </div>
+        );
+      }
+
+      case 'policy-links': {
+        const links = (props.links || []).filter((link: any) => link?.label && link?.href);
+        const justify = props.alignment === 'center'
+          ? 'center'
+          : props.alignment === 'right'
+            ? 'flex-end'
+            : 'flex-start';
+
+        return (
+          <nav aria-label="Policy links" style={{ width: effectiveWidthMode === 'fill' ? '100%' : 'auto' }}>
             <ul
               style={{
-                listStyle: 'none',
-                padding: 0,
-                margin: 0,
                 display: 'flex',
-                flexDirection: 'column',
-                gap: `${props.gap ?? 8}px`,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: justify,
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                gap: `${props.gap ?? 16}px`,
               }}
             >
               {links.map((link: any, idx: number) => (
-                <li key={idx}>
+                <li key={`${link.href}-${idx}`} style={{ display: 'inline-flex', alignItems: 'center', gap: `${props.gap ?? 16}px` }}>
+                  {idx > 0 && props.separator && (
+                    <span aria-hidden="true" style={{ opacity: 0.45 }}>{props.separator}</span>
+                  )}
                   <a
-                    href={link.href || '#'}
+                    href={link.href}
+                    target={props.openInNewTab ? '_blank' : undefined}
+                    rel={props.openInNewTab ? 'noopener noreferrer' : undefined}
                     onClick={(e) => {
                       if (isEditorInteractive) e.preventDefault();
                     }}
                     style={{
-                      color: 'inherit',
+                      color: props.color || 'inherit',
+                      fontSize: `${props.fontSize || 12}px`,
                       textDecoration: 'none',
-                      fontSize: `${props.fontSize || 13}px`,
-                      opacity: 0.75,
-                      transition: 'opacity 0.15s ease',
+                      opacity: 0.72,
+                      textTransform: props.case === 'uppercase' ? 'uppercase' : 'none',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.75')}
                   >
                     {link.label}
                   </a>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
         );
       }
 
@@ -915,9 +1283,16 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
         return <NewsletterBlock props={props} isInteractive={isEditorInteractive} />;
 
       case 'button':
+        {
+          const variant = props.variant || 'primary';
+          const isLinkStyle = variant === 'link';
+          const isSecondary = variant === 'secondary';
+          const isCustom = variant === 'custom';
         return (
           <a
             href={props.link || '#'}
+            target={props.openInNewTab ? '_blank' : undefined}
+            rel={props.openInNewTab ? 'noopener noreferrer' : undefined}
             onClick={(e) => {
               if (isEditorInteractive) e.preventDefault();
             }}
@@ -925,20 +1300,22 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '9px 18px',
-              borderRadius: '6px',
-              textDecoration: 'none',
+              width: effectiveWidthMode === 'fill' || effectiveWidthMode === 'custom' ? '100%' : undefined,
+              padding: isLinkStyle ? '2px 0' : '9px 18px',
+              borderRadius: `${props.borderRadius ?? 6}px`,
+              textDecoration: isLinkStyle ? 'underline' : 'none',
               fontWeight: 600,
               fontSize: '13px',
-              backgroundColor: props.variant === 'secondary' ? '#f1f5f9' : props.variant === 'outline' ? 'transparent' : '#2563eb',
-              color: props.variant === 'secondary' ? '#0f172a' : props.variant === 'outline' ? '#2563eb' : '#ffffff',
-              border: props.variant === 'outline' ? '1.5px solid #2563eb' : 'none',
+              backgroundColor: isLinkStyle ? 'transparent' : isSecondary ? 'transparent' : isCustom ? (props.buttonBackground || props.buttonColor || '#2563eb') : '#2563eb',
+              color: isCustom ? (props.buttonTextColor || '#ffffff') : (isSecondary || isLinkStyle) ? '#0f172a' : '#ffffff',
+              border: isSecondary ? '1px solid #cfd4dc' : 'none',
               cursor: 'pointer',
             }}
           >
             {props.label || 'Button'}
           </a>
         );
+        }
 
       case 'social-links': {
         const platforms = (props.platforms || []).filter((p: any) => p.enabled);
@@ -961,7 +1338,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                   if (isEditorInteractive) e.preventDefault();
                 }}
                 style={{
-                  color: 'inherit',
+              color: props.color || 'inherit',
                   opacity: 0.75,
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1003,7 +1380,9 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
             ? 'center'
             : props.alignment === 'right'
             ? 'flex-end'
-            : 'flex-start';
+            : props.alignment === 'space-between'
+              ? 'space-between'
+              : 'flex-start';
 
         return (
           <div
@@ -1026,7 +1405,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
       case 'copyright': {
         const currentYear = new Date().getFullYear().toString();
         const rawText = props.text || '© {year} BillionBiz. All rights reserved.';
-        const text = rawText.replace('{year}', currentYear);
+        const text = `${rawText.replace('{year}', currentYear)}${props.showPlatformCredit ? ', Powered by BillionBiz' : ''}`;
         const align = props.alignment || 'left';
         return (
           <div
@@ -1039,6 +1418,7 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
               style={{
                 fontSize: `${props.fontSize || 12}px`,
                 color: props.color || 'inherit',
+                textTransform: props.case === 'uppercase' ? 'uppercase' : 'none',
                 opacity: props.color ? 1 : 0.65,
                 display: 'inline-block',
                 whiteSpace: effectiveWidthMode === 'fit' ? 'nowrap' : 'normal',
@@ -1366,8 +1746,8 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
             style={{
               margin: `${props.spacing ?? 12}px 0`,
               border: 'none',
-              borderTop: `${props.thickness || 1}px ${props.style || 'solid'} ${props.color || 'rgba(226, 232, 240, 0.8)'}`,
-              width: props.width || '100%',
+              borderTop: `${props.thickness || 1}px solid ${props.color || 'rgba(226, 232, 240, 0.8)'}`,
+              width: `${props.length ?? 100}%`,
             }}
           />
         );
@@ -1440,22 +1820,53 @@ export const FooterTreeRenderer: React.FC<FooterTreeRendererProps> = ({
   const layout = rootRow?.layout;
   const styling = rootRow?.styling;
 
-  const bgColor = styling?.bgColor || '#ffffff';
-  const textColor = styling?.textColor || '#0f172a';
-  const borderColor = styling?.borderColor || '#e2e8f0';
+  const footerThemeTokens = store.footerSettings?.tokens;
+  const backgroundType = styling?.bgType || 'theme';
+  const inheritsThemeBackground = backgroundType === 'theme' || backgroundType === 'inherit';
+  const bgColor = inheritsThemeBackground
+    ? footerThemeTokens?.bgColor || styling?.bgColor || '#ffffff'
+    : styling?.bgColor || '#ffffff';
+  const bgImage = backgroundType === 'gradient'
+    ? styling?.bgGradient || `linear-gradient(${styling?.bgGradientDirection || '90deg'}, ${styling?.bgGradientStart || '#1d4ed8'}, ${styling?.bgGradientEnd || '#7c3aed'})`
+    : undefined;
+  const footerImageUrl = backgroundType === 'image' ? styling?.bgImage : undefined;
+  const footerImageEffect = styling?.bgEffectMode || 'opacity';
+  const footerImageOpacity = footerImageEffect === 'opacity' ? Math.max(0, Math.min(100, styling?.bgOpacity ?? 100)) / 100 : 1;
+  const footerImageBlurPx = footerImageEffect === 'blur' ? Math.max(0, Math.min(100, styling?.bgBlur ?? 0)) / 5 : 0;
+  const textColor = inheritsThemeBackground
+    ? footerThemeTokens?.textColor || styling?.textColor || '#0f172a'
+    : styling?.textColor || '#0f172a';
+  const borderColor = styling?.borderColor || footerThemeTokens?.borderColor || '#e2e8f0';
   const containerMode = layout?.container || 'constrained';
 
   const paddingY = layout?.paddingY ?? 64;
   const paddingX = layout?.paddingX ?? 32;
+  const rootResponsive = rootRow?.responsive?.[device];
+  const rootPadding = {
+    top: rootResponsive?.padding?.top ?? layout?.paddingTop ?? paddingY,
+    right: rootResponsive?.padding?.right ?? layout?.paddingRight ?? paddingX,
+    bottom: rootResponsive?.padding?.bottom ?? layout?.paddingBottom ?? paddingY,
+    left: rootResponsive?.padding?.left ?? layout?.paddingLeft ?? paddingX,
+  };
+  const rootGap = rootResponsive?.sectionGap ?? layout?.sectionGap ?? layout?.gap ?? 32;
+  const mobileColumnCount = device === 'mobile' ? Math.max(1, Math.min(3, rootRow?.responsive?.mobileColumnCount || 1)) : 1;
+  const rootVisibleOnDevice = device === 'mobile'
+    ? rootRow?.responsive?.showOnMobile !== false && rootResponsive?.visible !== false
+    : device === 'tablet'
+      ? rootRow?.responsive?.showOnTablet !== false && rootResponsive?.visible !== false
+      : rootRow?.responsive?.showOnDesktop !== false && rootResponsive?.visible !== false;
 
   const isRootSelected = isEditorInteractive && selectedFooterNodeId === null;
   const isRootHovered = isEditorInteractive && hoveredId === 'root';
+
+  if (!rootRow?.isVisible || !rootVisibleOnDevice) return null;
 
   return (
     <footer
       role="contentinfo"
       style={{
         backgroundColor: bgColor,
+        backgroundImage: bgImage,
         color: textColor,
         borderTop: styling?.borderTop ? `1px solid ${borderColor}` : undefined,
         borderBottom: styling?.borderBottom ? `1px solid ${borderColor}` : undefined,
@@ -1488,14 +1899,36 @@ export const FooterTreeRenderer: React.FC<FooterTreeRendererProps> = ({
         }
       }}
     >
+      {footerImageUrl && (
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: footerImageBlurPx > 0 ? '-24px' : 0,
+              backgroundImage: `url("${footerImageUrl}")`,
+              backgroundSize: styling?.bgSize || 'cover',
+              backgroundPosition: styling?.bgPosition || 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: footerImageOpacity,
+              filter: footerImageBlurPx > 0 ? `blur(${footerImageBlurPx}px)` : undefined,
+            }}
+          />
+        </div>
+      )}
       <div
         style={{
-          maxWidth: containerMode === 'full' ? '100%' : '1280px',
+          position: 'relative',
+          zIndex: 1,
+          maxWidth: containerMode === 'full' ? '100%' : `${layout?.maxWidth ?? 1280}px`,
           margin: '0 auto',
-          padding: `${paddingY}px ${paddingX}px`,
-          display: 'flex',
+          paddingTop: `${rootPadding.top}px`,
+          paddingRight: `${rootPadding.right}px`,
+          paddingBottom: `${rootPadding.bottom}px`,
+          paddingLeft: `${rootPadding.left}px`,
+          display: mobileColumnCount > 1 ? 'grid' : 'flex',
+          gridTemplateColumns: mobileColumnCount > 1 ? `repeat(${mobileColumnCount}, minmax(0, 1fr))` : undefined,
           flexDirection: 'column',
-          gap: '32px',
+          gap: `${rootGap}px`,
           boxSizing: 'border-box',
           width: '100%',
           overflow: 'hidden',

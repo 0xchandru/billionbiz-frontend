@@ -1819,6 +1819,7 @@ export const useEditorContextStore = create<EditorContextState>()(
           headerRows: state.headerRows,
           headerSettings: state.headerSettings,
           footerRows: state.footerRows,
+          footerTree: state.footerTree,
           footerSettings: state.footerSettings,
         });
         set({ auditResult: result });

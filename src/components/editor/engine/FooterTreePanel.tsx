@@ -35,7 +35,6 @@ import {
   MoveVertical,
   CreditCard,
   Copyright,
-  Sliders,
   Folder,
   FolderOpen,
   PhoneCall,
@@ -970,9 +969,19 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
 export const FooterTreePanel: React.FC = () => {
   const {
     footerTree,
+    selectedFooterNodeId,
     selectFooterNode,
     openFooterComponentPicker,
   } = useEditorContextStore();
+  const [isFooterExpanded, setIsFooterExpanded] = useState(true);
+
+  const selectFooterRoot = () => {
+    selectFooterNode(null);
+    const landingStore = useLandingEditorStore.getState();
+    landingStore.setSelectedPageId('footer-global');
+    landingStore.setActivePanel('pages');
+    landingStore.setRightSidebarOpen(true);
+  };
 
   return (
     <div
@@ -992,7 +1001,7 @@ export const FooterTreePanel: React.FC = () => {
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '10px 8px',
+          padding: '8px 6px',
           display: 'flex',
           flexDirection: 'column',
           gap: '2px',
@@ -1000,146 +1009,30 @@ export const FooterTreePanel: React.FC = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Tree Nodes List */}
-        {footerTree.length === 0 ? (
-          <div
-            style={{
-              padding: '32px 16px',
-              textAlign: 'center',
-              backgroundColor: '#f8fafc',
-              borderRadius: '8px',
-              border: '1px dashed #cbd5e1',
-              width: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <LayoutGrid size={28} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
-            <p style={{ margin: '0 0 6px 0', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-              Footer is empty
-            </p>
-            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
-              Add a Group container or choose a pre-built template to get started.
-            </p>
-            <button
-              type="button"
-              onClick={() => openFooterComponentPicker(null)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: '#2563eb',
-                color: '#ffffff',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minHeight: 34, padding: '0 7px', borderRadius: 6, background: selectedFooterNodeId === null ? '#eff6ff' : 'transparent', borderLeft: selectedFooterNodeId === null ? '3px solid #2563eb' : '3px solid transparent' }}>
+          <button type="button" aria-expanded={isFooterExpanded} aria-label={isFooterExpanded ? 'Collapse Footer section' : 'Expand Footer section'} onClick={() => setIsFooterExpanded((expanded) => !expanded)} style={{ width: 18, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: 0, background: 'transparent', color: '#667085', padding: 0, cursor: 'pointer' }}>
+            {isFooterExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+          <button type="button" onClick={selectFooterRoot} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, border: 0, background: 'transparent', padding: '5px 0', color: '#202223', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            <FolderOpen size={16} color="#475467" />
+            <span>Footer</span>
+          </button>
+        </div>
+
+        {isFooterExpanded && (
+          <>
+            <button type="button" onClick={() => openFooterComponentPicker(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', margin: '2px 0 5px 34px', padding: '5px 7px', border: 0, borderRadius: 5, background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
               <PlusCircle size={15} /> Add block
             </button>
-          </div>
-        ) : (
-          <>
             {footerTree.map((node, rIdx) => (
               <React.Fragment key={node.id}>
-                <InsertDivider parentId={null} targetIndex={rIdx} depth={0} />
-                <TreeNodeRow node={node} depth={0} parentId={null} />
+                <InsertDivider parentId={null} targetIndex={rIdx} depth={1} />
+                <TreeNodeRow node={node} depth={1} parentId={null} />
               </React.Fragment>
             ))}
-
-            {/* Trailing InsertDivider right above root "Add block" button */}
-            <InsertDivider parentId={null} targetIndex={footerTree.length} depth={0} />
-
-            {/* Root "Add block" button */}
-            <div
-              onDragOver={(e) => e.stopPropagation()}
-              style={{
-                padding: '4px 6px 12px 6px',
-                width: '100%',
-                boxSizing: 'border-box',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => openFooterComponentPicker(null)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 8px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: 'transparent',
-                  color: '#2563eb',
-                  fontSize: '12.5px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.12s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eff6ff')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <PlusCircle size={15} color="#2563eb" />
-                <span>Add block</span>
-              </button>
-            </div>
+            <InsertDivider parentId={null} targetIndex={footerTree.length} depth={1} />
           </>
         )}
-      </div>
-
-      {/* Sticky Bottom Controls: Footer Settings / Templates Only */}
-      <div
-        style={{
-          padding: '12px 14px',
-          borderTop: '1px solid #e2e8f0',
-          backgroundColor: '#f8fafc',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            selectFooterNode(null);
-            const landingStore = useLandingEditorStore.getState();
-            landingStore.setSelectedPageId('footer-global');
-            landingStore.setActivePanel('pages');
-            landingStore.setRightSidebarOpen(true);
-          }}
-          style={{
-            width: '100%',
-            padding: '8px 14px',
-            borderRadius: '8px',
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#ffffff',
-            color: '#1e293b',
-            fontSize: '12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f1f5f9';
-            e.currentTarget.style.borderColor = '#94a3b8';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#ffffff';
-            e.currentTarget.style.borderColor = '#cbd5e1';
-          }}
-        >
-          <Sliders size={14} color="#475569" />
-          <span>Footer Settings / Templates</span>
-        </button>
       </div>
     </div>
   );

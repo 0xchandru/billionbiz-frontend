@@ -13,6 +13,7 @@ import type {
   GlobalHeaderSettings,
   GlobalFooterSettings,
 } from './types';
+import type { FooterTreeNode } from './footerTreeTypes';
 
 export function runEditorAudit(
   editorType: EditorType,
@@ -20,6 +21,7 @@ export function runEditorAudit(
     headerRows?: HeaderRow[];
     headerSettings?: GlobalHeaderSettings;
     footerRows?: FooterRow[];
+    footerTree?: FooterTreeNode[];
     footerSettings?: GlobalFooterSettings;
   }
 ): AuditResult {
@@ -173,6 +175,25 @@ export function runEditorAudit(
         }
       }
     }
+
+    const inspectFooterTree = (nodes: FooterTreeNode[], ancestorsVisible = true) => {
+      for (const node of nodes) {
+        const visible = ancestorsVisible && node.visible !== false;
+        if (!visible) continue;
+
+        if (node.nodeType === 'copyright') hasCopyright = true;
+
+        if (node.nodeType === 'policy-links' || node.nodeType === 'link-list') {
+          const links = Array.isArray(node.props?.links) ? node.props.links : [];
+          if (links.some((link: any) => String(link?.label || '').toLowerCase().includes('privacy'))) {
+            hasPrivacyLink = true;
+          }
+        }
+
+        if (node.children?.length) inspectFooterTree(node.children, visible);
+      }
+    };
+    inspectFooterTree(data.footerTree || []);
 
     if (!hasCopyright) {
       issues.push({

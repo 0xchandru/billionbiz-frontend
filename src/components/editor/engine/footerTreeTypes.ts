@@ -16,6 +16,7 @@ export type FooterNodeType =
   | 'logo'
   | 'icon'
   | 'link-list'
+  | 'policy-links'
   | 'social-links'
   | 'button'
   | 'newsletter'
@@ -84,6 +85,7 @@ export interface GroupLayoutSettings {
 // ─── Responsive ──────────────────────────────────────────────
 
 export interface ResponsiveOverrides {
+  desktop?: Partial<GroupLayoutSettings> & { visible?: boolean };
   tablet?: Partial<GroupLayoutSettings> & { visible?: boolean };
   mobile?: Partial<GroupLayoutSettings> & { visible?: boolean };
 }
@@ -96,7 +98,13 @@ export interface NodeStyling {
   bgType: BgType;
   bgColor?: string;
   bgGradient?: string;
+  bgGradientStart?: string;
+  bgGradientEnd?: string;
+  bgGradientDirection?: string;
   bgImage?: string;
+  bgOpacity?: number;
+  bgBlur?: number;
+  bgEffectMode?: 'opacity' | 'blur';
   bgSize?: 'cover' | 'contain' | 'auto';
   bgPosition?: string;
   borderColor?: string;

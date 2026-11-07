@@ -33,7 +33,7 @@ export function createDefaultFooterStack(): FooterRow[] {
         paddingY: 64,
       },
       styling: {
-        bgType: 'theme',
+        bgType: 'custom',
         bgColor: '#ffffff',
         textColor: '#0f172a',
         borderTop: false,
