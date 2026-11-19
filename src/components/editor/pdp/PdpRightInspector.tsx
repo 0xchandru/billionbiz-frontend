@@ -9,7 +9,6 @@
 import React from 'react';
 import {
   ChevronRight,
-  Sliders,
   RotateCcw,
   Copy,
   Trash2,
@@ -367,17 +366,7 @@ export const PdpRightInspector: React.FC = () => {
   const block = getSelectedBlock();
 
   if (!block) {
-    return (
-      <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-muted)' }}>
-          <Sliders size={24} />
-        </div>
-        <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: 600 }}>No Block Selected</h4>
-        <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.5 }}>
-          Click any component in the left sidebar or preview to customize its settings.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   const def = PDP_BLOCK_DEFINITIONS[block.type];

@@ -149,12 +149,13 @@ describe('Universal PDP Builder — Automated Verification', () => {
 
     it('safely reassigns products to Default PDP when an assigned template is deleted', () => {
       const store = usePdpStore.getState();
-      // Assign Product A to 'template-electronics'
-      store.assignProductTemplate('prod-a', 'template-electronics');
-      expect(usePdpStore.getState().products.find(p => p.id === 'prod-a')?.assignedTemplateId).toBe('template-electronics');
+      const customId = store.createTemplate('Custom Tech Template', 'Temporary custom template');
+      // Assign Product A to customId
+      store.assignProductTemplate('prod-a', customId);
+      expect(usePdpStore.getState().products.find(p => p.id === 'prod-a')?.assignedTemplateId).toBe(customId);
 
-      // Delete 'template-electronics'
-      const deleted = store.deleteTemplate('template-electronics');
+      // Delete custom template
+      const deleted = store.deleteTemplate(customId);
       expect(deleted).toBe(true);
 
       // Verify Product A was safely reassigned to 'template-default'

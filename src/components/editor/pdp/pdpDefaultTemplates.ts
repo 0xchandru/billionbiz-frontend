@@ -199,9 +199,5 @@ export function createLuxuryPdpTemplate(): PdpTemplate {
 export function getInitialPdpTemplates(): PdpTemplate[] {
   return [
     createDefaultPdpTemplate(),
-    createElectronicsPdpTemplate(),
-    createFashionPdpTemplate(),
-    createGroceryPdpTemplate(),
-    createLuxuryPdpTemplate(),
   ];
 }

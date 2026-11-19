@@ -47,6 +47,7 @@ interface PdpStoreState {
   getSelectedProduct: () => PdpProduct;
   getSelectedBlock: () => PdpBlock | null;
   resolveTemplateForProduct: (product: PdpProduct) => PdpTemplate;
+  getAssignedProductsForTemplate: (templateId: string) => PdpProduct[];
 
   // ── Template Actions ──
   selectTemplate: (templateId: string) => void;
@@ -259,6 +260,22 @@ export const usePdpStore = create<PdpStoreState>()(
         // Fallback: Default PDP
         const def = state.templates.find(t => t.isDefault) || state.templates[0];
         return def;
+      },
+
+      getAssignedProductsForTemplate: (templateId: string) => {
+        const state = get();
+        const target = state.templates.find(t => t.id === templateId);
+        if (!target) return [];
+        if (target.isDefault) {
+          // All products not assigned to another active custom template belong to the Default template
+          const otherCustomTemplateIds = new Set(
+            state.templates.filter(t => !t.isDefault).map(t => t.id)
+          );
+          return state.products.filter(
+            p => !p.assignedTemplateId || !otherCustomTemplateIds.has(p.assignedTemplateId)
+          );
+        }
+        return state.products.filter(p => p.assignedTemplateId === templateId);
       },
 
       // ── Template Actions ──
@@ -982,7 +999,7 @@ export const usePdpStore = create<PdpStoreState>()(
       },
     }),
     {
-      name: 'billionbiz-pdp-builder-v1',
+      name: 'billionbiz-pdp-builder-v2',
       partialize: state => ({
         templates: state.templates,
         activeTemplateId: state.activeTemplateId,

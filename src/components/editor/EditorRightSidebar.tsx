@@ -8087,9 +8087,9 @@ export const EditorRightSidebar: React.FC = () => {
     return <ThemeEditorRightPanel isHidden={isHidden} />;
   }
 
-  // 5. Default pages other than Homepage (Shop, Product Details, Cart, Checkout, 404, Maintenance, Legal, etc.)
+  // 5. Default pages other than Homepage (Shop, Cart, Checkout, 404, Maintenance, Legal, etc.)
   // When no section on the page is selected, render the page configuration settings
-  if (activePanel === 'pages' && selectedPageId !== 'landing-page' && !isGlobalComponent && !activeSection) {
+  if (activePanel === 'pages' && selectedPageId !== 'landing-page' && selectedPageId !== 'product-details-page' && !isGlobalComponent && !activeSection) {
     let pageConfig = getPageConfig(activePage.type) || getPageConfig(activePage.id.replace('-page', ''));
 
     // Fallback config for pages without a registered config
