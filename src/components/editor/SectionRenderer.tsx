@@ -32,6 +32,11 @@ import BlogPostsSection from './sections/BlogPostsSection';
 import GallerySection from './sections/GallerySection';
 import MapSection from './sections/MapSection';
 import PricingTableSection from './sections/PricingTableSection';
+import { PdpLivePreview } from './pdp/PdpLivePreview';
+
+const ProductDetailsLiveSection: React.FC<{ props: any }> = ({ props }) => {
+  return <PdpLivePreview overrideDevice={props?.device} />;
+};
 
 // --- Generic Helpers ---
 export const getDefaultPadding = (sectionType: string): any => {
@@ -289,7 +294,7 @@ const sectionMap: Record<string, React.FC<{ props: any }>> = {
   PageHeader: PageHeaderSection,
   Breadcrumbs: PlaceholderSection,
   ProductListing: PlaceholderSection,
-  ProductDetails: PlaceholderSection,
+  ProductDetails: ProductDetailsLiveSection,
   ProductRecommendations: PlaceholderSection,
   CartItems: PlaceholderSection,
   CartSummary: PlaceholderSection,

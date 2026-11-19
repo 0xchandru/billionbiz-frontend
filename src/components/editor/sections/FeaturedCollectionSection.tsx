@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLandingEditorStore } from '../../../store/landingEditorStore';
 
 const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ props }) => {
   const { device } = props;
@@ -97,8 +98,27 @@ const FeaturedCollectionSection: React.FC<{ props: Record<string, any> }> = ({ p
              else if (i === 1) { itemStyle.gridColumn = 'span 2'; itemStyle.gridRow = 'span 1'; }
           }
 
+          const handleProductClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            const storeState = useLandingEditorStore.getState();
+            const executeSwitch = () => {
+              storeState.navigateToPage('product-details-page');
+              storeState.setRightSidebarOpen(true);
+            };
+
+            if (storeState.selectedPageId !== 'product-details-page' && storeState.pagesNavLevel === 'page-detail') {
+              storeState.requestEditorSwitch({
+                targetPageId: 'product-details-page',
+                targetName: 'Product Detail Page Builder',
+                onConfirm: executeSwitch,
+              });
+              return;
+            }
+            executeSwitch();
+          };
+
           return (
-            <div key={i} style={itemStyle}>
+            <div key={i} style={itemStyle} onClick={handleProductClick} title="Click to view & edit in Product Detail Page Builder">
               <div style={{
                 width: '100%',
                 height: (layout === 'mosaic' && !isMobile && i === 0) ? '100%' : 'auto',

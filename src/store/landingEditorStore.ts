@@ -326,6 +326,10 @@ export const useLandingEditorStore = create<LandingEditorState>((set, get) => ({
       return;
     }
 
+    const pages = useSiteStore.getState().pages;
+    const currentPage = pages.find(p => p.id === state.selectedPageId);
+    const targetPage = pages.find(p => p.id === targetPageId);
+
     const currentName =
       state.selectedPageId === 'landing-page'
         ? 'Landing Page Editor'
@@ -333,7 +337,9 @@ export const useLandingEditorStore = create<LandingEditorState>((set, get) => ({
         ? 'Header Editor'
         : state.selectedPageId === 'footer-global'
         ? 'Footer Editor'
-        : 'Page Editor';
+        : state.selectedPageId === 'product-details-page'
+        ? 'Product Detail Page Builder'
+        : (currentPage ? `${currentPage.name} Editor` : 'Page Editor');
 
     const defaultTargetName =
       targetPageId === 'header-global'
@@ -342,7 +348,9 @@ export const useLandingEditorStore = create<LandingEditorState>((set, get) => ({
         ? 'Footer Editor'
         : targetPageId === 'landing-page'
         ? 'Landing Page Editor'
-        : 'Page Editor';
+        : targetPageId === 'product-details-page'
+        ? 'Product Detail Page Builder'
+        : (targetPage ? `${targetPage.name} Editor` : 'Page Editor');
 
     set({
       pendingEditorSwitch: {

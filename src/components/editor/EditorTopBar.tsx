@@ -25,7 +25,41 @@ import { MoreOptionsMenu } from './topbar/MoreOptionsMenu';
 import { useEditorContextStore } from '../../store/editorContextStore';
 import { AuditButton } from './topbar/AuditButton';
 import { VersionCompareModal } from './engine/VersionCompareModal';
+import { usePdpStore } from './pdp/pdpStore';
 import styles from './topbar/topbar.module.css';
+
+const PdpTopbarProductSelector: React.FC = () => {
+  const { products, selectedProductId, selectProduct } = usePdpStore();
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '4px' }}>
+      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Product:</span>
+      <select
+        value={selectedProductId}
+        onChange={(e) => selectProduct(e.target.value)}
+        style={{
+          padding: '2px 6px',
+          borderRadius: '4px',
+          border: '1px solid #cbd5e1',
+          background: '#ffffff',
+          fontSize: '11px',
+          fontWeight: 600,
+          color: '#0f172a',
+          outline: 'none',
+          cursor: 'pointer',
+          maxWidth: '130px',
+        }}
+        title="Switch product to test dynamic content rendering"
+      >
+        {products.map(p => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
 
 export const EditorTopBar: React.FC = () => {
   const navigate = useNavigate();
@@ -481,20 +515,25 @@ export const EditorTopBar: React.FC = () => {
               </div>
             ) : isPageEditor ? (
               /* Status Badge: only shown inside a specific page editor, not in /editor/pages list */
-              <button
-                className={`${styles.statusBadge} ${isLive ? styles.statusLive : isSavedDraft ? styles.statusSaved : styles.statusDraft}`}
-                onClick={handleStatusBadgeClick}
-                title={
-                  isLive
-                    ? `Status: Live on storefront. Click to unpublish ${activeScopeName}.`
-                    : isSavedDraft
-                      ? `Status: Saved to draft. Click to review & publish ${activeScopeName}.`
-                      : `Status: Draft / Unsaved changes. Click to publish ${activeScopeName}.`
-                }
-              >
-                <span className={styles.statusDot} />
-                <span>{isLive ? 'Live' : isSavedDraft ? 'Saved' : 'Draft'}</span>
-              </button>
+              <>
+                <button
+                  className={`${styles.statusBadge} ${isLive ? styles.statusLive : isSavedDraft ? styles.statusSaved : styles.statusDraft}`}
+                  onClick={handleStatusBadgeClick}
+                  title={
+                    isLive
+                      ? `Status: Live on storefront. Click to unpublish ${activeScopeName}.`
+                      : isSavedDraft
+                        ? `Status: Saved to draft. Click to review & publish ${activeScopeName}.`
+                        : `Status: Draft / Unsaved changes. Click to publish ${activeScopeName}.`
+                  }
+                >
+                  <span className={styles.statusDot} />
+                  <span>{isLive ? 'Live' : isSavedDraft ? 'Saved' : 'Draft'}</span>
+                </button>
+                {selectedPageId === 'product-details-page' && (
+                  <PdpTopbarProductSelector />
+                )}
+              </>
             ) : null}
           </div>
 

@@ -357,7 +357,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
       }
     };
 
-    if (selectedPageId !== 'header-global') {
+    if (selectedPageId !== 'header-global' && pagesNavLevel === 'page-detail') {
       requestEditorSwitch({
         targetPageId: 'header-global',
         targetSectionId: section?.id || 'header-main',
@@ -382,7 +382,7 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
       setRightSidebarOpen(false);
     };
 
-    if (selectedPageId !== 'footer-global') {
+    if (selectedPageId !== 'footer-global' && pagesNavLevel === 'page-detail') {
       requestEditorSwitch({
         targetPageId: 'footer-global',
         targetSectionId: section?.id || 'footer-main',
@@ -620,22 +620,48 @@ export const PageRenderer: React.FC<PageRendererProps> = ({ page, overrideDevice
           })}
 
           {/* Full Page Body Wrapper */}
-          <div 
-            className={isPages ? styles.defaultPageFullWrapper : styles.previewSectionStatic}
-            onClick={isPages ? () => {
-              useLandingEditorStore.getState().setSelectedPageId(page.id);
-              useLandingEditorStore.getState().setRightSidebarOpen(true);
-            } : undefined}
-            title={isPages ? `Click to edit ${page.name} options` : undefined}
-            style={{ cursor: isPages ? 'pointer' : 'default' }}
-          >
-            {bodySections.map((section, index) => {
-              if (isSectionHidden(section)) return null;
-              return (
-                <SectionRenderer key={section.id || `body-${section.type}-${index}`} section={section} overrideDevice={overrideDevice} />
-              );
-            })}
-          </div>
+          {page.id === 'product-details-page' ? (
+            <div style={{ width: '100%', minHeight: '400px' }}>
+              {(() => {
+                const pdpSection = bodySections.find(s => s.type === 'ProductDetails') || {
+                  id: 'product-details-live',
+                  type: 'ProductDetails',
+                  name: 'Product Details',
+                  props: {},
+                  isHidden: false,
+                };
+                return (
+                  <SectionRenderer
+                    key={pdpSection.id}
+                    section={pdpSection}
+                    overrideDevice={overrideDevice}
+                  />
+                );
+              })()}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              {bodySections.map((section, index) => {
+                if (isSectionHidden(section)) return null;
+                const isSelected = selectedSectionId === section.id && selectedPageId === page.id;
+                return (
+                  <div
+                    key={section.id || `body-${section.type}-${index}`}
+                    ref={(el) => {
+                      if (section.id) sectionRefs.current[section.id] = el;
+                    }}
+                    data-section-id={section.id}
+                    data-section-type={section.type}
+                    className={isPages ? (isSelected ? styles.previewSectionActive : styles.previewSectionClickable) : styles.previewSectionStatic}
+                    onClick={isPages ? () => handleBodySectionClick(section) : undefined}
+                    style={{ cursor: isPages ? 'pointer' : 'default', position: 'relative' }}
+                  >
+                    <SectionRenderer section={section} overrideDevice={overrideDevice} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Footer Sections */}
           {selectedPageId === 'footer-global' ? (

@@ -134,33 +134,33 @@ const SortableRow: React.FC<SortableRowProps> = ({
     switch (type) {
       // Header
       case 'announcement':
-        return <Megaphone size={14} color="#f59e0b" />;
+        return <Megaphone size={16} color="#f59e0b" />;
       case 'utility':
-        return <Phone size={14} color="#0ea5e9" />;
+        return <Phone size={16} color="#0ea5e9" />;
       case 'primary-nav':
-        return <Navigation size={14} color="#10b981" />;
+        return <Navigation size={16} color="#10b981" />;
       case 'secondary-nav':
-        return <Layers size={14} color="#8b5cf6" />;
+        return <Layers size={16} color="#8b5cf6" />;
       case 'promo':
-        return <Sparkles size={14} color="#ec4899" />;
+        return <Sparkles size={16} color="#ec4899" />;
 
       // Footer
       case 'brand':
-        return <Box size={14} color="#3b82f6" />;
+        return <Box size={16} color="#3b82f6" />;
       case 'navigation':
-        return <Navigation size={14} color="#10b981" />;
+        return <Navigation size={16} color="#10b981" />;
       case 'newsletter':
-        return <Mail size={14} color="#ec4899" />;
+        return <Mail size={16} color="#ec4899" />;
       case 'trust':
-        return <ShieldCheck size={14} color="#6366f1" />;
+        return <ShieldCheck size={16} color="#6366f1" />;
       case 'payment':
-        return <CreditCard size={14} color="#0ea5e9" />;
+        return <CreditCard size={16} color="#0ea5e9" />;
       case 'social':
-        return <Share2 size={14} color="#f59e0b" />;
+        return <Share2 size={16} color="#f59e0b" />;
       case 'legal':
-        return <FileText size={14} color="#64748b" />;
+        return <FileText size={16} color="#64748b" />;
       default:
-        return <SlidersHorizontal size={14} color="#64748b" />;
+        return <SlidersHorizontal size={16} color="#64748b" />;
     }
   };
 
@@ -179,8 +179,8 @@ const SortableRow: React.FC<SortableRowProps> = ({
           borderTopRightRadius: '6px',
           borderBottomLeftRadius: hasExpandedChildren ? 0 : '6px',
           borderBottomRightRadius: hasExpandedChildren ? 0 : '6px',
-          padding: '5px 8px',
-          minHeight: '32px',
+          padding: '8px 12px',
+          minHeight: '40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -189,14 +189,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
           boxSizing: 'border-box',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
           <div
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '16px',
-              height: '16px',
+              width: '20px',
+              height: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -207,12 +207,12 @@ const SortableRow: React.FC<SortableRowProps> = ({
             }}
             title={isRowHovered ? 'Drag to reorder section' : name}
           >
-            {isRowHovered ? <GripVertical size={14} /> : getRowIcon()}
+            {isRowHovered ? <GripVertical size={16} /> : getRowIcon()}
           </div>
 
           <span
             style={{
-              fontSize: '12.5px',
+              fontSize: '14px',
               fontWeight: isSelected ? 600 : 500,
               color: isSelected ? '#1d4ed8' : '#0f172a',
               whiteSpace: 'nowrap',
@@ -228,8 +228,8 @@ const SortableRow: React.FC<SortableRowProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           {isLocked ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span title="Default core section (always visible, cannot be deleted)" style={{ display: 'inline-flex', alignItems: 'center', color: '#94a3b8', padding: '3px' }}>
-                <Lock size={12} />
+              <span title="Default core section (always visible, cannot be deleted)" style={{ display: 'inline-flex', alignItems: 'center', color: '#94a3b8', padding: '4px' }}>
+                <Lock size={14} />
               </span>
               {children && (
                 <button
@@ -243,14 +243,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '3px',
+                    padding: '4px',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     color: '#64748b',
                   }}
                 >
-                  {isEffectivelyCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+                  {isEffectivelyCollapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
                 </button>
               )}
             </div>
@@ -265,13 +265,13 @@ const SortableRow: React.FC<SortableRowProps> = ({
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  padding: '3px',
+                  padding: '4px',
                   borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                 }}
               >
-                {isVisible ? <Eye size={13} color="#64748b" /> : <EyeOff size={13} color="#ef4444" />}
+                {isVisible ? <Eye size={14} color="#64748b" /> : <EyeOff size={14} color="#ef4444" />}
               </button>
 
               {/* 3-dot More Options Button */}
@@ -308,14 +308,14 @@ const SortableRow: React.FC<SortableRowProps> = ({
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    padding: '3px',
+                    padding: '4px',
                     borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     color: '#64748b',
                   }}
                 >
-                  <MoreVertical size={13} />
+                  <MoreVertical size={14} />
                 </button>
 
                 {menuOpen && createPortal(
@@ -362,7 +362,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         disabled={!onMoveUp}
                         style={!onMoveUp ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        <ChevronUp size={14} /> Move Up
+                        <ChevronUp size={15} /> Move Up
                       </button>
                       <button
                         type="button"
@@ -374,7 +374,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         disabled={!onMoveDown}
                         style={!onMoveDown ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        <ChevronDown size={14} /> Move Down
+                        <ChevronDown size={15} /> Move Down
                       </button>
 
                       <div className={styles.dropdownDivider} />
@@ -390,7 +390,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         title={isLocked ? 'Core section cannot be duplicated' : undefined}
                         style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        <Copy size={14} /> Duplicate {isLocked ? '(Locked)' : ''}
+                        <Copy size={15} /> Duplicate {isLocked ? '(Locked)' : ''}
                       </button>
 
                       <button
@@ -400,7 +400,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         disabled={isLocked}
                         style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        <Clock size={14} /> Schedule visibility
+                        <Clock size={15} /> Schedule visibility
                       </button>
 
                       <button
@@ -414,7 +414,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         title={isLocked ? 'Core section is always visible' : undefined}
                         style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        {isVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                        {isVisible ? <EyeOff size={15} /> : <Eye size={15} />}
                         {isVisible ? 'Hide' : 'Show'}
                       </button>
 
@@ -423,7 +423,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         className={styles.dropdownItem}
                         onClick={() => setMenuOpen(false)}
                       >
-                        <Smartphone size={14} /> Hide on mobile
+                        <Smartphone size={15} /> Hide on mobile
                       </button>
 
                       <button
@@ -431,7 +431,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         className={styles.dropdownItem}
                         onClick={() => setMenuOpen(false)}
                       >
-                        <Monitor size={14} /> Hide on desktop
+                        <Monitor size={15} /> Hide on desktop
                       </button>
 
                       <button
@@ -439,7 +439,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         className={styles.dropdownItem}
                         onClick={() => setMenuOpen(false)}
                       >
-                        <Code size={14} /> Copy as code
+                        <Code size={15} /> Copy as code
                       </button>
 
                       <button
@@ -447,7 +447,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         className={styles.dropdownItem}
                         onClick={() => setMenuOpen(false)}
                       >
-                        <Bookmark size={14} /> Save as snippet
+                        <Bookmark size={15} /> Save as snippet
                       </button>
 
                       <div className={styles.dropdownDivider} />
@@ -463,7 +463,7 @@ const SortableRow: React.FC<SortableRowProps> = ({
                         title={isLocked ? 'Core section cannot be deleted' : undefined}
                         style={isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
                       >
-                        <Trash2 size={14} /> Delete {isLocked ? '(Locked)' : ''}
+                        <Trash2 size={15} /> Delete {isLocked ? '(Locked)' : ''}
                       </button>
                     </div>
                   </>,
@@ -875,18 +875,18 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '4px 6px',
+                padding: '5px 8px',
                 backgroundColor: '#f8fafc',
                 borderRadius: '4px',
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 700,
                 color: '#475569',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <zone.icon size={13} color="#64748b" />
+                <zone.icon size={14} color="#64748b" />
                 <span style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}>{zone.label}</span>
-                <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>({keys.length})</span>
+                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>({keys.length})</span>
               </div>
 
               <button
@@ -898,9 +898,9 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '3px',
-                  padding: '2px 7px',
-                  fontSize: '11px',
+                  gap: '4px',
+                  padding: '3px 8px',
+                  fontSize: '12px',
                   fontWeight: 600,
                   color: '#2563eb',
                   backgroundColor: '#ffffff',
@@ -917,7 +917,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                 }}
                 title={`Add block into ${zone.label} zone`}
               >
-                <Plus size={11} />
+                <Plus size={12} />
                 <span>Add block</span>
               </button>
             </div>
@@ -941,13 +941,13 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', borderBottom: '1px solid #f1f5f9', marginBottom: '2px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Add to {zone.label}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>Add to {zone.label}</span>
                   <button
                     type="button"
                     onClick={() => setOpenAddSlot(null)}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#94a3b8' }}
                   >
-                    <X size={12} />
+                    <X size={13} />
                   </button>
                 </div>
                 {AVAILABLE_BLOCKS.map((blk) => (
@@ -959,12 +959,12 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      padding: '5px 8px',
+                      padding: '6px 10px',
                       border: 'none',
                       borderRadius: '4px',
                       backgroundColor: 'transparent',
                       color: '#0f172a',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       cursor: 'pointer',
                       textAlign: 'left',
                       width: '100%',
@@ -972,9 +972,9 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    <blk.icon size={13} color={blk.color} />
+                    <blk.icon size={14} color={blk.color} />
                     <span style={{ flex: 1, fontWeight: 500 }}>{blk.name}</span>
-                    <Plus size={11} color="#94a3b8" />
+                    <Plus size={12} color="#94a3b8" />
                   </button>
                 ))}
               </div>
@@ -987,7 +987,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                   style={{
                     padding: '6px 8px',
                     textAlign: 'center',
-                    fontSize: '11px',
+                    fontSize: '12px',
                     color: '#94a3b8',
                     fontStyle: 'italic',
                     borderRadius: '4px',
@@ -1011,7 +1011,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                         position: 'relative',
                         display: 'flex',
                         alignItems: 'center',
-                        minHeight: '28px',
+                        minHeight: '32px',
                         paddingLeft: '18px',
                         margin: '1px 0',
                         boxSizing: 'border-box',
@@ -1093,12 +1093,12 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '4px 7px',
+                          padding: '5px 8px',
                           borderRadius: '5px',
                           backgroundColor: selected ? '#eff6ff' : isHovered ? '#f1f5f9' : 'transparent',
                           color: selected ? '#1d4ed8' : '#334155',
                           cursor: 'pointer',
-                          fontSize: '12px',
+                          fontSize: '13px',
                           fontWeight: selected ? 600 : 500,
                           transition: 'all 0.12s ease',
                           border: selected ? '1px solid #bfdbfe' : '1px solid transparent',
@@ -1111,8 +1111,8 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                           <div
                             style={{
-                              width: '14px',
-                              height: '14px',
+                              width: '16px',
+                              height: '16px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -1121,7 +1121,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                             }}
                             title={isHovered ? 'Drag to reorder within or between zones' : def.name}
                           >
-                            {isHovered ? <GripVertical size={13} color="#2563eb" /> : <def.icon size={13} color={def.color} />}
+                            {isHovered ? <GripVertical size={14} color="#2563eb" /> : <def.icon size={14} color={def.color} />}
                           </div>
                           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {def.name}
@@ -1154,7 +1154,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                               alignItems: 'center',
                             }}
                           >
-                            <ArrowUp size={11} />
+                            <ArrowUp size={13} />
                           </button>
                           <button
                             type="button"
@@ -1171,7 +1171,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                               alignItems: 'center',
                             }}
                           >
-                            <ArrowDown size={11} />
+                            <ArrowDown size={13} />
                           </button>
                           <button
                             type="button"
@@ -1188,7 +1188,7 @@ const HeaderNavbarZonesTree: React.FC<HeaderNavbarZonesTreeProps> = ({ row }) =>
                               alignItems: 'center',
                             }}
                           >
-                            <Trash2 size={11} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
@@ -1252,10 +1252,10 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
           flexShrink: 0,
         }}
       >
-        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
           Header Stack
         </div>
-        <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+        <div style={{ fontSize: '12px', color: '#94a3b8' }}>
           {`${headerRows.length} sections`}
         </div>
       </div>
@@ -1353,15 +1353,15 @@ export const ComponentTreePanel: React.FC<{ editorType?: 'header' | 'footer' }> 
               const exists = headerRows.some((row) => row.type === option.type);
               const unavailable = exists || option.type === 'primary-nav';
               return (
-                <button key={option.type} type="button" disabled={unavailable} onClick={() => { store.addHeaderRow(option.type as any, option.name); setAddHeaderMenuOpen(false); }} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', padding: '8px 10px', border: 0, borderRadius: '5px', background: unavailable ? '#f8fafc' : '#ffffff', color: unavailable ? '#94a3b8' : '#0f172a', cursor: unavailable ? 'not-allowed' : 'pointer', fontSize: '12px', textAlign: 'left' }}>
+                <button key={option.type} type="button" disabled={unavailable} onClick={() => { store.addHeaderRow(option.type as any, option.name); setAddHeaderMenuOpen(false); }} style={{ display: 'flex', width: '100%', justifyContent: 'space-between', padding: '8px 10px', border: 0, borderRadius: '5px', background: unavailable ? '#f8fafc' : '#ffffff', color: unavailable ? '#94a3b8' : '#0f172a', cursor: unavailable ? 'not-allowed' : 'pointer', fontSize: '13px', textAlign: 'left' }}>
                   <span>{option.name}</span><span>{unavailable ? 'Unavailable' : 'Add'}</span>
                 </button>
               );
             })}
           </div>
         )}
-        <button type="button" onClick={() => setAddHeaderMenuOpen((open) => !open)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd', borderRadius: '8px', color: '#1d4ed8', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
-          <Plus size={15} /> Add Header Section
+        <button type="button" onClick={() => setAddHeaderMenuOpen((open) => !open)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 14px', background: '#eff6ff', border: '1.5px dashed #93c5fd', borderRadius: '8px', color: '#1d4ed8', fontSize: '13.5px', fontWeight: 700, cursor: 'pointer' }}>
+          <Plus size={16} /> Add Header Section
         </button>
       </div>
     </div>

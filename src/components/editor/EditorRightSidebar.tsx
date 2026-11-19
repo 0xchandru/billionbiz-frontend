@@ -71,6 +71,8 @@ import { useLandingEditorStore } from '../../store/landingEditorStore';
 import { useSiteStore } from '../../store/siteStore';
 import { useEditorContextStore } from '../../store/editorContextStore';
 import { FooterRightEditor } from './engine/FooterRightEditor';
+import { PdpRightInspector } from './pdp/PdpRightInspector';
+import { usePdpStore } from './pdp/pdpStore';
 import {
   ANNOUNCEMENT_LOOKS,
   TIMEZONE_OPTIONS,
@@ -7903,6 +7905,7 @@ export const EditorRightSidebar: React.FC = () => {
     pages, updateSectionProps, theme, updateTheme, updatePageProps
   } = useSiteStore();
   const editorStore = useEditorContextStore();
+  const selectedPdpBlockId = usePdpStore((s) => s.selectedBlockId);
 
   const [activeEditorTab, setActiveEditorTab] = useState<'content' | 'design' | 'visibility' | 'advanced' | 'abtest' | 'personalize'>('content');
   const [visibilitySectionsOpen, setVisibilitySectionsOpen] = useState({ devices: true, schedule: true, audience: true, segment: true });
@@ -8057,6 +8060,15 @@ export const EditorRightSidebar: React.FC = () => {
     return (
       <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
         <FooterRightEditor onClose={closeRightSidebar} />
+      </aside>
+    );
+  }
+
+  if (activePanel === 'pages' && selectedPageId === 'product-details-page') {
+    if (isHidden || !selectedPdpBlockId) return null;
+    return (
+      <aside className={`${styles.rightPanel} ${isHidden ? styles.rightPanelHidden : ''}`}>
+        <PdpRightInspector />
       </aside>
     );
   }

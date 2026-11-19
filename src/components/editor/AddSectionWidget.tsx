@@ -37,10 +37,11 @@ export const AddSectionWidget: React.FC = () => {
     insertIndex,
     setInsertIndex,
     setSelectedSectionId,
-    setRightSidebarOpen
+    setRightSidebarOpen,
+    selectedPageId: storeSelectedPageId,
   } = useLandingEditorStore();
 
-  const selectedPageId = 'landing-page';
+  const selectedPageId = storeSelectedPageId || 'landing-page';
   const { pages, addSection } = useSiteStore();
   const [activeCategory, setActiveCategory] = useState<string>('All sections');
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -527,8 +527,8 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
-          gap: '7px',
-          padding: '5px 8px',
+          gap: '8px',
+          padding: '8px 12px',
           paddingLeft: `${paddingLeft}px`,
           backgroundColor:
             dropPosition === 'inside'
@@ -549,7 +549,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
           position: 'relative',
           transition: 'all 0.12s ease',
           userSelect: 'none',
-          minHeight: '32px',
+          minHeight: '40px',
         }}
       >
         {/* 1. Chevron Icon for Group */}
@@ -562,8 +562,8 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               toggleFooterNodeExpanded(node.id);
             }}
             style={{
-              width: '16px',
-              height: '16px',
+              width: '18px',
+              height: '18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -576,15 +576,15 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
             }}
             title={isExpanded ? 'Collapse' : 'Expand'}
           >
-            {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           </button>
         )}
 
         {/* 2. Item Icon / Drag & Drop Grip Icon on hover */}
         <div
           style={{
-            width: '16px',
-            height: '16px',
+            width: '20px',
+            height: '20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -595,7 +595,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
           }}
           title={isHovered ? 'Drag to reorder' : displayName}
         >
-          {isHovered ? <GripVertical size={14} /> : <IconComp size={14} />}
+          {isHovered ? <GripVertical size={16} /> : <IconComp size={16} />}
         </div>
 
         {/* 3. Compact Item Name */}
@@ -603,7 +603,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
           style={{
             flex: 1,
             minWidth: 0,
-            fontSize: '12.5px',
+            fontSize: '14px',
             fontWeight: isSelected ? 600 : 500,
             color: isSelected ? '#1d4ed8' : '#0f172a',
             whiteSpace: 'nowrap',
@@ -640,7 +640,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                 }}
                 title="Add block inside"
                 style={{
-                  padding: '3px',
+                  padding: '4px',
                   border: 'none',
                   borderRadius: '4px',
                   backgroundColor: 'transparent',
@@ -653,7 +653,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eff6ff')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                <Plus size={13} />
+                <Plus size={14} />
               </button>
             )}
 
@@ -666,7 +666,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               }}
               title={node.visible === false ? 'Show component' : 'Hide component'}
               style={{
-                padding: '3px',
+                padding: '4px',
                 border: 'none',
                 borderRadius: '4px',
                 backgroundColor: 'transparent',
@@ -679,7 +679,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              {node.visible === false ? <EyeOff size={13} /> : <Eye size={13} />}
+              {node.visible === false ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
 
             {/* Delete Icon */}
@@ -691,7 +691,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               }}
               title="Delete block"
               style={{
-                padding: '3px',
+                padding: '4px',
                 border: 'none',
                 borderRadius: '4px',
                 backgroundColor: 'transparent',
@@ -704,7 +704,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} />
             </button>
 
             {/* 3-Dot Overflow Menu */}
@@ -717,7 +717,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                 }}
                 title="More actions"
                 style={{
-                  padding: '3px',
+                  padding: '4px',
                   border: 'none',
                   borderRadius: '4px',
                   backgroundColor: menuOpen ? '#e2e8f0' : 'transparent',
@@ -730,7 +730,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
                 onMouseLeave={(e) => !menuOpen && (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                <MoreVertical size={13} />
+                <MoreVertical size={14} />
               </button>
 
               {menuOpen && (
@@ -780,7 +780,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <Plus size={13} color="#2563eb" />
+                      <Plus size={15} color="#2563eb" />
                       <span>Add Block Inside</span>
                     </button>
                   )}
@@ -801,7 +801,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                       borderRadius: '4px',
                       backgroundColor: 'transparent',
                       color: '#1e293b',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: 500,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -810,7 +810,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    <Copy size={13} color="#64748b" />
+                    <Copy size={15} color="#64748b" />
                     <span>Duplicate</span>
                   </button>
 
@@ -827,7 +827,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                         borderRadius: '4px',
                         backgroundColor: 'transparent',
                         color: '#1e293b',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         fontWeight: 500,
                         cursor: 'pointer',
                         textAlign: 'left',
@@ -836,7 +836,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <ArrowUp size={13} color="#64748b" />
+                      <ArrowUp size={15} color="#64748b" />
                       <span>Move Up</span>
                     </button>
                   )}
@@ -854,7 +854,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                         borderRadius: '4px',
                         backgroundColor: 'transparent',
                         color: '#1e293b',
-                        fontSize: '12px',
+                        fontSize: '13px',
                         fontWeight: 500,
                         cursor: 'pointer',
                         textAlign: 'left',
@@ -863,7 +863,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <ArrowDown size={13} color="#64748b" />
+                      <ArrowDown size={15} color="#64748b" />
                       <span>Move Down</span>
                     </button>
                   )}
@@ -886,7 +886,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                       borderRadius: '4px',
                       backgroundColor: 'transparent',
                       color: '#ef4444',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: 500,
                       cursor: 'pointer',
                       textAlign: 'left',
@@ -895,7 +895,7 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    <Trash2 size={13} color="#ef4444" />
+                    <Trash2 size={15} color="#ef4444" />
                     <span>Delete</span>
                   </button>
                 </div>
@@ -939,12 +939,12 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '7px',
-                padding: '3px 4px',
+                padding: '5px 8px',
                 border: 'none',
                 borderRadius: '4px',
                 background: 'transparent',
                 color: '#2563eb',
-                fontSize: '12.5px',
+                fontSize: '13px',
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'background-color 0.12s ease',
@@ -952,8 +952,8 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({ node, depth, parentId }) => {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#eff6ff')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <div style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <PlusCircle size={15} color="#2563eb" />
+              <div style={{ width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PlusCircle size={16} color="#2563eb" />
               </div>
               <span>Add block</span>
             </button>
@@ -1009,20 +1009,20 @@ export const FooterTreePanel: React.FC = () => {
           boxSizing: 'border-box',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, minHeight: 34, padding: '0 7px', borderRadius: 6, background: selectedFooterNodeId === null ? '#eff6ff' : 'transparent', borderLeft: selectedFooterNodeId === null ? '3px solid #2563eb' : '3px solid transparent' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, padding: '0 10px', borderRadius: 6, background: selectedFooterNodeId === null ? '#eff6ff' : 'transparent', borderLeft: selectedFooterNodeId === null ? '3px solid #2563eb' : '3px solid transparent' }}>
           <button type="button" aria-expanded={isFooterExpanded} aria-label={isFooterExpanded ? 'Collapse Footer section' : 'Expand Footer section'} onClick={() => setIsFooterExpanded((expanded) => !expanded)} style={{ width: 18, height: 22, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: 0, background: 'transparent', color: '#667085', padding: 0, cursor: 'pointer' }}>
-            {isFooterExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {isFooterExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           </button>
-          <button type="button" onClick={selectFooterRoot} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, border: 0, background: 'transparent', padding: '5px 0', color: '#202223', textAlign: 'left', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-            <FolderOpen size={16} color="#475467" />
+          <button type="button" onClick={selectFooterRoot} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, border: 0, background: 'transparent', padding: '5px 0', color: '#202223', textAlign: 'left', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <FolderOpen size={18} color="#475467" />
             <span>Footer</span>
           </button>
         </div>
 
         {isFooterExpanded && (
           <>
-            <button type="button" onClick={() => openFooterComponentPicker(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', margin: '2px 0 5px 34px', padding: '5px 7px', border: 0, borderRadius: 5, background: 'transparent', color: '#2563eb', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
-              <PlusCircle size={15} /> Add block
+            <button type="button" onClick={() => openFooterComponentPicker(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, alignSelf: 'flex-start', margin: '2px 0 5px 34px', padding: '6px 10px', border: 0, borderRadius: 5, background: 'transparent', color: '#2563eb', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              <PlusCircle size={16} /> Add block
             </button>
             {footerTree.map((node, rIdx) => (
               <React.Fragment key={node.id}>
