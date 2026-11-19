@@ -2374,7 +2374,7 @@ export const PdpLeftRail: React.FC = () => {
           <button
             type="button"
             aria-expanded={isProductInfoExpanded}
-            aria-label={isProductInfoExpanded ? 'Collapse Product information section' : 'Expand Product information section'}
+            aria-label={isProductInfoExpanded ? 'Collapse Product Section' : 'Expand Product Section'}
             onClick={() => toggleBlockExpanded('section-product-info')}
             style={{
               width: 20,
@@ -2426,7 +2426,20 @@ export const PdpLeftRail: React.FC = () => {
             ) : (
               <Folder size={18} color={isProductInfoSelected ? '#2563eb' : '#475467'} />
             )}
-            <span>Product information</span>
+            <span>Product Section</span>
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                background: isProductInfoSelected ? '#dbeafe' : '#f1f5f9',
+                color: isProductInfoSelected ? '#1d4ed8' : '#475569',
+                fontWeight: 600,
+                marginLeft: 'auto',
+              }}
+            >
+              Section
+            </span>
           </button>
         </div>
 

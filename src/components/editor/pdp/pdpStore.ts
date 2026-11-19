@@ -82,6 +82,7 @@ interface PdpStoreState {
   moveBlockNode: (blockId: string, newParentId: string | null, targetIndex: number) => void;
   toggleBlockVisibility: (blockId: string) => void;
   toggleBlockLock: (blockId: string) => void;
+  updateBlockName: (blockId: string, name: string) => void;
   updateBlockZone: (blockId: string, zone: PdpBlockZone) => void;
   updateBlockContent: (blockId: string, updates: Record<string, any>) => void;
   updateBlockDesign: (blockId: string, updates: Record<string, any>) => void;
@@ -766,6 +767,19 @@ export const usePdpStore = create<PdpStoreState>()(
         }));
         set({
           templates: state.templates.map(t => (t.id === activeTmpl.id ? { ...t, blocks: newBlocks } : t)),
+        });
+      },
+
+      updateBlockName: (blockId: string, name: string) => {
+        const state = get();
+        const activeTmpl = state.getActiveTemplate();
+        const newBlocks = updateBlockRecursively(activeTmpl.blocks, blockId, b => ({
+          ...b,
+          name,
+        }));
+        set({
+          templates: state.templates.map(t => (t.id === activeTmpl.id ? { ...t, blocks: newBlocks, updatedAt: new Date().toISOString() } : t)),
+          hasUnsavedChanges: true,
         });
       },
 

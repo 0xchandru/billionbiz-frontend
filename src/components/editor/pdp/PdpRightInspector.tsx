@@ -37,6 +37,7 @@ export const PdpRightInspector: React.FC = () => {
     duplicateBlock,
     selectBlock,
     openComponentLibrary,
+    updateBlockName,
   } = usePdpStore();
 
   const activeTemplate = getActiveTemplate();
@@ -47,7 +48,7 @@ export const PdpRightInspector: React.FC = () => {
   };
 
   // ══════════════════════════════════════════════════════════════
-  // CASE 1: "PRODUCT INFORMATION" SECTION INSPECTOR
+  // CASE 1: "PRODUCT SECTION" INSPECTOR
   // ══════════════════════════════════════════════════════════════
   if (selectedBlockId === 'section-product-info') {
     const infoBlocks = activeTemplate.blocks.filter(b => isProductInfoBlock(b));
@@ -73,7 +74,7 @@ export const PdpRightInspector: React.FC = () => {
               <ChevronRight size={20} className={styles.backIcon} />
             </button>
             <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)' }}>
-              Product information
+              Product Section
             </h3>
           </div>
         </div>
@@ -263,14 +264,14 @@ export const PdpRightInspector: React.FC = () => {
                 }}
               >
                 <Plus size={15} strokeWidth={2.5} />
-                <span>Add block to Product information</span>
+                <span>Add block to Product Section</span>
               </button>
             </div>
 
-            {/* 10. List of Blocks in Product information for quick navigation */}
+            {/* 10. List of Blocks in Product Section for quick navigation */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={labelStyle}>Blocks in Product information ({infoBlocks.length})</span>
+                <span style={labelStyle}>Blocks in Product Section ({infoBlocks.length})</span>
                 <button
                   type="button"
                   onClick={() => openComponentLibrary('inside', 'section-product-info', 'block')}
@@ -369,6 +370,475 @@ export const PdpRightInspector: React.FC = () => {
     return null;
   }
 
+  // ══════════════════════════════════════════════════════════════
+  // CASE 2: "GROUP" CONTAINER INSPECTOR
+  // ══════════════════════════════════════════════════════════════
+  if (block.type === 'group') {
+    const children = block.children || [];
+    const c = block.content || {};
+    const d = block.design || {};
+    const isHorizontal = c.direction === 'horizontal' || c.direction === 'row';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflow: 'hidden' }}>
+        {/* ── Top Header ── */}
+        <div className={styles.panelHeader}>
+          <div className={styles.phLeft}>
+            <button
+              className={styles.iconBtn}
+              onClick={closeInspector}
+              title="Close Inspector"
+            >
+              <ChevronRight size={20} className={styles.backIcon} />
+            </button>
+            <h3 className={styles.fw600} style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)' }}>
+              {block.name || 'Group Container'}
+            </h3>
+          </div>
+        </div>
+
+        {/* ── Vertical Stream of Group Settings ── */}
+        <div className={styles.propContent} style={{ padding: '20px 18px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+
+            {/* 1. Group Label / Name */}
+            <div style={fieldGroupStyle}>
+              <span style={labelStyle}>Group Name</span>
+              <input
+                type="text"
+                className={styles.inputField}
+                value={block.name || ''}
+                onChange={(e) => updateBlockName(block.id, e.target.value)}
+                placeholder="e.g. Action Buttons, Key Highlights"
+                style={inputStyle}
+              />
+            </div>
+
+            {/* 2. Layout Direction */}
+            <div style={fieldGroupStyle}>
+              <span style={labelStyle}>Layout Direction</span>
+              <div style={segmentedContainerStyle}>
+                <button
+                  type="button"
+                  onClick={() => updateBlockContent(block.id, { direction: 'vertical' })}
+                  style={getSegmentedButtonStyle(!isHorizontal)}
+                >
+                  Vertical (Column)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateBlockContent(block.id, { direction: 'horizontal' })}
+                  style={getSegmentedButtonStyle(isHorizontal)}
+                >
+                  Horizontal (Row)
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Responsive Stacking on Mobile */}
+            <div
+              style={toggleRowStyle}
+              onClick={() => updateBlockContent(block.id, { stackOnMobile: c.stackOnMobile === false ? true : false })}
+            >
+              <div>
+                <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: 500 }}>
+                  Stack on Mobile
+                </span>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                  Auto-convert row to column on phone screens
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={c.stackOnMobile !== false}
+                readOnly
+                style={checkboxStyle}
+              />
+            </div>
+
+            {/* 4. Flex Wrap */}
+            <div
+              style={toggleRowStyle}
+              onClick={() => updateBlockContent(block.id, { wrap: c.wrap === false ? true : false })}
+            >
+              <div>
+                <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: 500 }}>
+                  Wrap Items
+                </span>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                  Wrap onto next line if content exceeds width
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={c.wrap !== false}
+                readOnly
+                style={checkboxStyle}
+              />
+            </div>
+
+            {/* 5. Item Gap */}
+            <div style={fieldGroupStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={labelStyle}>Gap Between Items</span>
+                <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>
+                  {c.gap ?? d.gap ?? 12}px
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={48}
+                step={4}
+                value={c.gap ?? d.gap ?? 12}
+                onChange={(e) => updateBlockContent(block.id, { gap: parseInt(e.target.value, 10) })}
+                style={{ width: '100%', cursor: 'pointer' }}
+              />
+            </div>
+
+            {/* 6. Align Items & Justify Content */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Cross-Axis Align</span>
+                <select
+                  className={styles.inputField}
+                  value={c.alignItems || (isHorizontal ? 'center' : 'stretch')}
+                  onChange={(e) => updateBlockContent(block.id, { alignItems: e.target.value })}
+                  style={selectInputStyle}
+                >
+                  <option value="stretch">Stretch</option>
+                  <option value="flex-start">Start</option>
+                  <option value="center">Center</option>
+                  <option value="flex-end">End</option>
+                </select>
+              </div>
+
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Main-Axis Justify</span>
+                <select
+                  className={styles.inputField}
+                  value={c.justifyContent || 'flex-start'}
+                  onChange={(e) => updateBlockContent(block.id, { justifyContent: e.target.value })}
+                  style={selectInputStyle}
+                >
+                  <option value="flex-start">Start (Left)</option>
+                  <option value="center">Center</option>
+                  <option value="flex-end">End (Right)</option>
+                  <option value="space-between">Space Between</option>
+                  <option value="space-around">Space Around</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 7. Padding (Vertical & Horizontal) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Vertical Padding</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  step={4}
+                  className={styles.inputField}
+                  value={c.paddingTop ?? d.padding?.top ?? 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10) || 0;
+                    updateBlockContent(block.id, { paddingTop: val, paddingBottom: val });
+                  }}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Horizontal Padding</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  step={4}
+                  className={styles.inputField}
+                  value={c.paddingLeft ?? d.padding?.left ?? 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10) || 0;
+                    updateBlockContent(block.id, { paddingLeft: val, paddingRight: val });
+                  }}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* 8. Background Color */}
+            <div style={fieldGroupStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={labelStyle}>Container Background</span>
+                {c.backgroundColor && c.backgroundColor !== 'transparent' && (
+                  <button
+                    type="button"
+                    onClick={() => updateBlockContent(block.id, { backgroundColor: 'transparent' })}
+                    style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    Set Transparent
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="color"
+                  value={c.backgroundColor && c.backgroundColor !== 'transparent' ? c.backgroundColor : '#ffffff'}
+                  onChange={(e) => updateBlockContent(block.id, { backgroundColor: e.target.value })}
+                  style={colorSwatchStyle}
+                />
+                <input
+                  type="text"
+                  className={styles.inputField}
+                  value={c.backgroundColor || 'transparent'}
+                  onChange={(e) => updateBlockContent(block.id, { backgroundColor: e.target.value })}
+                  style={{ ...inputStyle, width: '120px', fontFamily: 'monospace' }}
+                />
+              </div>
+            </div>
+
+            {/* 9. Border & Radius */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Border Style</span>
+                <select
+                  className={styles.inputField}
+                  value={c.borderStyle || 'none'}
+                  onChange={(e) => updateBlockContent(block.id, { borderStyle: e.target.value })}
+                  style={selectInputStyle}
+                >
+                  <option value="none">None</option>
+                  <option value="solid">Solid</option>
+                  <option value="dashed">Dashed</option>
+                </select>
+              </div>
+
+              <div style={fieldGroupStyle}>
+                <span style={labelStyle}>Corner Radius (px)</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={32}
+                  step={2}
+                  className={styles.inputField}
+                  value={c.borderRadius ?? d.borderRadius ?? 8}
+                  onChange={(e) => updateBlockContent(block.id, { borderRadius: parseInt(e.target.value, 10) || 0 })}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {c.borderStyle && c.borderStyle !== 'none' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={fieldGroupStyle}>
+                  <span style={labelStyle}>Border Width</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={6}
+                    step={1}
+                    className={styles.inputField}
+                    value={c.borderWidth ?? 1}
+                    onChange={(e) => updateBlockContent(block.id, { borderWidth: parseInt(e.target.value, 10) || 1 })}
+                    style={inputStyle}
+                  />
+                </div>
+                <div style={fieldGroupStyle}>
+                  <span style={labelStyle}>Border Color</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <input
+                      type="color"
+                      value={c.borderColor || '#e2e8f0'}
+                      onChange={(e) => updateBlockContent(block.id, { borderColor: e.target.value })}
+                      style={colorSwatchStyle}
+                    />
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      value={c.borderColor || '#e2e8f0'}
+                      onChange={(e) => updateBlockContent(block.id, { borderColor: e.target.value })}
+                      style={{ ...inputStyle, width: '90px', fontFamily: 'monospace' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 10. Container Shadow */}
+            <div style={fieldGroupStyle}>
+              <span style={labelStyle}>Shadow</span>
+              <div style={segmentedContainerStyle}>
+                {(['none', 'subtle', 'soft', 'elevated'] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => updateBlockContent(block.id, { boxShadow: s })}
+                    style={getSegmentedButtonStyle((c.boxShadow || 'none') === s)}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 11. Child Blocks in Group & Quick Add */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={labelStyle}>Child Blocks in this Group ({children.length})</span>
+                <button
+                  type="button"
+                  onClick={() => openComponentLibrary('inside', block.id, block.zone === 'buy_box' ? 'block' : 'all')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563eb',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Plus size={13} />
+                  <span>Add block</span>
+                </button>
+              </div>
+
+              {children.length === 0 ? (
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: '6px',
+                    background: '#f8fafc',
+                    border: '1px dashed #cbd5e1',
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    color: '#64748b',
+                  }}
+                >
+                  No blocks inside this group yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {children.map((child) => (
+                    <div
+                      key={child.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        fontSize: '12.5px',
+                        fontWeight: 500,
+                        color: '#1e293b',
+                      }}
+                    >
+                      <span
+                        style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => selectBlock(child.id)}
+                      >
+                        {child.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeBlock(child.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          padding: '2px',
+                        }}
+                        title="Remove from group"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => openComponentLibrary('inside', block.id, block.zone === 'buy_box' ? 'block' : 'all')}
+                style={{
+                  marginTop: '6px',
+                  width: '100%',
+                  padding: '9px',
+                  borderRadius: '6px',
+                  border: '1px dashed #2563eb',
+                  background: '#eff6ff',
+                  color: '#2563eb',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Plus size={14} strokeWidth={2.5} />
+                <span>+ Add block into this Group</span>
+              </button>
+            </div>
+
+            {/* 12. Actions: Duplicate & Delete Group */}
+            <div style={{ display: 'flex', gap: '8px', paddingTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => duplicateBlock(block.id)}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Duplicate Group
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  removeBlock(block.id);
+                  closeInspector();
+                }}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '6px',
+                  border: '1px solid #fecaca',
+                  background: '#fee2e2',
+                  color: '#dc2626',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Delete Group
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // CASE 3: REGULAR BLOCK & SECTION INSPECTOR
+  // All options in same vertical stream, no separating outlines,
+  // top bar displays ONLY selected item name.
+  // ══════════════════════════════════════════════════════════════
   const def = PDP_BLOCK_DEFINITIONS[block.type];
   const selectedItemName = getPdpBlockDisplayName(block);
 
@@ -409,10 +879,12 @@ export const PdpRightInspector: React.FC = () => {
 
             return (
               <div key={field.key} style={fieldGroupStyle}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={labelStyle}>{field.label}</span>
-                  {field.unit && <span style={{ fontSize: '11px', color: '#64748b' }}>{field.unit}</span>}
-                </div>
+                {field.type !== 'toggle' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={labelStyle}>{field.label}</span>
+                    {field.unit && <span style={{ fontSize: '11px', color: '#64748b' }}>{field.unit}</span>}
+                  </div>
+                )}
 
                 {field.type === 'text' && (
                   <input

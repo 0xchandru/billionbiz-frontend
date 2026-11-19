@@ -23,6 +23,7 @@ import {
   Check,
   X,
   Ruler,
+  Folder,
 } from 'lucide-react';
 import { usePdpStore } from './pdpStore';
 import { useLandingEditorStore } from '../../../store/landingEditorStore';
@@ -83,6 +84,7 @@ export const PdpLivePreview: React.FC<PdpLivePreviewProps> = ({ overrideDevice }
     selectBlock,
     products,
     selectProduct,
+    openComponentLibrary,
   } = usePdpStore();
 
   const storeDevice = useLandingEditorStore(state => state.device);
@@ -1583,15 +1585,107 @@ export const PdpLivePreview: React.FC<PdpLivePreviewProps> = ({ overrideDevice }
 
       case 'group': {
         const children = block.children || [];
-        const direction = c.direction || (d.display === 'flex' && d.width ? 'row' : 'column');
+        const isHorizontal = c.direction === 'horizontal' || c.direction === 'row';
+        const isMobile = currentDevice === 'mobile';
+        const shouldStack = isMobile && c.stackOnMobile !== false;
+        const flexDirection = shouldStack ? 'column' : isHorizontal ? 'row' : 'column';
+        const flexWrap = isHorizontal && !shouldStack && c.wrap !== false ? 'wrap' : undefined;
+        const gap = `${c.gap ?? d.gap ?? 12}px`;
+        const alignItems = c.alignItems || (isHorizontal ? 'center' : 'stretch');
+        const justifyContent = c.justifyContent || 'flex-start';
+        const bg = c.backgroundColor || d.bgColor || d.backgroundColor || 'transparent';
+        const radius = c.borderRadius !== undefined ? `${c.borderRadius}px` : d.borderRadius ? `${d.borderRadius}px` : undefined;
+        const borderStyle = c.borderStyle && c.borderStyle !== 'none' ? `${c.borderWidth ?? 1}px ${c.borderStyle} ${c.borderColor || '#e2e8f0'}` : undefined;
+        const boxShadow = c.boxShadow === 'subtle'
+          ? '0 1px 3px rgba(0,0,0,0.06)'
+          : c.boxShadow === 'soft'
+          ? '0 4px 12px rgba(0,0,0,0.08)'
+          : c.boxShadow === 'elevated'
+          ? '0 10px 25px rgba(0,0,0,0.12)'
+          : undefined;
+
+        const paddingTop = `${c.paddingTop ?? d.padding?.top ?? 0}px`;
+        const paddingBottom = `${c.paddingBottom ?? d.padding?.bottom ?? 0}px`;
+        const paddingLeft = `${c.paddingLeft ?? d.padding?.left ?? 0}px`;
+        const paddingRight = `${c.paddingRight ?? d.padding?.right ?? 0}px`;
+
+        if (children.length === 0) {
+          return (
+            <div
+              style={{
+                width: '100%',
+                padding: '18px 16px',
+                borderRadius: radius || '8px',
+                border: '1.5px dashed #cbd5e1',
+                backgroundColor: bg !== 'transparent' ? bg : '#f8fafc',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                color: '#64748b',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectBlock(block.id);
+                setRightSidebarOpen(true);
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                <Folder size={16} color="#64748b" />
+                <span>{block.name || 'Group Container'} (Empty)</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>
+                Click to select or click "+ Add block" to nest blocks inside
+              </p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openComponentLibrary('inside', block.id, block.zone === 'buy_box' ? 'block' : 'all');
+                }}
+                style={{
+                  marginTop: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#2563eb',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <Plus size={13} />
+                <span>Add block inside group</span>
+              </button>
+            </div>
+          );
+        }
+
         return (
           <div
             style={{
               display: 'flex',
-              flexDirection: direction === 'horizontal' || direction === 'row' ? 'row' : 'column',
-              gap: `${d.gap ?? 12}px`,
+              flexDirection,
+              flexWrap,
+              gap,
+              alignItems,
+              justifyContent,
               width: '100%',
-              flexWrap: direction === 'horizontal' || direction === 'row' ? 'wrap' : undefined,
+              backgroundColor: bg,
+              borderRadius: radius,
+              border: borderStyle,
+              boxShadow,
+              paddingTop,
+              paddingBottom,
+              paddingLeft,
+              paddingRight,
             }}
           >
             {children.map(child => {
@@ -1610,7 +1704,7 @@ export const PdpLivePreview: React.FC<PdpLivePreviewProps> = ({ overrideDevice }
                   style={{
                     paddingTop: `${child.design.padding?.top ?? 0}px`,
                     paddingBottom: `${child.design.padding?.bottom ?? 0}px`,
-                    flex: direction === 'horizontal' || direction === 'row' ? '1 1 0%' : undefined,
+                    flex: isHorizontal && !shouldStack ? '1 1 0%' : undefined,
                     minWidth: 0,
                   }}
                 >
@@ -1785,7 +1879,7 @@ export const PdpLivePreview: React.FC<PdpLivePreviewProps> = ({ overrideDevice }
               >
                 {isProductInfoSectionSelected && (
                   <div className={styles.blockSelectionPill}>
-                    Product information
+                    Product Section
                   </div>
                 )}
 

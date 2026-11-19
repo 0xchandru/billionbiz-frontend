@@ -11,12 +11,17 @@ import {
   X,
   Search,
   Plus,
+  Check,
 } from 'lucide-react';
 import { usePdpStore } from './pdpStore';
 import {
   PDP_CATEGORIES,
   PDP_BLOCK_DEFINITIONS,
-  getDefaultZoneForType,
+  CURATED_PDP_BLOCK_TYPES,
+  isPdpBlockSingleUse,
+  isBlockTypeInPdpBlocks,
+  isPdpSectionType,
+  isPdpBlockTypeForProductSection,
 } from './pdpBlockRegistry';
 import type { PdpBlockType } from './types/pdpBlockTypes';
 import { PdpIcon } from './pdpIcons';
@@ -82,19 +87,20 @@ export const PdpComponentLibraryModal: React.FC = () => {
   }, [isComponentLibraryOpen, closeComponentLibrary]);
 
   const allBlockDefs = useMemo(() => {
-    return Object.values(PDP_BLOCK_DEFINITIONS);
+    return Object.values(PDP_BLOCK_DEFINITIONS).filter((b) =>
+      CURATED_PDP_BLOCK_TYPES.has(b.type)
+    );
   }, []);
 
   // Filtered components based on search, category, and scope (block vs section)
   const filteredBlocks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return allBlockDefs.filter((block) => {
-      const defaultZone = getDefaultZoneForType(block.type);
-      const isInfoBlock = defaultZone === 'buy_box' || defaultZone === 'media';
-      const isSection = defaultZone === 'full_width';
+      const isForProductSection = isPdpBlockTypeForProductSection(block.type);
+      const isSection = isPdpSectionType(block.type);
 
       // Scope filter: block vs section
-      if (scopeFilter === 'block' && !isInfoBlock) return false;
+      if (scopeFilter === 'block' && !isForProductSection) return false;
       if (scopeFilter === 'section' && !isSection) return false;
 
       // Category filter
@@ -117,10 +123,9 @@ export const PdpComponentLibraryModal: React.FC = () => {
   // Dynamic Category counts based on current scopeFilter
   const categoryCounts = useMemo(() => {
     const scopedDefs = allBlockDefs.filter((b) => {
-      const defaultZone = getDefaultZoneForType(b.type);
-      const isInfoBlock = defaultZone === 'buy_box' || defaultZone === 'media';
-      const isSection = defaultZone === 'full_width';
-      if (scopeFilter === 'block') return isInfoBlock;
+      const isForProductSection = isPdpBlockTypeForProductSection(b.type);
+      const isSection = isPdpSectionType(b.type);
+      if (scopeFilter === 'block') return isForProductSection;
       if (scopeFilter === 'section') return isSection;
       return true;
     });
@@ -152,9 +157,9 @@ export const PdpComponentLibraryModal: React.FC = () => {
 
   const modalTitle =
     libraryMode === 'block'
-      ? 'Add block to Product information'
+      ? 'Add Block to Product Section'
       : libraryMode === 'section'
-      ? 'Add Section'
+      ? 'Add Section to Template'
       : 'Add Component';
 
   const modalContent = (
@@ -506,13 +511,46 @@ export const PdpComponentLibraryModal: React.FC = () => {
               }}
             >
               {filteredBlocks.map((block) => {
-                const defaultZone = getDefaultZoneForType(block.type);
-                const isInfoBlock = defaultZone === 'buy_box' || defaultZone === 'media';
+                const isSingleUse = isPdpBlockSingleUse(block.type);
+                const isAlreadyAdded = isSingleUse && isBlockTypeInPdpBlocks(block.type, activeTemplate.blocks);
+                const isForProductSection = isPdpBlockTypeForProductSection(block.type);
+                const isSection = isPdpSectionType(block.type);
+                const isGroup = block.type === 'group';
+
+                const isModeIncompatible =
+                  (libraryMode === 'block' && !isForProductSection) ||
+                  (libraryMode === 'section' && !isSection);
+
+                const isDisabled = isAlreadyAdded || isModeIncompatible;
+
+                const badgeText = isGroup
+                  ? 'Group'
+                  : isForProductSection && isSection
+                  ? 'Block / Section'
+                  : isForProductSection
+                  ? 'Block'
+                  : 'Section';
+
+                const badgeBg = isGroup
+                  ? '#fef3c7'
+                  : isForProductSection
+                  ? '#f0fdf4'
+                  : '#eff6ff';
+
+                const badgeColor = isGroup
+                  ? '#92400e'
+                  : isForProductSection
+                  ? '#15803d'
+                  : '#1d4ed8';
 
                 return (
                   <div
                     key={block.type}
-                    onClick={() => handleSelectBlock(block.type)}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        handleSelectBlock(block.type);
+                      }
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -520,11 +558,14 @@ export const PdpComponentLibraryModal: React.FC = () => {
                       padding: '10px 12px',
                       borderRadius: '10px',
                       border: '1px solid #e2e8f0',
-                      background: '#ffffff',
-                      cursor: 'pointer',
+                      background: isDisabled ? '#f8fafc' : '#ffffff',
+                      opacity: isDisabled ? 0.55 : 1,
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
                       transition: 'all 0.15s ease',
+                      position: 'relative',
                     }}
                     onMouseEnter={(e) => {
+                      if (isDisabled) return;
                       e.currentTarget.style.borderColor = '#198754';
                       e.currentTarget.style.boxShadow = '0 3px 10px rgba(25, 135, 84, 0.08)';
                       e.currentTarget.style.transform = 'translateY(-1px)';
@@ -535,6 +576,7 @@ export const PdpComponentLibraryModal: React.FC = () => {
                       }
                     }}
                     onMouseLeave={(e) => {
+                      if (isDisabled) return;
                       e.currentTarget.style.borderColor = '#e2e8f0';
                       e.currentTarget.style.boxShadow = 'none';
                       e.currentTarget.style.transform = 'none';
@@ -544,7 +586,13 @@ export const PdpComponentLibraryModal: React.FC = () => {
                         addBtn.style.color = '#334155';
                       }
                     }}
-                    title={`Add ${block.name} to template`}
+                    title={
+                      isAlreadyAdded
+                        ? `"${block.name}" is already added to this template (single-use component)`
+                        : isModeIncompatible
+                        ? `This item can only be added in ${isSection ? 'Section' : 'Block'} mode`
+                        : `Add ${block.name} to template`
+                    }
                   >
                     {/* Left: Icon square & Title */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
@@ -553,12 +601,12 @@ export const PdpComponentLibraryModal: React.FC = () => {
                           width: '36px',
                           height: '36px',
                           borderRadius: '8px',
-                          background: '#f8fafc',
+                          background: isDisabled ? '#f1f5f9' : '#f8fafc',
                           border: '1px solid #e2e8f0',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#198754',
+                          color: isDisabled ? '#94a3b8' : '#198754',
                           flexShrink: 0,
                         }}
                       >
@@ -569,7 +617,7 @@ export const PdpComponentLibraryModal: React.FC = () => {
                           style={{
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: '#0f172a',
+                            color: isDisabled ? '#64748b' : '#0f172a',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -591,12 +639,12 @@ export const PdpComponentLibraryModal: React.FC = () => {
                               fontSize: '10px',
                               padding: '1px 5px',
                               borderRadius: '4px',
-                              background: isInfoBlock ? '#f0fdf4' : '#eff6ff',
-                              color: isInfoBlock ? '#15803d' : '#1d4ed8',
+                              background: badgeBg,
+                              color: badgeColor,
                               fontWeight: 600,
                             }}
                           >
-                            {isInfoBlock ? 'Block' : 'Section'}
+                            {badgeText}
                           </span>
                           <span
                             style={{
@@ -614,26 +662,61 @@ export const PdpComponentLibraryModal: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Right: Quick Add Button */}
-                    <div
-                      className="quick-add-btn"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        background: '#f1f5f9',
-                        color: '#334155',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        transition: 'all 0.15s ease',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Plus size={13} strokeWidth={2.5} />
-                      <span>Add</span>
-                    </div>
+                    {/* Right: Quick Add Button or Added / Disabled State */}
+                    {isAlreadyAdded ? (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#f1f5f9',
+                          border: '1px solid #e2e8f0',
+                          color: '#15803d',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Check size={12} strokeWidth={2.5} />
+                        <span>Added</span>
+                      </div>
+                    ) : isModeIncompatible ? (
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: '#94a3b8',
+                          fontWeight: 500,
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#f1f5f9',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isSection ? 'Section only' : 'Block only'}
+                      </div>
+                    ) : (
+                      <div
+                        className="quick-add-btn"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          background: '#f1f5f9',
+                          color: '#334155',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          transition: 'all 0.15s ease',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Plus size={13} strokeWidth={2.5} />
+                        <span>Add</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -95,6 +95,7 @@ export interface PdpBlockSpacing {
 
 export interface PdpBlockDesign {
   bgColor?: string;
+  backgroundColor?: string;
   bgGradient?: string;
   bgImage?: string;
   textColor?: string;

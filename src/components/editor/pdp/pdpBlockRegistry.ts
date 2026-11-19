@@ -58,6 +58,135 @@ export const PDP_CATEGORIES: Array<{
   { id: 'Custom Content', name: 'Custom Content', description: 'Headings, text blocks, banners, dividers, and custom HTML', icon: 'Layers' },
 ];
 
+/**
+ * Blocks that can only be used once per PDP template.
+ * If already added in the template, they appear disabled in the Add Block modal.
+ */
+export const SINGLE_USE_PDP_BLOCKS: Set<PdpBlockType> = new Set([
+  'media_gallery',
+  'info_title',
+  'info_vendor',
+  'info_category',
+  'info_sku',
+  'info_rating',
+  'info_stock_status',
+  'price_display',
+  'price_variant_selector',
+  'action_quantity',
+  'action_add_to_cart',
+  'action_buy_now',
+  'detail_short_description',
+  'detail_full_description',
+  'detail_key_features',
+  'detail_specifications',
+  'detail_ingredients',
+  'detail_size_chart',
+  'detail_faq',
+  'trust_delivery_checker',
+  'trust_return_policy',
+  'trust_payment_icons',
+  'rec_related',
+  'rec_recently_viewed',
+]);
+
+/**
+ * Curated list of clean, non-redundant ecommerce blocks displayed in the Component Library.
+ * Unwanted micro-variations and duplicate blocks are pruned.
+ */
+export const CURATED_PDP_BLOCK_TYPES: Set<PdpBlockType> = new Set([
+  // 1. Media
+  'media_gallery',
+  // 2. Info
+  'info_title',
+  'info_vendor',
+  'info_category',
+  'info_sku',
+  'info_rating',
+  'info_stock_status',
+  // 3. Pricing & Variants
+  'price_display',
+  'price_variant_selector',
+  // 4. Purchase Actions
+  'action_quantity',
+  'action_add_to_cart',
+  'action_buy_now',
+  'action_wishlist',
+  'action_share',
+  // 5. Details
+  'detail_short_description',
+  'detail_full_description',
+  'detail_key_features',
+  'detail_specifications',
+  'detail_ingredients',
+  'detail_size_chart',
+  'detail_faq',
+  // 6. Trust
+  'trust_delivery_checker',
+  'trust_return_policy',
+  'trust_badges',
+  'trust_payment_icons',
+  // 7. Recommendations
+  'rec_related',
+  'rec_recently_viewed',
+  // 8. Custom Content & Containers
+  'group',
+  'custom_heading',
+  'custom_text',
+  'custom_image',
+  'custom_video',
+  'custom_html',
+  'custom_divider',
+  'custom_spacer',
+  'custom_icon_text',
+]);
+
+export function isPdpBlockSingleUse(type: PdpBlockType): boolean {
+  return SINGLE_USE_PDP_BLOCKS.has(type);
+}
+
+export function isBlockTypeInPdpBlocks(type: PdpBlockType, blocks: PdpBlock[]): boolean {
+  for (const block of blocks) {
+    if (block.type === type) return true;
+    if (block.children && block.children.length > 0) {
+      if (isBlockTypeInPdpBlocks(type, block.children)) return true;
+    }
+  }
+  return false;
+}
+
+export const PDP_TEMPLATE_SECTIONS_SET: Set<PdpBlockType> = new Set([
+  'detail_full_description',
+  'detail_key_features',
+  'detail_specifications',
+  'detail_ingredients',
+  'detail_size_chart',
+  'detail_faq',
+  'rec_related',
+  'rec_recently_viewed',
+  'group',
+  'custom_html',
+  'custom_image',
+  'custom_video',
+]);
+
+export function isPdpSectionType(type: PdpBlockType): boolean {
+  return PDP_TEMPLATE_SECTIONS_SET.has(type);
+}
+
+export function isPdpBlockTypeForProductSection(type: PdpBlockType): boolean {
+  const strictlySections: Set<PdpBlockType> = new Set([
+    'detail_full_description',
+    'detail_key_features',
+    'detail_specifications',
+    'detail_ingredients',
+    'detail_size_chart',
+    'detail_faq',
+    'rec_related',
+    'rec_recently_viewed',
+  ]);
+  return !strictlySections.has(type) && CURATED_PDP_BLOCK_TYPES.has(type);
+}
+
 export const PDP_BLOCK_DEFINITIONS: Record<PdpBlockType, PdpBlockDefinition> = {
   // ────────────────────────────────────────────────────────────
   // 1. PRODUCT MEDIA
@@ -1474,13 +1603,27 @@ export const PDP_BLOCK_DEFINITIONS: Record<PdpBlockType, PdpBlockDefinition> = {
 
   group: {
     type: 'group',
-    name: 'Group',
+    name: 'Group Container',
     category: 'Custom Content',
     iconName: 'Folder',
-    description: 'Container for grouping multiple inner blocks together',
+    description: 'Flexible layout container for organizing blocks horizontally or vertically',
     defaultContent: {
       direction: 'vertical',
+      stackOnMobile: true,
+      wrap: true,
+      alignItems: 'stretch',
+      justifyContent: 'flex-start',
       gap: 12,
+      paddingTop: 0,
+      paddingBottom: 0,
+      paddingLeft: 0,
+      paddingRight: 0,
+      backgroundColor: 'transparent',
+      borderStyle: 'none',
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      borderRadius: 8,
+      boxShadow: 'none',
     },
     defaultDesign: {
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -1492,9 +1635,24 @@ export const PDP_BLOCK_DEFINITIONS: Record<PdpBlockType, PdpBlockDefinition> = {
         label: 'Layout Direction',
         type: 'segmented',
         options: [
-          { label: 'Vertical', value: 'vertical' },
-          { label: 'Horizontal', value: 'horizontal' },
+          { label: 'Vertical (Column)', value: 'vertical' },
+          { label: 'Horizontal (Row)', value: 'horizontal' },
         ],
+        defaultValue: 'vertical',
+      },
+      {
+        key: 'stackOnMobile',
+        label: 'Stack on Mobile',
+        type: 'toggle',
+        defaultValue: true,
+        helpText: 'Automatically stack items vertically on mobile viewports',
+      },
+      {
+        key: 'wrap',
+        label: 'Wrap Items',
+        type: 'toggle',
+        defaultValue: true,
+        helpText: 'Allow horizontal items to wrap onto the next line',
       },
       {
         key: 'gap',
@@ -1504,6 +1662,127 @@ export const PDP_BLOCK_DEFINITIONS: Record<PdpBlockType, PdpBlockDefinition> = {
         max: 64,
         step: 4,
         unit: 'px',
+        defaultValue: 12,
+      },
+      {
+        key: 'alignItems',
+        label: 'Cross-Axis Alignment',
+        type: 'segmented',
+        options: [
+          { label: 'Stretch', value: 'stretch' },
+          { label: 'Start', value: 'flex-start' },
+          { label: 'Center', value: 'center' },
+          { label: 'End', value: 'flex-end' },
+        ],
+        defaultValue: 'stretch',
+      },
+      {
+        key: 'justifyContent',
+        label: 'Main-Axis Distribution',
+        type: 'select',
+        options: [
+          { label: 'Start (Left / Top)', value: 'flex-start' },
+          { label: 'Center', value: 'center' },
+          { label: 'End (Right / Bottom)', value: 'flex-end' },
+          { label: 'Space Between', value: 'space-between' },
+          { label: 'Space Around', value: 'space-around' },
+        ],
+        defaultValue: 'flex-start',
+      },
+      {
+        key: 'paddingTop',
+        label: 'Top Padding (px)',
+        type: 'number',
+        min: 0,
+        max: 80,
+        step: 4,
+        unit: 'px',
+        defaultValue: 0,
+      },
+      {
+        key: 'paddingBottom',
+        label: 'Bottom Padding (px)',
+        type: 'number',
+        min: 0,
+        max: 80,
+        step: 4,
+        unit: 'px',
+        defaultValue: 0,
+      },
+      {
+        key: 'paddingLeft',
+        label: 'Left Padding (px)',
+        type: 'number',
+        min: 0,
+        max: 80,
+        step: 4,
+        unit: 'px',
+        defaultValue: 0,
+      },
+      {
+        key: 'paddingRight',
+        label: 'Right Padding (px)',
+        type: 'number',
+        min: 0,
+        max: 80,
+        step: 4,
+        unit: 'px',
+        defaultValue: 0,
+      },
+      {
+        key: 'backgroundColor',
+        label: 'Background Color',
+        type: 'color',
+        defaultValue: 'transparent',
+      },
+      {
+        key: 'borderStyle',
+        label: 'Border Style',
+        type: 'segmented',
+        options: [
+          { label: 'None', value: 'none' },
+          { label: 'Solid', value: 'solid' },
+          { label: 'Dashed', value: 'dashed' },
+        ],
+        defaultValue: 'none',
+      },
+      {
+        key: 'borderWidth',
+        label: 'Border Width (px)',
+        type: 'number',
+        min: 1,
+        max: 6,
+        step: 1,
+        unit: 'px',
+        defaultValue: 1,
+      },
+      {
+        key: 'borderColor',
+        label: 'Border Color',
+        type: 'color',
+        defaultValue: '#e2e8f0',
+      },
+      {
+        key: 'borderRadius',
+        label: 'Corner Radius (px)',
+        type: 'number',
+        min: 0,
+        max: 32,
+        step: 2,
+        unit: 'px',
+        defaultValue: 8,
+      },
+      {
+        key: 'boxShadow',
+        label: 'Container Shadow',
+        type: 'segmented',
+        options: [
+          { label: 'None', value: 'none' },
+          { label: 'Subtle', value: 'subtle' },
+          { label: 'Soft', value: 'soft' },
+          { label: 'Elevated', value: 'elevated' },
+        ],
+        defaultValue: 'none',
       },
     ],
   },
