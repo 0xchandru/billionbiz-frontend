@@ -9,6 +9,7 @@
 // ============================================================
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronRight,
   ChevronDown,
@@ -1182,19 +1183,82 @@ export const PdpLeftRail: React.FC = () => {
     sourceTemplateName: '',
   });
 
-  const widgetRef = useRef<HTMLDivElement>(null);
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
+  const [widgetCoords, setWidgetCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+  }>({
+    top: 90,
+    left: 60,
+    width: 530,
+    maxHeight: 520,
+  });
+
+  const updateWidgetPosition = () => {
+    if (!triggerButtonRef.current) return;
+    const rect = triggerButtonRef.current.getBoundingClientRect();
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    const targetWidth = Math.min(530, screenW - 24);
+
+    let left = rect.left;
+    if (left + targetWidth > screenW - 16) {
+      left = Math.max(12, screenW - targetWidth - 16);
+    }
+
+    let top = rect.bottom + 6;
+    let spaceBelow = screenH - top - 16;
+    if (spaceBelow < 260 && rect.top > 320) {
+      top = Math.max(12, rect.top - 520);
+      spaceBelow = rect.top - 20;
+    }
+
+    const maxHeight = Math.max(320, Math.min(540, spaceBelow));
+
+    setWidgetCoords({
+      top,
+      left,
+      width: targetWidth,
+      maxHeight,
+    });
+  };
 
   useEffect(() => {
-    if (!isWidgetOpen) return;
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (widgetRef.current && !widgetRef.current.contains(e.target as Node)) {
-        setIsWidgetOpen(false);
-        setIsCreatingTemplate(false);
+    if (isWidgetOpen) {
+      updateWidgetPosition();
+      const handleReposition = () => updateWidgetPosition();
+      window.addEventListener('resize', handleReposition);
+      window.addEventListener('scroll', handleReposition, true);
+      return () => {
+        window.removeEventListener('resize', handleReposition);
+        window.removeEventListener('scroll', handleReposition, true);
+      };
+    }
+  }, [isWidgetOpen]);
+
+  useEffect(() => {
+    if (!isWidgetOpen && !reassignModal.isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (reassignModal.isOpen) {
+          setReassignModal({
+            isOpen: false,
+            product: null,
+            targetTemplateId: '',
+            targetTemplateName: '',
+            sourceTemplateName: '',
+          });
+        } else {
+          setIsWidgetOpen(false);
+          setIsCreatingTemplate(false);
+        }
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [isWidgetOpen]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isWidgetOpen, reassignModal.isOpen]);
 
   const viewingTemplate = templates.find((t) => t.id === viewingTemplateId) || activeTemplate;
   const viewingAssignedProducts = getAssignedProductsForTemplate(viewingTemplate.id);
@@ -1309,7 +1373,6 @@ export const PdpLeftRail: React.FC = () => {
     >
       {/* ── Top Single Template Dropdown Bar ── */}
       <div
-        ref={widgetRef}
         style={{
           position: 'relative',
           padding: '12px 14px',
@@ -1349,6 +1412,7 @@ export const PdpLeftRail: React.FC = () => {
           </div>
 
           <button
+            ref={triggerButtonRef}
             type="button"
             onClick={() => {
               setIsWidgetOpen((prev) => !prev);
@@ -1362,7 +1426,7 @@ export const PdpLeftRail: React.FC = () => {
               minHeight: '38px',
               padding: '0 12px',
               borderRadius: '8px',
-              border: isWidgetOpen ? '1px solid #2563eb' : '1px solid #cbd5e1',
+              border: isWidgetOpen ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
               background: '#ffffff',
               color: '#0f172a',
               fontSize: '13.5px',
@@ -1371,7 +1435,7 @@ export const PdpLeftRail: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              boxShadow: isWidgetOpen ? '0 0 0 2px rgba(37,99,235,0.15)' : 'none',
+              boxShadow: isWidgetOpen ? '0 0 0 3px rgba(37,99,235,0.18)' : '0 1px 2px rgba(0,0,0,0.03)',
               transition: 'all 0.15s ease',
               boxSizing: 'border-box',
             }}
@@ -1402,680 +1466,1165 @@ export const PdpLeftRail: React.FC = () => {
             />
           </button>
         </div>
+      </div>
 
-        {/* ── Dropdown Widget (Available Templates / Assigned Products) ── */}
-        {isWidgetOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 4px)',
-              left: '12px',
-              right: '12px',
-              background: '#ffffff',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              boxShadow: '0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.05)',
-              zIndex: 9999,
-              display: 'flex',
-              flexDirection: 'column',
-              maxHeight: '440px',
-              overflow: 'hidden',
-              boxSizing: 'border-box',
-            }}
-          >
-            {widgetView === 'templates' && (
-              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '440px' }}>
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    borderBottom: '1px solid #f1f5f9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: '#f8fafc',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Available Templates</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>Click template to view assigned products</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsWidgetOpen(false)}
-                    style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px', color: '#64748b', borderRadius: '4px' }}
+      {/* ── Spacious Floating Template & Assigned Products Widget (Portal) ── */}
+      {isWidgetOpen &&
+        createPortal(
+          <>
+            {/* Backdrop overlay for outside clicks */}
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 99998,
+                backgroundColor: 'rgba(15, 23, 42, 0.14)',
+                backdropFilter: 'blur(0.5px)',
+              }}
+              onClick={() => {
+                setIsWidgetOpen(false);
+                setIsCreatingTemplate(false);
+              }}
+            />
+
+            {/* Floating Widget Container — extends outside narrow left rail */}
+            <div
+              style={{
+                position: 'fixed',
+                top: `${widgetCoords.top}px`,
+                left: `${widgetCoords.left}px`,
+                width: `${widgetCoords.width}px`,
+                maxHeight: `${widgetCoords.maxHeight}px`,
+                zIndex: 99999,
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #cbd5e1',
+                boxShadow:
+                  '0 20px 45px -10px rgba(15, 23, 42, 0.28), 0 10px 20px -5px rgba(15, 23, 42, 0.12)',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 1. AVAILABLE TEMPLATES VIEW */}
+              {widgetView === 'templates' && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: `${widgetCoords.maxHeight}px` }}>
+                  {/* Header */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: '#f8fafc',
+                      flexShrink: 0,
+                    }}
                   >
-                    <X size={15} />
-                  </button>
-                </div>
-
-                <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
-                  {templates.map((t) => {
-                    const assigned = getAssignedProductsForTemplate(t.id);
-                    const isSelected = t.id === activeTemplateId;
-                    return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div
-                        key={t.id}
-                        onClick={() => {
-                          setViewingTemplateId(t.id);
-                          setWidgetView('products');
-                          setSearchQuery('');
-                        }}
                         style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '9px 10px',
-                          borderRadius: '6px',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Layout size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
+                          PDP Templates
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          Assign custom page layouts to specific products or use the default store template
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          color: '#475569',
+                          backgroundColor: '#e2e8f0',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                        }}
+                      >
+                        {templates.length} {templates.length === 1 ? 'template' : 'templates'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsWidgetOpen(false)}
+                        style={{
+                          border: 'none',
+                          background: 'none',
                           cursor: 'pointer',
-                          background: isSelected ? '#eff6ff' : 'transparent',
-                          border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
-                          marginBottom: '4px',
+                          padding: '6px',
+                          color: '#64748b',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           transition: 'background 0.12s ease',
                         }}
                         onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
+                          e.currentTarget.style.backgroundColor = '#e2e8f0';
                         }}
                         onMouseLeave={(e) => {
-                          if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.backgroundColor = 'transparent';
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-                          <Layout size={16} color={isSelected ? '#2563eb' : '#64748b'} style={{ flexShrink: 0 }} />
-                          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span
-                                style={{
-                                  fontSize: '13px',
-                                  fontWeight: 600,
-                                  color: isSelected ? '#1d4ed8' : '#0f172a',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
-                              >
-                                {t.name}
-                              </span>
-                              {t.isDefault && (
-                                <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', padding: '1px 5px', borderRadius: '3px', fontWeight: 600 }}>
-                                  Default
-                                </span>
-                              )}
-                            </div>
-                            <span style={{ fontSize: '11px', color: '#64748b' }}>
-                              {t.isDefault
-                                ? `${assigned.length} products (default)`
-                                : `${assigned.length} product${assigned.length === 1 ? '' : 's'} assigned`}
-                            </span>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <ChevronRight size={15} color="#94a3b8" />
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Add Template Button Below Default Template */}
-                  {isCreatingTemplate ? (
-                    <div style={{ padding: '8px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '6px' }}>
-                      <input
-                        type="text"
-                        placeholder="New template name..."
-                        value={newTemplateName}
-                        autoFocus
-                        onChange={(e) => setNewTemplateName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && newTemplateName.trim()) {
-                            const newId = createTemplate(newTemplateName.trim());
-                            setViewingTemplateId(newId);
-                            setWidgetView('products');
-                            setIsCreatingTemplate(false);
-                            setNewTemplateName('');
-                          } else if (e.key === 'Escape') {
-                            setIsCreatingTemplate(false);
-                            setNewTemplateName('');
-                          }
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '6px 8px',
-                          fontSize: '12.5px',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '4px',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          marginBottom: '6px',
-                        }}
-                      />
-                      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsCreatingTemplate(false);
-                            setNewTemplateName('');
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '11.5px',
-                            borderRadius: '4px',
-                            border: '1px solid #cbd5e1',
-                            background: '#ffffff',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!newTemplateName.trim()) return;
-                            const newId = createTemplate(newTemplateName.trim());
-                            setViewingTemplateId(newId);
-                            setWidgetView('products');
-                            setIsCreatingTemplate(false);
-                            setNewTemplateName('');
-                          }}
-                          style={{
-                            padding: '4px 10px',
-                            fontSize: '11.5px',
-                            borderRadius: '4px',
-                            border: 'none',
-                            background: '#2563eb',
-                            color: '#ffffff',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Create
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsCreatingTemplate(true);
-                        setNewTemplateName('');
-                      }}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        padding: '9px',
-                        marginTop: '6px',
-                        borderRadius: '6px',
-                        border: '1px dashed #cbd5e1',
-                        background: '#f8fafc',
-                        color: '#2563eb',
-                        fontSize: '12.5px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.12s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#eff6ff';
-                        e.currentTarget.style.borderColor = '#93c5fd';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f8fafc';
-                        e.currentTarget.style.borderColor = '#cbd5e1';
-                      }}
-                    >
-                      <Plus size={14} />
-                      <span>Add template</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {widgetView === 'products' && (
-              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '440px' }}>
-                {/* Header */}
-                <div
-                  style={{
-                    padding: '8px 10px',
-                    borderBottom: '1px solid #f1f5f9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: '#f8fafc',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                    <button
-                      type="button"
-                      onClick={() => setWidgetView('templates')}
-                      style={{
-                        border: 'none',
-                        background: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        color: '#475569',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRadius: '4px',
-                      }}
-                      title="Back to templates"
-                    >
-                      <ArrowLeft size={15} />
-                    </button>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {viewingTemplate.name}
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: '#64748b' }}>
-                        {viewingAssignedProducts.length} assigned product{viewingAssignedProducts.length === 1 ? '' : 's'}
-                      </div>
+                        <X size={16} />
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsWidgetOpen(false)}
-                    style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px', color: '#64748b', borderRadius: '4px' }}
+
+                  {/* Templates List */}
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      padding: '12px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
                   >
-                    <X size={15} />
-                  </button>
-                </div>
-
-                {/* Search Bar */}
-                <div style={{ padding: '8px 10px', borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ position: 'relative' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                    <input
-                      type="text"
-                      placeholder="Search products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '6px 8px 6px 28px',
-                        fontSize: '12px',
-                        borderRadius: '5px',
-                        border: '1px solid #cbd5e1',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Assigned Products List */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '6px', maxHeight: '240px' }}>
-                  {filteredAssignedProducts.length === 0 ? (
-                    <div style={{ padding: '24px 12px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
-                      {searchQuery ? 'No products match your search.' : 'No products assigned to this template yet.'}
-                    </div>
-                  ) : (
-                    filteredAssignedProducts.map((p) => {
-                      const isCurrentPreview = selectedProductId === p.id && activeTemplateId === viewingTemplate.id;
+                    {templates.map((t) => {
+                      const assigned = getAssignedProductsForTemplate(t.id);
+                      const isCurrentActive = t.id === activeTemplateId;
                       return (
                         <div
-                          key={p.id}
+                          key={t.id}
                           onClick={() => {
-                            selectTemplate(viewingTemplate.id);
-                            selectProduct(p.id);
-                            setIsWidgetOpen(false);
+                            setViewingTemplateId(t.id);
+                            setWidgetView('products');
+                            setSearchQuery('');
                           }}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '10px',
-                            padding: '7px 8px',
-                            borderRadius: '6px',
+                            justifyContent: 'space-between',
+                            padding: '12px 14px',
+                            borderRadius: '10px',
                             cursor: 'pointer',
-                            background: isCurrentPreview ? '#eff6ff' : 'transparent',
-                            border: isCurrentPreview ? '1px solid #bfdbfe' : '1px solid transparent',
-                            marginBottom: '3px',
-                            transition: 'all 0.12s ease',
+                            backgroundColor: isCurrentActive ? '#f0f7ff' : '#ffffff',
+                            border: isCurrentActive ? '1.5px solid #3b82f6' : '1px solid #e2e8f0',
+                            boxShadow: isCurrentActive ? '0 2px 8px rgba(37,99,235,0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
+                            transition: 'all 0.15s ease',
                           }}
                           onMouseEnter={(e) => {
-                            if (!isCurrentPreview) e.currentTarget.style.backgroundColor = '#f8fafc';
+                            if (!isCurrentActive) {
+                              e.currentTarget.style.backgroundColor = '#f8fafc';
+                              e.currentTarget.style.borderColor = '#cbd5e1';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }
                           }}
                           onMouseLeave={(e) => {
-                            if (!isCurrentPreview) e.currentTarget.style.backgroundColor = 'transparent';
+                            if (!isCurrentActive) {
+                              e.currentTarget.style.backgroundColor = '#ffffff';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
+                              e.currentTarget.style.transform = 'none';
+                            }
                           }}
-                          title={`Click to preview ${p.name} with ${viewingTemplate.name}`}
                         >
-                          <img
-                            src={p.images[0] || 'https://via.placeholder.com/40'}
-                            alt={p.name}
-                            style={{
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '5px',
-                              objectFit: 'cover',
-                              border: '1px solid #e2e8f0',
-                              flexShrink: 0,
-                            }}
-                          />
-                          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                            <span
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                            <div
                               style={{
-                                fontSize: '12.5px',
-                                fontWeight: isCurrentPreview ? 700 : 500,
-                                color: isCurrentPreview ? '#1d4ed8' : '#0f172a',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '8px',
+                                backgroundColor: isCurrentActive ? '#dbeafe' : '#f1f5f9',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
                               }}
                             >
-                              {p.name}
-                            </span>
-                            <span style={{ fontSize: '11px', color: '#64748b' }}>
-                              ${p.price.toFixed(2)} • {p.category || 'General'}
-                            </span>
+                              <Layout size={19} color={isCurrentActive ? '#2563eb' : '#64748b'} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                                <span
+                                  style={{
+                                    fontSize: '13.5px',
+                                    fontWeight: 700,
+                                    color: isCurrentActive ? '#1e40af' : '#0f172a',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                >
+                                  {t.name}
+                                </span>
+                                {t.isDefault && (
+                                  <span
+                                    style={{
+                                      fontSize: '10.5px',
+                                      fontWeight: 700,
+                                      backgroundColor: '#dbeafe',
+                                      color: '#1d4ed8',
+                                      padding: '1.5px 6px',
+                                      borderRadius: '4px',
+                                    }}
+                                  >
+                                    Default
+                                  </span>
+                                )}
+                                {isCurrentActive && (
+                                  <span
+                                    style={{
+                                      fontSize: '10.5px',
+                                      fontWeight: 600,
+                                      backgroundColor: '#dcfce7',
+                                      color: '#15803d',
+                                      padding: '1.5px 6px',
+                                      borderRadius: '4px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
+                                    Active in Editor
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: '#64748b' }}>
+                                <span>
+                                  📦 {t.isDefault ? `${assigned.length} products (all by default)` : `${assigned.length} assigned product${assigned.length === 1 ? '' : 's'}`}
+                                </span>
+                                <span>•</span>
+                                <span>🧩 {t.blocks.length} blocks</span>
+                              </div>
+                            </div>
                           </div>
-                          {isCurrentPreview && (
-                            <span style={{ fontSize: '10px', color: '#16a34a', background: '#dcfce7', padding: '1px 5px', borderRadius: '3px', fontWeight: 600, flexShrink: 0 }}>
-                              Active
-                            </span>
-                          )}
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              color: isCurrentActive ? '#2563eb' : '#94a3b8',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span>Assigned products</span>
+                            <ChevronRight size={16} />
+                          </div>
                         </div>
                       );
-                    })
-                  )}
-                </div>
+                    })}
 
-                {/* Bottom Action: Assign New Products */}
-                <div style={{ padding: '8px', borderTop: '1px solid #f1f5f9', background: '#f8fafc' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setWidgetView('assign-products');
-                      setSearchQuery('');
-                    }}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      padding: '8px',
-                      borderRadius: '6px',
-                      border: '1px solid #2563eb',
-                      background: '#ffffff',
-                      color: '#2563eb',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.12s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#eff6ff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                  >
-                    <Plus size={14} />
-                    <span>Assign new products</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {widgetView === 'assign-products' && (
-              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '440px' }}>
-                {/* Header */}
-                <div
-                  style={{
-                    padding: '8px 10px',
-                    borderBottom: '1px solid #f1f5f9',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: '#f8fafc',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                    <button
-                      type="button"
-                      onClick={() => setWidgetView('products')}
-                      style={{
-                        border: 'none',
-                        background: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        color: '#475569',
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRadius: '4px',
-                      }}
-                      title="Back to assigned products"
-                    >
-                      <ArrowLeft size={15} />
-                    </button>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>
-                        Assign Products
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: '#64748b' }}>
-                        Target: {viewingTemplate.name}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsWidgetOpen(false)}
-                    style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px', color: '#64748b', borderRadius: '4px' }}
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-
-                {/* Search Bar */}
-                <div style={{ padding: '8px 10px', borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ position: 'relative' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                    <input
-                      type="text"
-                      placeholder="Search all products..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '6px 8px 6px 28px',
-                        fontSize: '12px',
-                        borderRadius: '5px',
-                        border: '1px solid #cbd5e1',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* All Products List with Assignment Actions */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '6px', maxHeight: '280px' }}>
-                  {filteredAllProducts.map((p) => {
-                    const currentTmpl = resolveTemplateForProduct(p);
-                    const isAlreadyAssigned = currentTmpl.id === viewingTemplate.id;
-
-                    return (
+                    {/* Add Template Section Below Default Template */}
+                    {isCreatingTemplate ? (
                       <div
-                        key={p.id}
                         style={{
+                          padding: '14px',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '10px',
+                          border: '1.5px solid #93c5fd',
                           display: 'flex',
-                          alignItems: 'center',
+                          flexDirection: 'column',
                           gap: '10px',
-                          padding: '7px 8px',
-                          borderRadius: '6px',
-                          background: isAlreadyAssigned ? '#f8fafc' : '#ffffff',
-                          border: '1px solid #f1f5f9',
-                          marginBottom: '4px',
+                          marginTop: '4px',
                         }}
                       >
-                        <img
-                          src={p.images[0] || 'https://via.placeholder.com/40'}
-                          alt={p.name}
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>
+                          Create New Template
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Enter template name (e.g. Footwear Template, Electronics PDP)..."
+                          value={newTemplateName}
+                          autoFocus
+                          onChange={(e) => setNewTemplateName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newTemplateName.trim()) {
+                              const newId = createTemplate(newTemplateName.trim());
+                              setViewingTemplateId(newId);
+                              setWidgetView('products');
+                              setIsCreatingTemplate(false);
+                              setNewTemplateName('');
+                            } else if (e.key === 'Escape') {
+                              setIsCreatingTemplate(false);
+                              setNewTemplateName('');
+                            }
+                          }}
                           style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '5px',
-                            objectFit: 'cover',
-                            border: '1px solid #e2e8f0',
-                            flexShrink: 0,
+                            width: '100%',
+                            padding: '8px 10px',
+                            fontSize: '13px',
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            outline: 'none',
+                            boxSizing: 'border-box',
                           }}
                         />
-                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>
+                            Initialized with standard product information & template sections
+                          </span>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsCreatingTemplate(false);
+                                setNewTemplateName('');
+                              }}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                                borderRadius: '6px',
+                                border: '1px solid #cbd5e1',
+                                backgroundColor: '#ffffff',
+                                color: '#475569',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!newTemplateName.trim()) return;
+                                const newId = createTemplate(newTemplateName.trim());
+                                setViewingTemplateId(newId);
+                                setWidgetView('products');
+                                setIsCreatingTemplate(false);
+                                setNewTemplateName('');
+                              }}
+                              style={{
+                                padding: '6px 14px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                border: 'none',
+                                backgroundColor: '#2563eb',
+                                color: '#ffffff',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Create Template
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCreatingTemplate(true);
+                          setNewTemplateName('');
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '11px',
+                          borderRadius: '8px',
+                          border: '1.5px dashed #cbd5e1',
+                          backgroundColor: '#f8fafc',
+                          color: '#2563eb',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          marginTop: '4px',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#eff6ff';
+                          e.currentTarget.style.borderColor = '#93c5fd';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f8fafc';
+                          e.currentTarget.style.borderColor = '#cbd5e1';
+                        }}
+                      >
+                        <Plus size={16} />
+                        <span>Add template</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. ASSIGNED PRODUCTS VIEW */}
+              {widgetView === 'products' && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: `${widgetCoords.maxHeight}px` }}>
+                  {/* Header */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: '#f8fafc',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => setWidgetView('templates')}
+                        style={{
+                          border: '1px solid #e2e8f0',
+                          backgroundColor: '#ffffff',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          color: '#475569',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '6px',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f1f5f9';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                        }}
+                        title="Back to templates"
+                      >
+                        <ArrowLeft size={16} />
+                      </button>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span
                             style={{
-                              fontSize: '12.5px',
-                              fontWeight: 600,
+                              fontSize: '14px',
+                              fontWeight: 700,
                               color: '#0f172a',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                             }}
                           >
-                            {p.name}
+                            {viewingTemplate.name}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#64748b' }}>
-                            Currently: <strong style={{ color: '#475569' }}>{currentTmpl.name}</strong>
-                          </span>
+                          {viewingTemplate.isDefault && (
+                            <span
+                              style={{
+                                fontSize: '10.5px',
+                                fontWeight: 600,
+                                backgroundColor: '#dbeafe',
+                                color: '#1d4ed8',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              Default
+                            </span>
+                          )}
                         </div>
-                        {isAlreadyAssigned ? (
-                          <span style={{ fontSize: '11px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600 }}>
-                            <Check size={13} />
-                            <span>Assigned</span>
-                          </span>
-                        ) : (
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          {viewingAssignedProducts.length} assigned product{viewingAssignedProducts.length === 1 ? '' : 's'} • Click any product to load in editor
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWidgetView('assign-products');
+                          setSearchQuery('');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '6px 12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          borderRadius: '6px',
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dbeafe';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#eff6ff';
+                        }}
+                      >
+                        <Plus size={13} />
+                        <span>Assign products</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsWidgetOpen(false)}
+                        style={{
+                          border: 'none',
+                          background: 'none',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          color: '#64748b',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search Bar */}
+                  <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <Search size={15} style={{ position: 'absolute', left: '11px', color: '#94a3b8' }} />
+                      <input
+                        type="text"
+                        placeholder="Search assigned products by title, SKU, or category..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 30px 8px 34px',
+                          fontSize: '12.5px',
+                          borderRadius: '7px',
+                          border: '1px solid #cbd5e1',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          style={{
+                            position: 'absolute',
+                            right: '8px',
+                            border: 'none',
+                            background: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: '#94a3b8',
+                          }}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Assigned Products List */}
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      padding: '10px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    {filteredAssignedProducts.length === 0 ? (
+                      <div
+                        style={{
+                          padding: '36px 16px',
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            backgroundColor: '#f1f5f9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#94a3b8',
+                          }}
+                        >
+                          <Package size={22} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                            {searchQuery ? 'No products match your search' : 'No products assigned to this template'}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                            {searchQuery
+                              ? 'Try searching by a different name, category or SKU.'
+                              : 'Assign catalog products so they render using this custom layout.'}
+                          </div>
+                        </div>
+                        {!searchQuery && (
                           <button
                             type="button"
-                            onClick={() => handleInitiateAssign(p)}
+                            onClick={() => {
+                              setWidgetView('assign-products');
+                              setSearchQuery('');
+                            }}
                             style={{
-                              padding: '4px 10px',
-                              fontSize: '11.5px',
+                              padding: '7px 16px',
+                              fontSize: '12px',
                               fontWeight: 600,
-                              borderRadius: '5px',
-                              border: '1px solid #2563eb',
-                              background: '#eff6ff',
-                              color: '#2563eb',
+                              borderRadius: '6px',
+                              border: 'none',
+                              backgroundColor: '#2563eb',
+                              color: '#ffffff',
                               cursor: 'pointer',
-                              flexShrink: 0,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#2563eb';
-                              e.currentTarget.style.color = '#ffffff';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = '#eff6ff';
-                              e.currentTarget.style.color = '#2563eb';
+                              marginTop: '4px',
                             }}
                           >
-                            Assign
+                            Assign Products Now
                           </button>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                    ) : (
+                      filteredAssignedProducts.map((p) => {
+                        const isCurrentPreview =
+                          selectedProductId === p.id && activeTemplateId === viewingTemplate.id;
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => {
+                              selectTemplate(viewingTemplate.id);
+                              selectProduct(p.id);
+                              setIsWidgetOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '10px 12px',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              backgroundColor: isCurrentPreview ? '#eff6ff' : '#ffffff',
+                              border: isCurrentPreview ? '1.5px solid #60a5fa' : '1px solid #e2e8f0',
+                              boxShadow: isCurrentPreview ? '0 2px 6px rgba(37,99,235,0.06)' : 'none',
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isCurrentPreview) {
+                                e.currentTarget.style.backgroundColor = '#f8fafc';
+                                e.currentTarget.style.borderColor = '#cbd5e1';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isCurrentPreview) {
+                                e.currentTarget.style.backgroundColor = '#ffffff';
+                                e.currentTarget.style.borderColor = '#e2e8f0';
+                              }
+                            }}
+                          >
+                            <img
+                              src={p.images[0] || 'https://via.placeholder.com/48'}
+                              alt={p.name}
+                              style={{
+                                width: '44px',
+                                height: '44px',
+                                borderRadius: '6px',
+                                objectFit: 'cover',
+                                border: '1px solid #e2e8f0',
+                                flexShrink: 0,
+                                backgroundColor: '#f8fafc',
+                              }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span
+                                  style={{
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    color: isCurrentPreview ? '#1d4ed8' : '#0f172a',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                  title={p.name}
+                                >
+                                  {p.name}
+                                </span>
+                                {isCurrentPreview && (
+                                  <span
+                                    style={{
+                                      fontSize: '10px',
+                                      color: '#16a34a',
+                                      backgroundColor: '#dcfce7',
+                                      padding: '1.5px 6px',
+                                      borderRadius: '4px',
+                                      fontWeight: 700,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    Active Preview
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#64748b' }}>
+                                <span style={{ fontWeight: 600, color: '#0f172a' }}>${p.price.toFixed(2)}</span>
+                                {p.compareAtPrice && (
+                                  <span style={{ textDecoration: 'line-through', color: '#94a3b8' }}>
+                                    ${p.compareAtPrice.toFixed(2)}
+                                  </span>
+                                )}
+                                <span>•</span>
+                                <span>{p.category || 'General'}</span>
+                                {p.sku && (
+                                  <>
+                                    <span>•</span>
+                                    <span>SKU: {p.sku}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '11.5px',
+                                fontWeight: 600,
+                                color: isCurrentPreview ? '#2563eb' : '#64748b',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <span>{isCurrentPreview ? 'Editing' : 'Load in preview'}</span>
+                              <ChevronRight size={14} />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
 
-      {/* Confirmation Dialog for Product Assignment */}
-      {reassignModal.isOpen && reassignModal.product && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 999999,
-            background: 'rgba(15, 23, 42, 0.45)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '16px',
-            boxSizing: 'border-box',
-          }}
-          onClick={() => setReassignModal({ isOpen: false, product: null, targetTemplateId: '', targetTemplateName: '', sourceTemplateName: '' })}
-        >
+                  {/* Bottom Action Bar */}
+                  <div
+                    style={{
+                      padding: '10px 16px',
+                      borderTop: '1px solid #f1f5f9',
+                      backgroundColor: '#f8fafc',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                      Showing {filteredAssignedProducts.length} of {viewingAssignedProducts.length} assigned products
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWidgetView('assign-products');
+                        setSearchQuery('');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid #2563eb',
+                        backgroundColor: '#ffffff',
+                        color: '#2563eb',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#eff6ff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ffffff';
+                      }}
+                    >
+                      <Plus size={14} />
+                      <span>Assign new products</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. ASSIGN NEW PRODUCTS TO TEMPLATE VIEW */}
+              {widgetView === 'assign-products' && (
+                <div style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: `${widgetCoords.maxHeight}px` }}>
+                  {/* Header */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: '#f8fafc',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWidgetView('products');
+                          setSearchQuery('');
+                        }}
+                        style={{
+                          border: '1px solid #e2e8f0',
+                          backgroundColor: '#ffffff',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          color: '#475569',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '6px',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f1f5f9';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                        }}
+                        title="Back to assigned products"
+                      >
+                        <ArrowLeft size={16} />
+                      </button>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
+                          Assign Products
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          Target Template: <strong style={{ color: '#0f172a' }}>{viewingTemplate.name}</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsWidgetOpen(false)}
+                      style={{
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        padding: '6px',
+                        color: '#64748b',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {/* Search Bar */}
+                  <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <Search size={15} style={{ position: 'absolute', left: '11px', color: '#94a3b8' }} />
+                      <input
+                        type="text"
+                        placeholder="Search store catalogue by title, category, or SKU..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 30px 8px 34px',
+                          fontSize: '12.5px',
+                          borderRadius: '7px',
+                          border: '1px solid #cbd5e1',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          style={{
+                            position: 'absolute',
+                            right: '8px',
+                            border: 'none',
+                            background: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            color: '#94a3b8',
+                          }}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* All Products List with Assignment */}
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      padding: '10px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    {filteredAllProducts.map((p) => {
+                      const currentTmpl = resolveTemplateForProduct(p);
+                      const isAlreadyAssigned = currentTmpl.id === viewingTemplate.id;
+
+                      return (
+                        <div
+                          key={p.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            backgroundColor: isAlreadyAssigned ? '#f8fafc' : '#ffffff',
+                            border: isAlreadyAssigned ? '1px solid #e2e8f0' : '1px solid #e2e8f0',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <img
+                            src={p.images[0] || 'https://via.placeholder.com/48'}
+                            alt={p.name}
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '6px',
+                              objectFit: 'cover',
+                              border: '1px solid #e2e8f0',
+                              flexShrink: 0,
+                              backgroundColor: '#f8fafc',
+                            }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                              title={p.name}
+                            >
+                              {p.name}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#64748b' }}>
+                              <span>${p.price.toFixed(2)}</span>
+                              <span>•</span>
+                              <span>
+                                Currently using:{' '}
+                                <strong style={{ color: '#334155', fontWeight: 600 }}>{currentTmpl.name}</strong>
+                              </span>
+                            </div>
+                          </div>
+                          {isAlreadyAssigned ? (
+                            <span
+                              style={{
+                                fontSize: '11.5px',
+                                color: '#16a34a',
+                                backgroundColor: '#dcfce7',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontWeight: 600,
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Check size={14} />
+                              <span>Assigned</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleInitiateAssign(p)}
+                              style={{
+                                padding: '6px 14px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                borderRadius: '6px',
+                                border: '1px solid #2563eb',
+                                backgroundColor: '#eff6ff',
+                                color: '#2563eb',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#2563eb';
+                                e.currentTarget.style.color = '#ffffff';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = '#eff6ff';
+                                e.currentTarget.style.color = '#2563eb';
+                              }}
+                            >
+                              Assign
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>,
+          document.body
+        )}
+
+      {/* Confirmation Dialog for Product Assignment (Portal) */}
+      {reassignModal.isOpen &&
+        reassignModal.product &&
+        createPortal(
           <div
             style={{
-              width: '100%',
-              maxWidth: '380px',
-              background: '#ffffff',
-              borderRadius: '12px',
-              padding: '20px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              border: '1px solid #e2e8f0',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100000,
+              backgroundColor: 'rgba(15, 23, 42, 0.48)',
+              backdropFilter: 'blur(2px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
               boxSizing: 'border-box',
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={() =>
+              setReassignModal({
+                isOpen: false,
+                product: null,
+                targetTemplateId: '',
+                targetTemplateName: '',
+                sourceTemplateName: '',
+              })
+            }
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  background: '#fef3c7',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#d97706',
-                  flexShrink: 0,
-                }}
-              >
-                <AlertCircle size={20} />
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '440px',
+                backgroundColor: '#ffffff',
+                borderRadius: '14px',
+                padding: '24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #e2e8f0',
+                boxSizing: 'border-box',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: '#fef3c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#d97706',
+                    flexShrink: 0,
+                  }}
+                >
+                  <AlertCircle size={22} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+                    Reassign Product Template?
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+                    Product <strong style={{ color: '#0f172a' }}>"{reassignModal.product.name}"</strong> is currently using{' '}
+                    <strong style={{ color: '#0f172a' }}>"{reassignModal.sourceTemplateName}"</strong>.
+                  </p>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.5 }}>
+                    Are you sure you want to assign it to <strong style={{ color: '#2563eb' }}>"{reassignModal.targetTemplateName}"</strong>? Shoppers viewing this product will see this new custom template layout.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
-                  Reassign Product?
-                </h4>
-                <span style={{ fontSize: '11.5px', color: '#64748b' }}>Custom template assignment</span>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReassignModal({
+                      isOpen: false,
+                      product: null,
+                      targetTemplateId: '',
+                      targetTemplateName: '',
+                      sourceTemplateName: '',
+                    })
+                  }
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    borderRadius: '7px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#475569',
+                    cursor: 'pointer',
+                    transition: 'background 0.12s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f1f5f9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReassign}
+                  style={{
+                    padding: '8px 18px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    borderRadius: '7px',
+                    border: 'none',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(37,99,235,0.25)',
+                    transition: 'background 0.12s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#1d4ed8';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }}
+                >
+                  Confirm & Reassign
+                </button>
               </div>
             </div>
-
-            <p style={{ margin: '0 0 18px', fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-              <strong>"{reassignModal.product.name}"</strong> is currently using the <strong>{reassignModal.sourceTemplateName}</strong>.
-              <br /><br />
-              Are you sure you want to assign it to <strong>{reassignModal.targetTemplateName}</strong>?
-            </p>
-
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button
-                type="button"
-                onClick={() => setReassignModal({ isOpen: false, product: null, targetTemplateId: '', targetTemplateName: '', sourceTemplateName: '' })}
-                style={{
-                  padding: '7px 14px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  background: '#ffffff',
-                  color: '#334155',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmReassign}
-                style={{
-                  padding: '7px 14px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                }}
-              >
-                Confirm & Assign
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* ── Scrollable Component Tree Area (Matches Footer Tree Exactly) ── */}
       <div
