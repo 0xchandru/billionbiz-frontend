@@ -32,6 +32,9 @@ import {
   MousePointerClick,
   ShoppingBag,
   Plus,
+  Smile,
+  List,
+  MapPin,
 } from 'lucide-react';
 import { useEditorContextStore } from '../../../store/editorContextStore';
 import {
@@ -49,12 +52,16 @@ const ICON_MAP: Record<string, React.FC<{ size?: number; color?: string; classNa
   Image,
   Gem,
   Sparkles,
+  Smile,
   Menu,
+  List,
+  MapPin,
   Share2,
   SquareCheck,
   Mail,
   Minus,
   MoveVertical,
+  Space: MoveVertical,
   CreditCard,
   Copyright,
   Layers,
@@ -67,30 +74,30 @@ const ICON_MAP: Record<string, React.FC<{ size?: number; color?: string; classNa
   ShoppingBag,
 };
 
-type PickerCategory = 'basic' | 'decorative' | 'footer' | 'forms' | 'layout' | 'links';
-type PickerTab = 'blocks' | 'apps';
-
-const SHOPIFY_FOOTER_BLOCKS = new Set([
-  'group', 'heading', 'text', 'image', 'logo', 'icon', 'link-list', 'policy-links',
-  'social-links', 'button', 'newsletter', 'divider', 'payment-icons', 'copyright',
-]);
-const CATEGORY_ORDER: Array<{ id: PickerCategory; label: string }> = [
-  { id: 'basic', label: 'Basic' },
-  { id: 'decorative', label: 'Decorative' },
-  { id: 'footer', label: 'Footer' },
-  { id: 'forms', label: 'Forms' },
-  { id: 'layout', label: 'Layout' },
-  { id: 'links', label: 'Links' },
-];
-
-const getPickerCategory = (def: FooterComponentDefinition): PickerCategory => {
-  if (def.name === 'Jumbo text') return 'decorative';
-  if (def.name === 'Follow on Shop' || ['policy-links', 'social-links', 'payment-icons', 'copyright'].includes(def.nodeType)) return 'footer';
-  if (def.nodeType === 'group' || def.nodeType === 'divider') return 'layout';
-  if (def.nodeType === 'link-list') return 'links';
-  if (def.nodeType === 'newsletter') return 'forms';
-  if (['button', 'heading', 'icon', 'image', 'logo', 'text'].includes(def.nodeType)) return 'basic';
-  return 'basic';
+// Priority ordering requested: Group, Logo, Icon, Button, Custom Column Links, Map Preview, and all others
+const BLOCK_ORDER_PRIORITY: Record<string, number> = {
+  group: 1,
+  logo: 2,
+  icon: 3,
+  button: 4,
+  'column-links': 5,
+  'map-preview': 6,
+  heading: 7,
+  text: 8,
+  image: 9,
+  newsletter: 10,
+  'social-links': 11,
+  'contact-info': 12,
+  'policy-links': 13,
+  'payment-icons': 14,
+  copyright: 15,
+  'trust-badge': 16,
+  'app-download': 17,
+  localization: 18,
+  'custom-html': 19,
+  divider: 20,
+  spacer: 21,
+  'link-list': 22,
 };
 
 export const FooterComponentPicker: React.FC = () => {
@@ -104,30 +111,7 @@ export const FooterComponentPicker: React.FC = () => {
   } = useEditorContextStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<PickerTab>('blocks');
-
-  const pickerComponents = useMemo(() => {
-    const heading = FOOTER_COMPONENT_DEFS.find((def) => def.nodeType === 'heading');
-    const button = FOOTER_COMPONENT_DEFS.find((def) => def.nodeType === 'button');
-    const extras: FooterComponentDefinition[] = [];
-    if (heading) {
-      extras.push({
-        ...heading,
-        name: 'Jumbo text',
-        description: 'Large display text for a bold footer statement',
-        defaultProps: { ...heading.defaultProps, text: 'Your store name', level: 'h2', fontSize: 48, fontWeight: 700 },
-      });
-    }
-    if (button) {
-      extras.push({
-        ...button,
-        name: 'Follow on Shop',
-        description: 'Add a Shop follow button to help customers keep up with your store',
-        defaultProps: { ...button.defaultProps, label: 'Follow on Shop', link: '/collections/all', variant: 'secondary' },
-      });
-    }
-    return [...FOOTER_COMPONENT_DEFS, ...extras];
-  }, []);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'essential' | 'navigation' | 'info'>('all');
 
   // Determine parent context
   const parentNode = useMemo(() => {
@@ -136,33 +120,42 @@ export const FooterComponentPicker: React.FC = () => {
   }, [footerTree, footerPickerTargetParentId]);
 
   const parentType: 'root' | 'group' = parentNode ? 'group' : 'root';
-  const parentName = parentNode ? parentNode.name : 'Footer Root';
+  const parentName = parentNode ? parentNode.name : 'Footer';
 
-  // Filter components
-  const filteredComponents = useMemo(() => {
-    if (activeTab === 'apps') return [];
-    return pickerComponents.filter((def) => {
-      if (!SHOPIFY_FOOTER_BLOCKS.has(def.nodeType) && !['Jumbo text', 'Follow on Shop'].includes(def.name)) return false;
+  // Filter and sort components in user-requested order
+  const orderedComponents = useMemo(() => {
+    // Only real, non-mock blocks
+    const allowed = FOOTER_COMPONENT_DEFS.filter((def) => {
       // Must be allowed for parent
       if (!def.allowedParents.includes(parentType)) return false;
+
+      // Filter by tag if selected
+      if (selectedFilter === 'essential') {
+        if (!['group', 'logo', 'icon', 'button', 'column-links'].includes(def.nodeType)) return false;
+      } else if (selectedFilter === 'navigation') {
+        if (!['column-links', 'button', 'policy-links', 'social-links', 'link-list'].includes(def.nodeType)) return false;
+      } else if (selectedFilter === 'info') {
+        if (!['map-preview', 'contact-info', 'payment-icons', 'copyright', 'trust-badge', 'app-download', 'localization'].includes(def.nodeType)) return false;
+      }
 
       // Search filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = def.name.toLowerCase().includes(q);
         const matchesDesc = def.description.toLowerCase().includes(q);
-        const matchesCat = getPickerCategory(def).toLowerCase().includes(q);
-        if (!matchesName && !matchesDesc && !matchesCat) return false;
+        if (!matchesName && !matchesDesc) return false;
       }
 
       return true;
     });
-  }, [pickerComponents, parentType, searchQuery, activeTab]);
 
-  const groupedComponents = useMemo(() => CATEGORY_ORDER.map((category) => ({
-    ...category,
-    blocks: filteredComponents.filter((definition) => getPickerCategory(definition) === category.id),
-  })).filter((category) => category.blocks.length > 0), [filteredComponents]);
+    // Sort by priority order
+    return [...allowed].sort((a, b) => {
+      const orderA = BLOCK_ORDER_PRIORITY[a.nodeType] ?? 99;
+      const orderB = BLOCK_ORDER_PRIORITY[b.nodeType] ?? 99;
+      return orderA - orderB;
+    });
+  }, [parentType, searchQuery, selectedFilter]);
 
   if (!isFooterComponentPickerOpen) return null;
 
@@ -171,9 +164,6 @@ export const FooterComponentPicker: React.FC = () => {
 
     if (def.nodeType === 'group') {
       const isParentHorizontal = parentNode?.layout?.direction === 'horizontal';
-      // When added into a horizontal group (like the main footer row) or at root,
-      // the new group acts as a column. Columns should always stack children vertically
-      // by default so components added inside are vertically aligned, never squished horizontally!
       if (isParentHorizontal || !parentNode) {
         overrides = {
           layout: {
@@ -186,12 +176,7 @@ export const FooterComponentPicker: React.FC = () => {
       }
     }
 
-    const specialProps = def.name === 'Jumbo text'
-      ? { text: 'Your store name', level: 'h2', fontSize: 48, fontWeight: 700 }
-      : def.name === 'Follow on Shop'
-        ? { label: 'Follow on Shop', link: '/collections/all', variant: 'secondary' }
-        : undefined;
-    const newNode = createNodeFromDef(def, { ...overrides, name: def.name, ...(specialProps ? { props: specialProps } : {}) });
+    const newNode = createNodeFromDef(def, { ...overrides, name: def.name });
     addFooterTreeNode(newNode, footerPickerTargetParentId, footerPickerTargetIndex);
   };
 
@@ -201,11 +186,12 @@ export const FooterComponentPicker: React.FC = () => {
         position: 'fixed',
         inset: 0,
         zIndex: 999999,
-        backgroundColor: 'rgba(15, 23, 42, 0.25)',
+        backgroundColor: 'rgba(15, 23, 42, 0.35)',
+        backdropFilter: 'blur(2px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
+        padding: '20px',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) closeFooterComponentPicker();
@@ -214,10 +200,10 @@ export const FooterComponentPicker: React.FC = () => {
       <div
         style={{
           width: '100%',
-          maxWidth: '680px',
-          maxHeight: '85vh',
+          maxWidth: '580px',
+          maxHeight: '82vh',
           backgroundColor: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '14px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           display: 'flex',
           flexDirection: 'column',
@@ -228,7 +214,7 @@ export const FooterComponentPicker: React.FC = () => {
         {/* Header */}
         <div
           style={{
-            padding: '20px 24px',
+            padding: '16px 20px',
             borderBottom: '1px solid #f1f5f9',
             display: 'flex',
             alignItems: 'center',
@@ -239,7 +225,7 @@ export const FooterComponentPicker: React.FC = () => {
           <div>
             <h2
               style={{
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: 700,
                 color: '#0f172a',
                 margin: 0,
@@ -248,14 +234,15 @@ export const FooterComponentPicker: React.FC = () => {
                 gap: '8px',
               }}
             >
-              Add block
+              Add Block
               <span
                 style={{
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#64748b',
-                  backgroundColor: '#f1f5f9',
-                  padding: '2px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#2563eb',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  padding: '1.5px 8px',
                   borderRadius: '12px',
                 }}
               >
@@ -266,8 +253,8 @@ export const FooterComponentPicker: React.FC = () => {
           <button
             onClick={closeFooterComponentPicker}
             style={{
-              padding: '8px',
-              borderRadius: '8px',
+              padding: '6px',
+              borderRadius: '6px',
               border: 'none',
               background: '#f8fafc',
               color: '#64748b',
@@ -280,29 +267,29 @@ export const FooterComponentPicker: React.FC = () => {
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
-        {/* Search bar & Categories */}
-        <div style={{ padding: '14px 18px 12px', backgroundColor: '#fff', borderBottom: '1px solid #e4e7ec' }}>
+        {/* Search bar & Category filters */}
+        <div style={{ padding: '12px 18px', backgroundColor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
           {/* Search Input */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              backgroundColor: '#ffffff',
+              gap: '8px',
+              backgroundColor: '#f8fafc',
               border: '1px solid #cbd5e1',
               borderRadius: '8px',
-              padding: '7px 10px',
+              padding: '6px 10px',
               marginBottom: '10px',
             }}
           >
-            <Search size={16} color="#94a3b8" />
+            <Search size={15} color="#94a3b8" />
             <input
               type="text"
-              placeholder="Search blocks"
+              placeholder="Search footer blocks (group, logo, icon, button, links, map...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -310,7 +297,7 @@ export const FooterComponentPicker: React.FC = () => {
                 border: 'none',
                 outline: 'none',
                 width: '100%',
-                fontSize: '14px',
+                fontSize: '13px',
                 color: '#0f172a',
                 backgroundColor: 'transparent',
               }}
@@ -326,87 +313,169 @@ export const FooterComponentPicker: React.FC = () => {
                   padding: 0,
                 }}
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             )}
           </div>
 
-          {/* Shopify-style Blocks / Apps switch */}
-          <div role="tablist" aria-label="Block source" style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-            {(['blocks', 'apps'] as const).map((tab) => {
-              const active = activeTab === tab;
+          {/* Filter Pills */}
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {[
+              { id: 'all', label: 'All Blocks' },
+              { id: 'essential', label: 'Core (Group, Logo, Icon, Button)' },
+              { id: 'navigation', label: 'Navigation & Links' },
+              { id: 'info', label: 'Store Info & Map' },
+            ].map((f) => {
+              const active = selectedFilter === f.id;
               return (
                 <button
-                  key={tab}
+                  key={f.id}
                   type="button"
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => setSelectedFilter(f.id as any)}
                   style={{
-                    padding: '7px 14px',
-                    borderRadius: '7px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
                     border: active ? '1px solid #2563eb' : '1px solid #e2e8f0',
                     backgroundColor: active ? '#eff6ff' : '#ffffff',
                     color: active ? '#1d4ed8' : '#64748b',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: active ? 600 : 500,
                     cursor: 'pointer',
-                    textTransform: 'capitalize',
+                    transition: 'all 0.12s ease',
                   }}
                 >
-                  {tab === 'blocks' ? 'Blocks' : 'Apps'}
+                  {f.label}
                 </button>
               );
             })}
           </div>
-
         </div>
 
-        {/* Shopify-style grouped block list */}
+        {/* Ordered Block List */}
         <div
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '4px 18px 16px',
+            padding: '8px 16px 16px',
             display: 'flex',
             flexDirection: 'column',
-            maxHeight: '58vh',
+            gap: '6px',
+            maxHeight: '56vh',
           }}
         >
-          {filteredComponents.length === 0 ? (
+          {orderedComponents.length === 0 ? (
             <div
               style={{
-                padding: '44px 16px',
+                padding: '40px 16px',
                 textAlign: 'center',
                 color: '#94a3b8',
               }}
             >
-              <LayoutGrid size={30} style={{ margin: '0 auto 10px auto', opacity: 0.5 }} />
-              <p style={{ margin: '0 0 4px 0', fontSize: 14, fontWeight: 600, color: '#475569' }}>
-                {activeTab === 'apps' ? 'No app blocks available' : 'No blocks found'}
+              <LayoutGrid size={28} style={{ margin: '0 auto 8px auto', opacity: 0.5 }} />
+              <p style={{ margin: '0 0 4px 0', fontSize: 13, fontWeight: 600, color: '#475569' }}>
+                No matching blocks found
               </p>
-              <p style={{ margin: 0, fontSize: 12 }}>
-                {activeTab === 'apps' ? 'Installed apps can add footer blocks here.' : 'Try another search.'}
+              <p style={{ margin: 0, fontSize: 11.5 }}>
+                Try searching for another block name.
               </p>
             </div>
           ) : (
-            groupedComponents.map((group) => (
-              <section key={group.id} style={{ paddingTop: 12 }}>
-                <h3 style={{ margin: '0 0 6px', padding: '0 2px', color: '#475467', fontSize: 12, fontWeight: 600 }}>{group.label}</h3>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {group.blocks.map((def) => {
-                    const IconComp = ICON_MAP[def.icon] || LayoutGrid;
-                    return (
-                      <button key={`${def.nodeType}-${def.name}`} type="button" onClick={() => handleSelectComponent(def)} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 4px', border: 0, borderBottom: '1px solid #f2f4f7', background: '#fff', textAlign: 'left', color: '#202223', cursor: 'pointer' }}>
-                        <IconComp size={17} color="#475467" />
-                        <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{def.name}</span>
-                        <Plus size={15} color="#667085" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))
+            orderedComponents.map((def) => {
+              const IconComp = ICON_MAP[def.icon] || LayoutGrid;
+              const isTopPick = ['group', 'logo', 'icon', 'button', 'column-links', 'map-preview'].includes(def.nodeType);
+
+              return (
+                <button
+                  key={def.nodeType}
+                  type="button"
+                  onClick={() => handleSelectComponent(def)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: isTopPick ? '1px solid #e2e8f0' : '1px solid #f1f5f9',
+                    backgroundColor: isTopPick ? '#ffffff' : '#ffffff',
+                    textAlign: 'left',
+                    color: '#0f172a',
+                    cursor: 'pointer',
+                    transition: 'all 0.12s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f8fafc';
+                    e.currentTarget.style.borderColor = '#bfdbfe';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                    e.currentTarget.style.borderColor = isTopPick ? '#e2e8f0' : '#f1f5f9';
+                    e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '8px',
+                      backgroundColor: isTopPick ? '#eff6ff' : '#f8fafc',
+                      color: isTopPick ? '#2563eb' : '#64748b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <IconComp size={17} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                        {def.name}
+                      </span>
+                      {def.nodeType === 'column-links' && (
+                        <span style={{ fontSize: '9.5px', fontWeight: 700, backgroundColor: '#ecfdf5', color: '#047857', padding: '1px 5px', borderRadius: '3px' }}>
+                          Custom
+                        </span>
+                      )}
+                      {def.nodeType === 'map-preview' && (
+                        <span style={{ fontSize: '9.5px', fontWeight: 700, backgroundColor: '#fef3c7', color: '#b45309', padding: '1px 5px', borderRadius: '3px' }}>
+                          Real-time
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        color: '#64748b',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        marginTop: '1px',
+                      }}
+                    >
+                      {def.description}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#475569',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Plus size={14} />
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
 
@@ -414,28 +483,26 @@ export const FooterComponentPicker: React.FC = () => {
         <div
           style={{
             padding: '10px 18px',
-            backgroundColor: '#fff',
+            backgroundColor: '#f8fafc',
             borderTop: '1px solid #e4e7ec',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '12px',
+            fontSize: '11.5px',
             color: '#64748b',
           }}
         >
           <span>
-            {activeTab === 'apps'
-              ? 'No apps installed'
-              : `${filteredComponents.length} block${filteredComponents.length !== 1 ? 's' : ''} available`}
+            {orderedComponents.length} real-time block{orderedComponents.length !== 1 ? 's' : ''} available
           </span>
           <button
             onClick={closeFooterComponentPicker}
             style={{
-              padding: '6px 14px',
-              borderRadius: '8px',
+              padding: '5px 12px',
+              borderRadius: '6px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
-              fontSize: '12px',
+              fontSize: '11.5px',
               fontWeight: 500,
               color: '#475569',
               cursor: 'pointer',

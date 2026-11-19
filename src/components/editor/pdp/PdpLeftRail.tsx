@@ -1192,8 +1192,8 @@ export const PdpLeftRail: React.FC = () => {
   }>({
     top: 90,
     left: 60,
-    width: 530,
-    maxHeight: 520,
+    width: 320,
+    maxHeight: 460,
   });
 
   const updateWidgetPosition = () => {
@@ -1201,21 +1201,21 @@ export const PdpLeftRail: React.FC = () => {
     const rect = triggerButtonRef.current.getBoundingClientRect();
     const screenW = window.innerWidth;
     const screenH = window.innerHeight;
-    const targetWidth = Math.min(530, screenW - 24);
+    const targetWidth = Math.min(320, screenW - 24);
 
     let left = rect.left;
     if (left + targetWidth > screenW - 16) {
       left = Math.max(12, screenW - targetWidth - 16);
     }
 
-    let top = rect.bottom + 6;
+    let top = rect.bottom + 4;
     let spaceBelow = screenH - top - 16;
-    if (spaceBelow < 260 && rect.top > 320) {
-      top = Math.max(12, rect.top - 520);
+    if (spaceBelow < 240 && rect.top > 300) {
+      top = Math.max(12, rect.top - 440);
       spaceBelow = rect.top - 20;
     }
 
-    const maxHeight = Math.max(320, Math.min(540, spaceBelow));
+    const maxHeight = Math.max(280, Math.min(480, spaceBelow));
 
     setWidgetCoords({
       top,
@@ -1371,104 +1371,92 @@ export const PdpLeftRail: React.FC = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* ── Top Single Template Dropdown Bar ── */}
+      {/* ── Top Single Template Dropdown Bar (Minimal & Professional) ── */}
       <div
         style={{
           position: 'relative',
-          padding: '12px 14px',
+          padding: '8px 10px',
           borderBottom: '1px solid #e2e8f0',
           background: '#ffffff',
           boxSizing: 'border-box',
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button
+          ref={triggerButtonRef}
+          type="button"
+          onClick={() => {
+            setIsWidgetOpen((prev) => !prev);
+            setWidgetView('templates');
+            setViewingTemplateId(activeTemplateId);
+            setSearchQuery('');
+            setIsCreatingTemplate(false);
+          }}
+          style={{
+            width: '100%',
+            height: '32px',
+            padding: '0 8px',
+            borderRadius: '6px',
+            border: isWidgetOpen ? '1px solid #2563eb' : '1px solid #e2e8f0',
+            background: isWidgetOpen ? '#eff6ff' : '#ffffff',
+            color: '#0f172a',
+            fontSize: '12px',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: isWidgetOpen ? '0 0 0 2px rgba(37,99,235,0.1)' : 'none',
+            transition: 'all 0.12s ease',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, overflow: 'hidden' }}>
+            <Layout size={13} color="#2563eb" style={{ flexShrink: 0 }} />
             <span
               style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                color: '#64748b',
-                letterSpacing: '0.05em',
-                userSelect: 'none',
-              }}
-            >
-              Template
-            </span>
-            <span
-              style={{
-                fontSize: '11px',
-                color: activeTemplate.isDefault ? '#1d4ed8' : '#047857',
-                background: activeTemplate.isDefault ? '#eff6ff' : '#ecfdf5',
-                border: activeTemplate.isDefault ? '1px solid #bfdbfe' : '1px solid #a7f3d0',
-                padding: '1.5px 7px',
-                borderRadius: '4px',
                 fontWeight: 600,
+                color: '#0f172a',
+                fontSize: '12px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
+              title={activeTemplate.name}
             >
-              {activeTemplate.isDefault ? 'Default' : 'Custom'}
+              {activeTemplate.name}
             </span>
-          </div>
-
-          <button
-            ref={triggerButtonRef}
-            type="button"
-            onClick={() => {
-              setIsWidgetOpen((prev) => !prev);
-              setWidgetView('templates');
-              setViewingTemplateId(activeTemplateId);
-              setSearchQuery('');
-              setIsCreatingTemplate(false);
-            }}
-            style={{
-              width: '100%',
-              minHeight: '38px',
-              padding: '0 12px',
-              borderRadius: '8px',
-              border: isWidgetOpen ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#0f172a',
-              fontSize: '13.5px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxShadow: isWidgetOpen ? '0 0 0 3px rgba(37,99,235,0.18)' : '0 1px 2px rgba(0,0,0,0.03)',
-              transition: 'all 0.15s ease',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-              <Layout size={16} color="#2563eb" style={{ flexShrink: 0 }} />
+            {!activeTemplate.isDefault && (
               <span
                 style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  fontSize: '13.5px',
-                  color: '#0f172a',
+                  fontSize: '9px',
+                  fontWeight: 600,
+                  color: '#047857',
+                  background: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  padding: '1px 4px',
+                  borderRadius: '3px',
+                  flexShrink: 0,
                 }}
-                title={activeTemplate.name}
               >
-                {activeTemplate.name}
+                Custom
               </span>
-            </div>
-            <ChevronDown
-              size={15}
-              color="#64748b"
-              style={{
-                flexShrink: 0,
-                transform: isWidgetOpen ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.15s ease',
-              }}
-            />
-          </button>
-        </div>
+            )}
+          </div>
+          <ChevronDown
+            size={13}
+            color="#64748b"
+            style={{
+              flexShrink: 0,
+              transform: isWidgetOpen ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.15s ease',
+              marginLeft: '4px',
+            }}
+          />
+        </button>
       </div>
 
-      {/* ── Spacious Floating Template & Assigned Products Widget (Portal) ── */}
+      {/* ── Minimal & Professional Floating Template Widget (Portal) ── */}
       {isWidgetOpen &&
         createPortal(
           <>
@@ -1478,8 +1466,7 @@ export const PdpLeftRail: React.FC = () => {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99998,
-                backgroundColor: 'rgba(15, 23, 42, 0.14)',
-                backdropFilter: 'blur(0.5px)',
+                backgroundColor: 'rgba(15, 23, 42, 0.12)',
               }}
               onClick={() => {
                 setIsWidgetOpen(false);
@@ -1487,7 +1474,7 @@ export const PdpLeftRail: React.FC = () => {
               }}
             />
 
-            {/* Floating Widget Container — extends outside narrow left rail */}
+            {/* Floating Widget Container — compact and aligned */}
             <div
               style={{
                 position: 'fixed',
@@ -1497,10 +1484,9 @@ export const PdpLeftRail: React.FC = () => {
                 maxHeight: `${widgetCoords.maxHeight}px`,
                 zIndex: 99999,
                 backgroundColor: '#ffffff',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 border: '1px solid #cbd5e1',
-                boxShadow:
-                  '0 20px 45px -10px rgba(15, 23, 42, 0.28), 0 10px 20px -5px rgba(15, 23, 42, 0.12)',
+                boxShadow: '0 12px 30px -5px rgba(15, 23, 42, 0.20), 0 4px 10px -2px rgba(15, 23, 42, 0.08)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
@@ -1514,7 +1500,7 @@ export const PdpLeftRail: React.FC = () => {
                   {/* Header */}
                   <div
                     style={{
-                      padding: '12px 16px',
+                      padding: '10px 12px',
                       borderBottom: '1px solid #f1f5f9',
                       display: 'flex',
                       alignItems: 'center',
@@ -1523,69 +1509,41 @@ export const PdpLeftRail: React.FC = () => {
                       flexShrink: 0,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '8px',
-                          backgroundColor: '#eff6ff',
-                          color: '#2563eb',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Layout size={18} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
-                          PDP Templates
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          Assign custom page layouts to specific products or use the default store template
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Layout size={15} color="#2563eb" />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>
+                        PDP Templates
+                      </span>
                       <span
                         style={{
-                          fontSize: '11px',
+                          fontSize: '10px',
                           fontWeight: 600,
-                          color: '#475569',
+                          color: '#64748b',
                           backgroundColor: '#e2e8f0',
-                          padding: '2px 8px',
+                          padding: '1px 6px',
                           borderRadius: '9999px',
                         }}
                       >
-                        {templates.length} {templates.length === 1 ? 'template' : 'templates'}
+                        {templates.length}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsWidgetOpen(false)}
-                        style={{
-                          border: 'none',
-                          background: 'none',
-                          cursor: 'pointer',
-                          padding: '6px',
-                          color: '#64748b',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'background 0.12s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#e2e8f0';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsWidgetOpen(false)}
+                      style={{
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: '#64748b',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
 
                   {/* Templates List */}
@@ -1593,10 +1551,10 @@ export const PdpLeftRail: React.FC = () => {
                     style={{
                       flex: 1,
                       overflowY: 'auto',
-                      padding: '12px 14px',
+                      padding: '8px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '8px',
+                      gap: '5px',
                     }}
                   >
                     {templates.map((t) => {
@@ -1614,35 +1572,32 @@ export const PdpLeftRail: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '12px 14px',
-                            borderRadius: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '6px',
                             cursor: 'pointer',
-                            backgroundColor: isCurrentActive ? '#f0f7ff' : '#ffffff',
-                            border: isCurrentActive ? '1.5px solid #3b82f6' : '1px solid #e2e8f0',
-                            boxShadow: isCurrentActive ? '0 2px 8px rgba(37,99,235,0.08)' : '0 1px 2px rgba(0,0,0,0.02)',
-                            transition: 'all 0.15s ease',
+                            backgroundColor: isCurrentActive ? '#eff6ff' : '#ffffff',
+                            border: isCurrentActive ? '1px solid #bfdbfe' : '1px solid #f1f5f9',
+                            transition: 'all 0.12s ease',
                           }}
                           onMouseEnter={(e) => {
                             if (!isCurrentActive) {
                               e.currentTarget.style.backgroundColor = '#f8fafc';
-                              e.currentTarget.style.borderColor = '#cbd5e1';
-                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isCurrentActive) {
                               e.currentTarget.style.backgroundColor = '#ffffff';
-                              e.currentTarget.style.borderColor = '#e2e8f0';
-                              e.currentTarget.style.transform = 'none';
+                              e.currentTarget.style.borderColor = '#f1f5f9';
                             }
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                             <div
                               style={{
-                                width: '38px',
-                                height: '38px',
-                                borderRadius: '8px',
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '5px',
                                 backgroundColor: isCurrentActive ? '#dbeafe' : '#f1f5f9',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1650,14 +1605,14 @@ export const PdpLeftRail: React.FC = () => {
                                 flexShrink: 0,
                               }}
                             >
-                              <Layout size={19} color={isCurrentActive ? '#2563eb' : '#64748b'} />
+                              <Layout size={14} color={isCurrentActive ? '#2563eb' : '#64748b'} />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 <span
                                   style={{
-                                    fontSize: '13.5px',
-                                    fontWeight: 700,
+                                    fontSize: '12.5px',
+                                    fontWeight: 600,
                                     color: isCurrentActive ? '#1e40af' : '#0f172a',
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
@@ -1669,43 +1624,21 @@ export const PdpLeftRail: React.FC = () => {
                                 {t.isDefault && (
                                   <span
                                     style={{
-                                      fontSize: '10.5px',
-                                      fontWeight: 700,
+                                      fontSize: '9.5px',
+                                      fontWeight: 600,
                                       backgroundColor: '#dbeafe',
                                       color: '#1d4ed8',
-                                      padding: '1.5px 6px',
-                                      borderRadius: '4px',
+                                      padding: '1px 4px',
+                                      borderRadius: '3px',
                                     }}
                                   >
                                     Default
                                   </span>
                                 )}
-                                {isCurrentActive && (
-                                  <span
-                                    style={{
-                                      fontSize: '10.5px',
-                                      fontWeight: 600,
-                                      backgroundColor: '#dcfce7',
-                                      color: '#15803d',
-                                      padding: '1.5px 6px',
-                                      borderRadius: '4px',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                    }}
-                                  >
-                                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
-                                    Active in Editor
-                                  </span>
-                                )}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: '#64748b' }}>
-                                <span>
-                                  📦 {t.isDefault ? `${assigned.length} products (all by default)` : `${assigned.length} assigned product${assigned.length === 1 ? '' : 's'}`}
-                                </span>
-                                <span>•</span>
-                                <span>🧩 {t.blocks.length} blocks</span>
-                              </div>
+                              <span style={{ fontSize: '10.5px', color: '#64748b' }}>
+                                {t.isDefault ? `${assigned.length} products (all)` : `${assigned.length} product${assigned.length === 1 ? '' : 's'}`}
+                              </span>
                             </div>
                           </div>
 
@@ -1713,40 +1646,37 @@ export const PdpLeftRail: React.FC = () => {
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '4px',
                               color: isCurrentActive ? '#2563eb' : '#94a3b8',
-                              fontSize: '12px',
-                              fontWeight: 600,
+                              fontSize: '11px',
+                              fontWeight: 500,
                               flexShrink: 0,
                             }}
                           >
-                            <span>Assigned products</span>
-                            <ChevronRight size={16} />
+                            <span>Products</span>
+                            <ChevronRight size={13} />
                           </div>
                         </div>
                       );
                     })}
 
-                    {/* Add Template Section Below Default Template */}
+                    {/* Add Template Section */}
                     {isCreatingTemplate ? (
                       <div
                         style={{
-                          padding: '14px',
+                          padding: '10px',
                           backgroundColor: '#f8fafc',
-                          borderRadius: '10px',
-                          border: '1.5px solid #93c5fd',
+                          borderRadius: '6px',
+                          border: '1px solid #bfdbfe',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '10px',
-                          marginTop: '4px',
+                          gap: '8px',
+                          marginTop: '2px',
                         }}
                       >
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>
-                          Create New Template
-                        </div>
                         <input
                           type="text"
-                          placeholder="Enter template name (e.g. Footwear Template, Electronics PDP)..."
+                          placeholder="Template name..."
                           value={newTemplateName}
                           autoFocus
                           onChange={(e) => setNewTemplateName(e.target.value)}
@@ -1764,62 +1694,56 @@ export const PdpLeftRail: React.FC = () => {
                           }}
                           style={{
                             width: '100%',
-                            padding: '8px 10px',
-                            fontSize: '13px',
-                            borderRadius: '6px',
+                            padding: '6px 8px',
+                            fontSize: '12px',
+                            borderRadius: '4px',
                             border: '1px solid #cbd5e1',
                             outline: 'none',
                             boxSizing: 'border-box',
                           }}
                         />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '11px', color: '#64748b' }}>
-                            Initialized with standard product information & template sections
-                          </span>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setIsCreatingTemplate(false);
-                                setNewTemplateName('');
-                              }}
-                              style={{
-                                padding: '6px 12px',
-                                fontSize: '12px',
-                                fontWeight: 500,
-                                borderRadius: '6px',
-                                border: '1px solid #cbd5e1',
-                                backgroundColor: '#ffffff',
-                                color: '#475569',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!newTemplateName.trim()) return;
-                                const newId = createTemplate(newTemplateName.trim());
-                                setViewingTemplateId(newId);
-                                setWidgetView('products');
-                                setIsCreatingTemplate(false);
-                                setNewTemplateName('');
-                              }}
-                              style={{
-                                padding: '6px 14px',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                                borderRadius: '6px',
-                                border: 'none',
-                                backgroundColor: '#2563eb',
-                                color: '#ffffff',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Create Template
-                            </button>
-                          </div>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCreatingTemplate(false);
+                              setNewTemplateName('');
+                            }}
+                            style={{
+                              padding: '4px 10px',
+                              fontSize: '11px',
+                              borderRadius: '4px',
+                              border: '1px solid #cbd5e1',
+                              backgroundColor: '#ffffff',
+                              color: '#475569',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!newTemplateName.trim()) return;
+                              const newId = createTemplate(newTemplateName.trim());
+                              setViewingTemplateId(newId);
+                              setWidgetView('products');
+                              setIsCreatingTemplate(false);
+                              setNewTemplateName('');
+                            }}
+                            style={{
+                              padding: '4px 12px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '4px',
+                              border: 'none',
+                              backgroundColor: '#2563eb',
+                              color: '#ffffff',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Create
+                          </button>
                         </div>
                       </div>
                     ) : (
@@ -1834,28 +1758,26 @@ export const PdpLeftRail: React.FC = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '8px',
-                          padding: '11px',
-                          borderRadius: '8px',
-                          border: '1.5px dashed #cbd5e1',
+                          gap: '6px',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px dashed #cbd5e1',
                           backgroundColor: '#f8fafc',
                           color: '#2563eb',
-                          fontSize: '13px',
+                          fontSize: '12px',
                           fontWeight: 600,
                           cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          marginTop: '4px',
+                          transition: 'all 0.12s ease',
+                          marginTop: '2px',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = '#eff6ff';
-                          e.currentTarget.style.borderColor = '#93c5fd';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = '#f8fafc';
-                          e.currentTarget.style.borderColor = '#cbd5e1';
                         }}
                       >
-                        <Plus size={16} />
+                        <Plus size={14} />
                         <span>Add template</span>
                       </button>
                     )}
@@ -1869,7 +1791,7 @@ export const PdpLeftRail: React.FC = () => {
                   {/* Header */}
                   <div
                     style={{
-                      padding: '12px 16px',
+                      padding: '8px 10px',
                       borderBottom: '1px solid #f1f5f9',
                       display: 'flex',
                       alignItems: 'center',
@@ -1878,67 +1800,43 @@ export const PdpLeftRail: React.FC = () => {
                       flexShrink: 0,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                       <button
                         type="button"
                         onClick={() => setWidgetView('templates')}
                         style={{
-                          border: '1px solid #e2e8f0',
-                          backgroundColor: '#ffffff',
+                          border: 'none',
+                          background: 'none',
                           cursor: 'pointer',
-                          padding: '6px',
+                          padding: '4px',
                           color: '#475569',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '6px',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f1f5f9';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ffffff';
+                          borderRadius: '4px',
                         }}
                         title="Back to templates"
                       >
-                        <ArrowLeft size={16} />
+                        <ArrowLeft size={14} />
                       </button>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span
-                            style={{
-                              fontSize: '14px',
-                              fontWeight: 700,
-                              color: '#0f172a',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {viewingTemplate.name}
-                          </span>
-                          {viewingTemplate.isDefault && (
-                            <span
-                              style={{
-                                fontSize: '10.5px',
-                                fontWeight: 600,
-                                backgroundColor: '#dbeafe',
-                                color: '#1d4ed8',
-                                padding: '1px 6px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              Default
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          {viewingAssignedProducts.length} assigned product{viewingAssignedProducts.length === 1 ? '' : 's'} • Click any product to load in editor
-                        </div>
+                        <span
+                          style={{
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            color: '#0f172a',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {viewingTemplate.name}
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#64748b', marginLeft: '6px' }}>
+                          ({viewingAssignedProducts.length})
+                        </span>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <button
                         type="button"
                         onClick={() => {
@@ -1948,26 +1846,19 @@ export const PdpLeftRail: React.FC = () => {
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          padding: '6px 12px',
-                          fontSize: '12px',
+                          gap: '4px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
                           fontWeight: 600,
-                          borderRadius: '6px',
+                          borderRadius: '4px',
                           border: '1px solid #bfdbfe',
                           backgroundColor: '#eff6ff',
                           color: '#2563eb',
                           cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dbeafe';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#eff6ff';
                         }}
                       >
-                        <Plus size={13} />
-                        <span>Assign products</span>
+                        <Plus size={11} />
+                        <span>Assign</span>
                       </button>
                       <button
                         type="button"
@@ -1976,33 +1867,29 @@ export const PdpLeftRail: React.FC = () => {
                           border: 'none',
                           background: 'none',
                           cursor: 'pointer',
-                          padding: '6px',
+                          padding: '4px',
                           color: '#64748b',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
                         }}
                       >
-                        <X size={16} />
+                        <X size={14} />
                       </button>
                     </div>
                   </div>
 
                   {/* Search Bar */}
-                  <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
+                  <div style={{ padding: '6px 8px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <Search size={15} style={{ position: 'absolute', left: '11px', color: '#94a3b8' }} />
+                      <Search size={13} style={{ position: 'absolute', left: '8px', color: '#94a3b8' }} />
                       <input
                         type="text"
-                        placeholder="Search assigned products by title, SKU, or category..."
+                        placeholder="Search products..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
                           width: '100%',
-                          padding: '8px 30px 8px 34px',
-                          fontSize: '12.5px',
-                          borderRadius: '7px',
+                          padding: '5px 24px 5px 26px',
+                          fontSize: '11.5px',
+                          borderRadius: '5px',
                           border: '1px solid #cbd5e1',
                           outline: 'none',
                           boxSizing: 'border-box',
@@ -2014,15 +1901,15 @@ export const PdpLeftRail: React.FC = () => {
                           onClick={() => setSearchQuery('')}
                           style={{
                             position: 'absolute',
-                            right: '8px',
+                            right: '6px',
                             border: 'none',
                             background: 'none',
                             cursor: 'pointer',
-                            padding: '4px',
+                            padding: '2px',
                             color: '#94a3b8',
                           }}
                         >
-                          <X size={13} />
+                          <X size={11} />
                         </button>
                       )}
                     </div>
@@ -2033,69 +1920,15 @@ export const PdpLeftRail: React.FC = () => {
                     style={{
                       flex: 1,
                       overflowY: 'auto',
-                      padding: '10px 14px',
+                      padding: '6px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '6px',
+                      gap: '4px',
                     }}
                   >
                     {filteredAssignedProducts.length === 0 ? (
-                      <div
-                        style={{
-                          padding: '36px 16px',
-                          textAlign: 'center',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '10px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '50%',
-                            backgroundColor: '#f1f5f9',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#94a3b8',
-                          }}
-                        >
-                          <Package size={22} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
-                            {searchQuery ? 'No products match your search' : 'No products assigned to this template'}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
-                            {searchQuery
-                              ? 'Try searching by a different name, category or SKU.'
-                              : 'Assign catalog products so they render using this custom layout.'}
-                          </div>
-                        </div>
-                        {!searchQuery && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setWidgetView('assign-products');
-                              setSearchQuery('');
-                            }}
-                            style={{
-                              padding: '7px 16px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              borderRadius: '6px',
-                              border: 'none',
-                              backgroundColor: '#2563eb',
-                              color: '#ffffff',
-                              cursor: 'pointer',
-                              marginTop: '4px',
-                            }}
-                          >
-                            Assign Products Now
-                          </button>
-                        )}
+                      <div style={{ padding: '24px 10px', textAlign: 'center', color: '#64748b', fontSize: '11.5px' }}>
+                        {searchQuery ? 'No matching products.' : 'No products assigned yet.'}
                       </div>
                     ) : (
                       filteredAssignedProducts.map((p) => {
@@ -2112,165 +1945,81 @@ export const PdpLeftRail: React.FC = () => {
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '12px',
-                              padding: '10px 12px',
-                              borderRadius: '8px',
+                              gap: '8px',
+                              padding: '6px 8px',
+                              borderRadius: '5px',
                               cursor: 'pointer',
                               backgroundColor: isCurrentPreview ? '#eff6ff' : '#ffffff',
-                              border: isCurrentPreview ? '1.5px solid #60a5fa' : '1px solid #e2e8f0',
-                              boxShadow: isCurrentPreview ? '0 2px 6px rgba(37,99,235,0.06)' : 'none',
-                              transition: 'all 0.15s ease',
+                              border: isCurrentPreview ? '1px solid #bfdbfe' : '1px solid #f1f5f9',
+                              transition: 'all 0.1s ease',
                             }}
                             onMouseEnter={(e) => {
-                              if (!isCurrentPreview) {
-                                e.currentTarget.style.backgroundColor = '#f8fafc';
-                                e.currentTarget.style.borderColor = '#cbd5e1';
-                              }
+                              if (!isCurrentPreview) e.currentTarget.style.backgroundColor = '#f8fafc';
                             }}
                             onMouseLeave={(e) => {
-                              if (!isCurrentPreview) {
-                                e.currentTarget.style.backgroundColor = '#ffffff';
-                                e.currentTarget.style.borderColor = '#e2e8f0';
-                              }
+                              if (!isCurrentPreview) e.currentTarget.style.backgroundColor = '#ffffff';
                             }}
                           >
                             <img
-                              src={p.images[0] || 'https://via.placeholder.com/48'}
+                              src={p.images[0] || 'https://via.placeholder.com/32'}
                               alt={p.name}
                               style={{
-                                width: '44px',
-                                height: '44px',
-                                borderRadius: '6px',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '4px',
                                 objectFit: 'cover',
                                 border: '1px solid #e2e8f0',
                                 flexShrink: 0,
-                                backgroundColor: '#f8fafc',
                               }}
                             />
-                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span
-                                  style={{
-                                    fontSize: '13px',
-                                    fontWeight: 600,
-                                    color: isCurrentPreview ? '#1d4ed8' : '#0f172a',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                  }}
-                                  title={p.name}
-                                >
-                                  {p.name}
-                                </span>
-                                {isCurrentPreview && (
-                                  <span
-                                    style={{
-                                      fontSize: '10px',
-                                      color: '#16a34a',
-                                      backgroundColor: '#dcfce7',
-                                      padding: '1.5px 6px',
-                                      borderRadius: '4px',
-                                      fontWeight: 700,
-                                      flexShrink: 0,
-                                    }}
-                                  >
-                                    Active Preview
-                                  </span>
-                                )}
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#64748b' }}>
-                                <span style={{ fontWeight: 600, color: '#0f172a' }}>${p.price.toFixed(2)}</span>
-                                {p.compareAtPrice && (
-                                  <span style={{ textDecoration: 'line-through', color: '#94a3b8' }}>
-                                    ${p.compareAtPrice.toFixed(2)}
-                                  </span>
-                                )}
-                                <span>•</span>
-                                <span>{p.category || 'General'}</span>
-                                {p.sku && (
-                                  <>
-                                    <span>•</span>
-                                    <span>SKU: {p.sku}</span>
-                                  </>
-                                )}
-                              </div>
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                              <span
+                                style={{
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: isCurrentPreview ? '#1d4ed8' : '#0f172a',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                                title={p.name}
+                              >
+                                {p.name}
+                              </span>
+                              <span style={{ fontSize: '10.5px', color: '#64748b' }}>
+                                ${p.price.toFixed(2)} • {p.category || 'General'}
+                              </span>
                             </div>
-                            <div
-                              style={{
-                                fontSize: '11.5px',
-                                fontWeight: 600,
-                                color: isCurrentPreview ? '#2563eb' : '#64748b',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <span>{isCurrentPreview ? 'Editing' : 'Load in preview'}</span>
-                              <ChevronRight size={14} />
-                            </div>
+                            {isCurrentPreview && (
+                              <span
+                                style={{
+                                  fontSize: '9.5px',
+                                  color: '#16a34a',
+                                  backgroundColor: '#dcfce7',
+                                  padding: '1px 5px',
+                                  borderRadius: '3px',
+                                  fontWeight: 600,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                Active
+                              </span>
+                            )}
                           </div>
                         );
                       })
                     )}
                   </div>
-
-                  {/* Bottom Action Bar */}
-                  <div
-                    style={{
-                      padding: '10px 16px',
-                      borderTop: '1px solid #f1f5f9',
-                      backgroundColor: '#f8fafc',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-                      Showing {filteredAssignedProducts.length} of {viewingAssignedProducts.length} assigned products
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setWidgetView('assign-products');
-                        setSearchQuery('');
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        padding: '6px 14px',
-                        borderRadius: '6px',
-                        border: '1px solid #2563eb',
-                        backgroundColor: '#ffffff',
-                        color: '#2563eb',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#eff6ff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                      }}
-                    >
-                      <Plus size={14} />
-                      <span>Assign new products</span>
-                    </button>
-                  </div>
                 </div>
               )}
 
-              {/* 3. ASSIGN NEW PRODUCTS TO TEMPLATE VIEW */}
+              {/* 3. ASSIGN PRODUCTS VIEW */}
               {widgetView === 'assign-products' && (
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', maxHeight: `${widgetCoords.maxHeight}px` }}>
                   {/* Header */}
                   <div
                     style={{
-                      padding: '12px 16px',
+                      padding: '8px 10px',
                       borderBottom: '1px solid #f1f5f9',
                       display: 'flex',
                       alignItems: 'center',
@@ -2279,7 +2028,7 @@ export const PdpLeftRail: React.FC = () => {
                       flexShrink: 0,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                       <button
                         type="button"
                         onClick={() => {
@@ -2287,34 +2036,22 @@ export const PdpLeftRail: React.FC = () => {
                           setSearchQuery('');
                         }}
                         style={{
-                          border: '1px solid #e2e8f0',
-                          backgroundColor: '#ffffff',
+                          border: 'none',
+                          background: 'none',
                           cursor: 'pointer',
-                          padding: '6px',
+                          padding: '4px',
                           color: '#475569',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '6px',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f1f5f9';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ffffff';
                         }}
                         title="Back to assigned products"
                       >
-                        <ArrowLeft size={16} />
+                        <ArrowLeft size={14} />
                       </button>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
-                          Assign Products
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>
-                          Target Template: <strong style={{ color: '#0f172a' }}>{viewingTemplate.name}</strong>
-                        </div>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>
+                          Assign to {viewingTemplate.name}
+                        </span>
                       </div>
                     </div>
                     <button
@@ -2324,51 +2061,33 @@ export const PdpLeftRail: React.FC = () => {
                         border: 'none',
                         background: 'none',
                         cursor: 'pointer',
-                        padding: '6px',
+                        padding: '4px',
                         color: '#64748b',
-                        borderRadius: '6px',
                       }}
                     >
-                      <X size={16} />
+                      <X size={14} />
                     </button>
                   </div>
 
                   {/* Search Bar */}
-                  <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
+                  <div style={{ padding: '6px 8px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#ffffff', flexShrink: 0 }}>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <Search size={15} style={{ position: 'absolute', left: '11px', color: '#94a3b8' }} />
+                      <Search size={13} style={{ position: 'absolute', left: '8px', color: '#94a3b8' }} />
                       <input
                         type="text"
-                        placeholder="Search store catalogue by title, category, or SKU..."
+                        placeholder="Search all products..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{
                           width: '100%',
-                          padding: '8px 30px 8px 34px',
-                          fontSize: '12.5px',
-                          borderRadius: '7px',
+                          padding: '5px 24px 5px 26px',
+                          fontSize: '11.5px',
+                          borderRadius: '5px',
                           border: '1px solid #cbd5e1',
                           outline: 'none',
                           boxSizing: 'border-box',
                         }}
                       />
-                      {searchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setSearchQuery('')}
-                          style={{
-                            position: 'absolute',
-                            right: '8px',
-                            border: 'none',
-                            background: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            color: '#94a3b8',
-                          }}
-                        >
-                          <X size={13} />
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -2377,10 +2096,10 @@ export const PdpLeftRail: React.FC = () => {
                     style={{
                       flex: 1,
                       overflowY: 'auto',
-                      padding: '10px 14px',
+                      padding: '6px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '6px',
+                      gap: '4px',
                     }}
                   >
                     {filteredAllProducts.map((p) => {
@@ -2393,31 +2112,29 @@ export const PdpLeftRail: React.FC = () => {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
-                            padding: '10px 12px',
-                            borderRadius: '8px',
+                            gap: '8px',
+                            padding: '6px 8px',
+                            borderRadius: '5px',
                             backgroundColor: isAlreadyAssigned ? '#f8fafc' : '#ffffff',
-                            border: isAlreadyAssigned ? '1px solid #e2e8f0' : '1px solid #e2e8f0',
-                            transition: 'all 0.15s ease',
+                            border: '1px solid #f1f5f9',
                           }}
                         >
                           <img
-                            src={p.images[0] || 'https://via.placeholder.com/48'}
+                            src={p.images[0] || 'https://via.placeholder.com/32'}
                             alt={p.name}
                             style={{
-                              width: '44px',
-                              height: '44px',
-                              borderRadius: '6px',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '4px',
                               objectFit: 'cover',
                               border: '1px solid #e2e8f0',
                               flexShrink: 0,
-                              backgroundColor: '#f8fafc',
                             }}
                           />
-                          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                             <span
                               style={{
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 color: '#0f172a',
                                 whiteSpace: 'nowrap',
@@ -2428,31 +2145,23 @@ export const PdpLeftRail: React.FC = () => {
                             >
                               {p.name}
                             </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#64748b' }}>
-                              <span>${p.price.toFixed(2)}</span>
-                              <span>•</span>
-                              <span>
-                                Currently using:{' '}
-                                <strong style={{ color: '#334155', fontWeight: 600 }}>{currentTmpl.name}</strong>
-                              </span>
-                            </div>
+                            <span style={{ fontSize: '10.5px', color: '#64748b' }}>
+                              In: {currentTmpl.name}
+                            </span>
                           </div>
                           {isAlreadyAssigned ? (
                             <span
                               style={{
-                                fontSize: '11.5px',
+                                fontSize: '10.5px',
                                 color: '#16a34a',
-                                backgroundColor: '#dcfce7',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px',
+                                gap: '3px',
                                 fontWeight: 600,
                                 flexShrink: 0,
                               }}
                             >
-                              <Check size={14} />
+                              <Check size={12} />
                               <span>Assigned</span>
                             </span>
                           ) : (
@@ -2460,24 +2169,15 @@ export const PdpLeftRail: React.FC = () => {
                               type="button"
                               onClick={() => handleInitiateAssign(p)}
                               style={{
-                                padding: '6px 14px',
-                                fontSize: '12px',
+                                padding: '3px 9px',
+                                fontSize: '11px',
                                 fontWeight: 600,
-                                borderRadius: '6px',
+                                borderRadius: '4px',
                                 border: '1px solid #2563eb',
                                 backgroundColor: '#eff6ff',
                                 color: '#2563eb',
                                 cursor: 'pointer',
                                 flexShrink: 0,
-                                transition: 'all 0.15s ease',
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#2563eb';
-                                e.currentTarget.style.color = '#ffffff';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#eff6ff';
-                                e.currentTarget.style.color = '#2563eb';
                               }}
                             >
                               Assign
@@ -2503,8 +2203,8 @@ export const PdpLeftRail: React.FC = () => {
               position: 'fixed',
               inset: 0,
               zIndex: 100000,
-              backgroundColor: 'rgba(15, 23, 42, 0.48)',
-              backdropFilter: 'blur(2px)',
+              backgroundColor: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(1px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -2524,22 +2224,22 @@ export const PdpLeftRail: React.FC = () => {
             <div
               style={{
                 width: '100%',
-                maxWidth: '440px',
+                maxWidth: '360px',
                 backgroundColor: '#ffffff',
-                borderRadius: '14px',
-                padding: '24px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                borderRadius: '10px',
+                padding: '18px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15)',
                 border: '1px solid #e2e8f0',
                 boxSizing: 'border-box',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <div
                   style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '10px',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
                     backgroundColor: '#fef3c7',
                     display: 'flex',
                     alignItems: 'center',
@@ -2548,23 +2248,21 @@ export const PdpLeftRail: React.FC = () => {
                     flexShrink: 0,
                   }}
                 >
-                  <AlertCircle size={22} />
+                  <AlertCircle size={18} />
                 </div>
                 <div>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                    Reassign Product Template?
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                    Reassign Product?
                   </h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
-                    Product <strong style={{ color: '#0f172a' }}>"{reassignModal.product.name}"</strong> is currently using{' '}
-                    <strong style={{ color: '#0f172a' }}>"{reassignModal.sourceTemplateName}"</strong>.
-                  </p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.5 }}>
-                    Are you sure you want to assign it to <strong style={{ color: '#2563eb' }}>"{reassignModal.targetTemplateName}"</strong>? Shoppers viewing this product will see this new custom template layout.
-                  </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <p style={{ margin: '0 0 14px 0', fontSize: '12.5px', color: '#475569', lineHeight: 1.5 }}>
+                Assign <strong style={{ color: '#0f172a' }}>"{reassignModal.product.name}"</strong> to{' '}
+                <strong style={{ color: '#2563eb' }}>"{reassignModal.targetTemplateName}"</strong>? It will use this custom layout in the store.
+              </p>
+
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   onClick={() =>
@@ -2577,21 +2275,14 @@ export const PdpLeftRail: React.FC = () => {
                     })
                   }
                   style={{
-                    padding: '8px 16px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    borderRadius: '7px',
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    borderRadius: '5px',
                     border: '1px solid #cbd5e1',
                     backgroundColor: '#ffffff',
                     color: '#475569',
                     cursor: 'pointer',
-                    transition: 'background 0.12s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ffffff';
                   }}
                 >
                   Cancel
@@ -2600,25 +2291,17 @@ export const PdpLeftRail: React.FC = () => {
                   type="button"
                   onClick={handleConfirmReassign}
                   style={{
-                    padding: '8px 18px',
-                    fontSize: '13px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
                     fontWeight: 600,
-                    borderRadius: '7px',
+                    borderRadius: '5px',
                     border: 'none',
                     backgroundColor: '#2563eb',
                     color: '#ffffff',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(37,99,235,0.25)',
-                    transition: 'background 0.12s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#1d4ed8';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#2563eb';
                   }}
                 >
-                  Confirm & Reassign
+                  Confirm
                 </button>
               </div>
             </div>

@@ -88,7 +88,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 children: [
                   {
                     id: 'fc-bn-links-1',
-                    nodeType: 'link-list',
+                    nodeType: 'column-links',
                     name: 'Shop',
                     visible: true,
                     props: { heading: 'Shop', links: [{ label: 'New Arrivals', href: '/new' }, { label: 'Best Sellers', href: '/best-sellers' }, { label: 'Sale', href: '/sale' }, { label: 'Gift Cards', href: '/gift-cards' }], fontSize: 14, gap: 10 },
@@ -104,7 +104,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 children: [
                   {
                     id: 'fc-bn-links-2',
-                    nodeType: 'link-list',
+                    nodeType: 'column-links',
                     name: 'Company',
                     visible: true,
                     props: { heading: 'Company', links: [{ label: 'About Us', href: '/about' }, { label: 'Careers', href: '/careers' }, { label: 'Press', href: '/press' }], fontSize: 14, gap: 10 },
@@ -120,7 +120,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 children: [
                   {
                     id: 'fc-bn-links-3',
-                    nodeType: 'link-list',
+                    nodeType: 'column-links',
                     name: 'Help',
                     visible: true,
                     props: { heading: 'Help', links: [{ label: 'FAQ', href: '/faq' }, { label: 'Contact', href: '/contact' }, { label: 'Shipping', href: '/shipping' }, { label: 'Returns', href: '/returns' }], fontSize: 14, gap: 10 },
@@ -223,7 +223,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 name: 'Group',
                 visible: true,
                 children: [
-                  { id: 'fc-nav-l1', nodeType: 'link-list', name: 'Products', visible: true, props: { heading: 'Products', links: [{ label: 'Features', href: '/features' }, { label: 'Pricing', href: '/pricing' }, { label: 'Enterprise', href: '/enterprise' }, { label: 'Integrations', href: '/integrations' }], fontSize: 14, gap: 10 } },
+                  { id: 'fc-nav-l1', nodeType: 'column-links', name: 'Products', visible: true, props: { heading: 'Products', links: [{ label: 'Features', href: '/features' }, { label: 'Pricing', href: '/pricing' }, { label: 'Enterprise', href: '/enterprise' }, { label: 'Integrations', href: '/integrations' }], fontSize: 14, gap: 10 } },
                 ],
                 layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
               },
@@ -233,7 +233,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 name: 'Group',
                 visible: true,
                 children: [
-                  { id: 'fc-nav-l2', nodeType: 'link-list', name: 'Resources', visible: true, props: { heading: 'Resources', links: [{ label: 'Documentation', href: '/docs' }, { label: 'API Reference', href: '/api' }, { label: 'Guides', href: '/guides' }, { label: 'Blog', href: '/blog' }], fontSize: 14, gap: 10 } },
+                  { id: 'fc-nav-l2', nodeType: 'column-links', name: 'Resources', visible: true, props: { heading: 'Resources', links: [{ label: 'Documentation', href: '/docs' }, { label: 'API Reference', href: '/api' }, { label: 'Guides', href: '/guides' }, { label: 'Blog', href: '/blog' }], fontSize: 14, gap: 10 } },
                 ],
                 layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
               },
@@ -243,7 +243,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 name: 'Group',
                 visible: true,
                 children: [
-                  { id: 'fc-nav-l3', nodeType: 'link-list', name: 'Company', visible: true, props: { heading: 'Company', links: [{ label: 'About', href: '/about' }, { label: 'Careers', href: '/careers' }, { label: 'Press', href: '/press' }, { label: 'Partners', href: '/partners' }], fontSize: 14, gap: 10 } },
+                  { id: 'fc-nav-l3', nodeType: 'column-links', name: 'Company', visible: true, props: { heading: 'Company', links: [{ label: 'About', href: '/about' }, { label: 'Careers', href: '/careers' }, { label: 'Press', href: '/press' }, { label: 'Partners', href: '/partners' }], fontSize: 14, gap: 10 } },
                 ],
                 layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
               },
@@ -253,7 +253,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 name: 'Group',
                 visible: true,
                 children: [
-                  { id: 'fc-nav-l4', nodeType: 'link-list', name: 'Legal', visible: true, props: { heading: 'Legal', links: [{ label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Cookie Policy', href: '/cookies' }, { label: 'Accessibility', href: '/accessibility' }], fontSize: 14, gap: 10 } },
+                  { id: 'fc-nav-l4', nodeType: 'column-links', name: 'Legal', visible: true, props: { heading: 'Legal', links: [{ label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Cookie Policy', href: '/cookies' }, { label: 'Accessibility', href: '/accessibility' }], fontSize: 14, gap: 10 } },
                 ],
                 layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
               },
@@ -326,7 +326,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                 name: 'Group',
                 visible: true,
                 children: [
-                  { id: 'fc-nl-links', nodeType: 'link-list', name: 'Quick Links', visible: true, props: { heading: '', links: [{ label: 'About', href: '/about' }, { label: 'FAQ', href: '/faq' }, { label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }], fontSize: 13, gap: 8 } },
+                  { id: 'fc-nl-links', nodeType: 'column-links', name: 'Quick Links', visible: true, props: { heading: '', links: [{ label: 'About', href: '/about' }, { label: 'FAQ', href: '/faq' }, { label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }], fontSize: 13, gap: 8 } },
                 ],
                 layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'center', crossAxisAlignment: 'center', gap: 8, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
               },
@@ -387,7 +387,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
         visible: true,
         children: [
           { id: 'fc-cb-logo', nodeType: 'logo', name: 'Logo', visible: true, props: { sourceType: 'theme', text: 'BillionBiz', fontSize: 16, fontWeight: 700, width: 100, link: '/' } },
-          { id: 'fc-cb-links', nodeType: 'link-list', name: 'Links', visible: true, props: { heading: '', links: [{ label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Contact', href: '/contact' }], fontSize: 13, gap: 0 } },
+          { id: 'fc-cb-links', nodeType: 'column-links', name: 'Links', visible: true, props: { heading: '', links: [{ label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Contact', href: '/contact' }], fontSize: 13, gap: 0 } },
           { id: 'fc-cb-copyright', nodeType: 'copyright', name: 'Copyright', visible: true, props: { text: '© {year} BillionBiz', fontSize: 12 } },
         ],
         layout: { direction: 'horizontal', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'space-between', crossAxisAlignment: 'center', gap: 24, padding: { top: 16, right: 32, bottom: 16, left: 32 } },
@@ -440,7 +440,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                     name: 'Group',
                     visible: true,
                     children: [
-                      { id: 'fc-ed-l1', nodeType: 'link-list', name: 'Shop', visible: true, props: { heading: 'Shop', links: [{ label: 'All Products', href: '/shop' }, { label: 'New Arrivals', href: '/new' }, { label: 'Best Sellers', href: '/best-sellers' }], fontSize: 14, gap: 10 } },
+                      { id: 'fc-ed-l1', nodeType: 'column-links', name: 'Shop', visible: true, props: { heading: 'Shop', links: [{ label: 'All Products', href: '/shop' }, { label: 'New Arrivals', href: '/new' }, { label: 'Best Sellers', href: '/best-sellers' }], fontSize: 14, gap: 10 } },
                     ],
                     layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
                   },
@@ -450,7 +450,7 @@ export const FOOTER_TREE_TEMPLATES: FooterTreeTemplate[] = [
                     name: 'Group',
                     visible: true,
                     children: [
-                      { id: 'fc-ed-l2', nodeType: 'link-list', name: 'About', visible: true, props: { heading: 'About', links: [{ label: 'Our Team', href: '/team' }, { label: 'Careers', href: '/careers' }, { label: 'Press', href: '/press' }], fontSize: 14, gap: 10 } },
+                      { id: 'fc-ed-l2', nodeType: 'column-links', name: 'About', visible: true, props: { heading: 'About', links: [{ label: 'Our Team', href: '/team' }, { label: 'Careers', href: '/careers' }, { label: 'Press', href: '/press' }], fontSize: 14, gap: 10 } },
                     ],
                     layout: { direction: 'vertical', width: { mode: 'fill' }, height: { mode: 'fit' }, mainAxisDistribution: 'start', crossAxisAlignment: 'start', gap: 12, padding: { top: 0, right: 0, bottom: 0, left: 0 } },
                   },

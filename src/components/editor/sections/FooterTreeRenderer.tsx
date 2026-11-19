@@ -1163,28 +1163,98 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
         );
       }
 
+      case 'column-links':
       case 'link-list': {
         const links = props.links || [];
         const presetSize: Record<string, number> = { paragraph: 14, h1: 32, h2: 26, h3: 20, h4: 17, h5: 15, h6: 14 };
         const mobileAccordion = isMobile && (props.accordionOnMobileCustomized ? props.accordionOnMobile !== false : true);
-        const menuHeading = props.heading || node.name || 'Menu';
+        const menuHeading = props.heading || node.name || 'Quick Links';
+        const align = props.alignment || 'left';
+        const headingFontSize = props.headingSize || (props.headingPreset ? presetSize[props.headingPreset] : 14);
+        const headingFontWeight = props.headingWeight || 700;
+        const headingColor = props.headingColor || 'inherit';
+        const linkFontSize = props.fontSize || (props.linkPreset ? presetSize[props.linkPreset] : 14);
+        const linkGap = props.gap ?? props.verticalGap ?? 10;
+        const linkColor = props.color || 'inherit';
+        const hoverColor = props.hoverColor || '#2563eb';
+
         const linkList = (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: `${props.verticalGap ?? props.gap ?? 8}px` }}>
-            {links.map((link: any, idx: number) => (
-              <li key={idx}>
-                <a
-                  href={link.href || '#'}
-                  onClick={(e) => { if (isEditorInteractive) e.preventDefault(); }}
-                  style={{ color: 'inherit', textDecoration: 'none', fontSize: `${presetSize[props.linkPreset] || props.fontSize || 13}px`, opacity: 0.75, transition: 'opacity 0.15s ease' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.75')}
-                >{link.label}</a>
-              </li>
-            ))}
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: `${linkGap}px`,
+              alignItems: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start',
+            }}
+          >
+            {links.map((link: any, idx: number) => {
+              const url = link.href || link.path || '#';
+              return (
+                <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <a
+                    href={url}
+                    target={link.openInNewTab ? '_blank' : undefined}
+                    rel={link.openInNewTab ? 'noopener noreferrer' : undefined}
+                    onClick={(e) => {
+                      if (isEditorInteractive) e.preventDefault();
+                    }}
+                    style={{
+                      color: linkColor,
+                      textDecoration: 'none',
+                      fontSize: `${linkFontSize}px`,
+                      opacity: 0.85,
+                      transition: 'all 0.15s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      if (hoverColor) e.currentTarget.style.color = hoverColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.85';
+                      if (linkColor) e.currentTarget.style.color = linkColor;
+                    }}
+                  >
+                    <span>{link.label}</span>
+                    {link.badge && (
+                      <span
+                        style={{
+                          fontSize: '9.5px',
+                          fontWeight: 700,
+                          backgroundColor: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          padding: '1px 5px',
+                          borderRadius: '4px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {link.badge}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         );
+
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', color: props.color || 'inherit', backgroundColor: props.backgroundColor || undefined }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              width: '100%',
+              color: 'inherit',
+              textAlign: align,
+            }}
+          >
             {mobileAccordion ? (
               <details open={mobileMenuOpen} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <summary
@@ -1193,18 +1263,131 @@ const NodeRenderer: React.FC<NodeRendererProps> = ({
                     event.preventDefault();
                     setMobileMenuOpen((open) => !open);
                   }}
-                  style={{ listStyle: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: `${presetSize[props.headingPreset] || 20}px`, fontWeight: 700 }}
+                  style={{
+                    listStyle: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    fontSize: `${headingFontSize}px`,
+                    fontWeight: headingFontWeight,
+                    color: headingColor,
+                  }}
                 >
                   <span>{menuHeading}</span>
-                  <span aria-hidden="true" style={{ width: 22, height: 22, flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', border: '1px solid currentColor', borderRadius: '50%', fontSize: 16, fontWeight: 400, lineHeight: 1 }}>{mobileMenuOpen ? '−' : '+'}</span>
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      flexShrink: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid currentColor',
+                      borderRadius: '50%',
+                      fontSize: 16,
+                      fontWeight: 400,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {mobileMenuOpen ? '−' : '+'}
+                  </span>
                 </summary>
                 {mobileMenuOpen && linkList}
               </details>
             ) : (
               <>
-                {props.heading && <h4 style={{ margin: 0, fontSize: `${presetSize[props.headingPreset] || 20}px`, fontWeight: 700, color: 'inherit' }}>{props.heading}</h4>}
+                {menuHeading && (
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: `${headingFontSize}px`,
+                      fontWeight: headingFontWeight,
+                      color: headingColor,
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {menuHeading}
+                  </h4>
+                )}
                 {linkList}
               </>
+            )}
+          </div>
+        );
+      }
+
+      case 'map-preview': {
+        const location = props.location || '123 Commerce Way, New York, NY 10001';
+        const height = props.height || 160;
+        const width = props.widthMode === 'custom' && props.customWidth ? `${props.customWidth}px` : '100%';
+        const zoom = props.zoom || 14;
+        const mapType = props.mapType || 'roadmap';
+        const borderRadius = props.borderRadius ?? 8;
+        const showPin = props.showPin !== false;
+        const title = props.title || 'Store Location';
+
+        const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(location)}&t=${mapType === 'satellite' ? 'k' : ''}&z=${zoom}&ie=UTF8&iwloc=&output=embed`;
+
+        return (
+          <div
+            style={{
+              width,
+              height: `${height}px`,
+              borderRadius: `${borderRadius}px`,
+              overflow: 'hidden',
+              position: 'relative',
+              backgroundColor: '#f1f5f9',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxSizing: 'border-box',
+            }}
+          >
+            <iframe
+              title={`Map of ${location}`}
+              src={embedUrl}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 0,
+                pointerEvents: isEditorInteractive ? 'none' : 'auto',
+              }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            {showPin && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '8px',
+                  left: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                  backdropFilter: 'blur(4px)',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
+                  maxWidth: 'calc(100% - 16px)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                }}
+              >
+                <MapPin size={12} color="#ef4444" style={{ flexShrink: 0 }} />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {title ? `${title}: ` : ''}{location}
+                </span>
+              </div>
             )}
           </div>
         );

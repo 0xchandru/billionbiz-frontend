@@ -1343,29 +1343,65 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Heading Level</label>
-              <select
-                value={props.level || 'h3'}
-                onChange={(e) => handlePropChange('level', e.target.value)}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-              >
-                <option value="h1">H1</option>
-                <option value="h2">H2</option>
-                <option value="h3">H3</option>
-                <option value="h4">H4</option>
-                <option value="h5">H5</option>
-                <option value="h6">H6</option>
-              </select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Heading Level</label>
+                <select
+                  value={props.level || 'h3'}
+                  onChange={(e) => handlePropChange('level', e.target.value)}
+                  style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="h1">H1</option>
+                  <option value="h2">H2</option>
+                  <option value="h3">H3</option>
+                  <option value="h4">H4</option>
+                  <option value="h5">H5</option>
+                  <option value="h6">H6</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Size (px)</label>
+                <input
+                  type="number"
+                  value={props.fontSize || 16}
+                  onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
+                  style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Font Size (px)</label>
-              <input
-                type="number"
-                value={props.fontSize || 16}
-                onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Weight</label>
+                <select
+                  value={props.fontWeight || 700}
+                  onChange={(e) => handlePropChange('fontWeight', Number(e.target.value))}
+                  style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value={400}>Regular (400)</option>
+                  <option value={500}>Medium (500)</option>
+                  <option value={600}>Semibold (600)</option>
+                  <option value={700}>Bold (700)</option>
+                  <option value={800}>Extra Bold (800)</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="color"
+                    value={props.color && props.color !== 'inherit' ? props.color : '#0f172a'}
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={props.color || ''}
+                    placeholder="inherit"
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ flex: 1, padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                  />
+                </div>
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Alignment</label>
@@ -1406,14 +1442,58 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', resize: 'vertical' }}
               />
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Size (px)</label>
+                <input
+                  type="number"
+                  value={props.fontSize || 14}
+                  onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
+                  style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="color"
+                    value={props.color && props.color !== 'inherit' ? props.color : '#475569'}
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={props.color || ''}
+                    placeholder="inherit"
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ flex: 1, padding: '5px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                  />
+                </div>
+              </div>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Font Size (px)</label>
-              <input
-                type="number"
-                value={props.fontSize || 14}
-                onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-              />
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Alignment</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                {['left', 'center', 'right'].map((align) => (
+                  <button
+                    key={align}
+                    onClick={() => handlePropChange('alignment', align)}
+                    style={{
+                      padding: '6px',
+                      borderRadius: '4px',
+                      border: (props.alignment || 'left') === align ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                      backgroundColor: (props.alignment || 'left') === align ? '#eff6ff' : '#ffffff',
+                      color: (props.alignment || 'left') === align ? '#1d4ed8' : '#475569',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {align}
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -1694,62 +1774,640 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
         {node.nodeType === 'image' && (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Image URL</label>
-              <input
-                type="text"
-                value={props.src || ''}
-                placeholder="https://example.com/image.png"
-                onChange={(e) => handlePropChange('src', e.target.value)}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
-              />
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Image Source</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={props.src || props.imageUrl || ''}
+                  placeholder="https://example.com/image.png"
+                  onChange={(e) => {
+                    handlePropChange('src', e.target.value);
+                    handlePropChange('imageUrl', e.target.value);
+                  }}
+                  style={{ flex: 1, padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+                <label
+                  style={{
+                    padding: '7px 10px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Upload size={13} />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          if (ev.target?.result) {
+                            handlePropChange('src', ev.target.result as string);
+                            handlePropChange('imageUrl', ev.target.result as string);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Alt Text</label>
               <input
                 type="text"
                 value={props.alt || ''}
-                placeholder="Descriptive alt text"
+                placeholder="Descriptive image alt text"
                 onChange={(e) => handlePropChange('alt', e.target.value)}
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
               />
             </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Custom Width (px)</label>
+                <input
+                  type="number"
+                  value={props.width || props.customWidth || 200}
+                  onChange={(e) => {
+                    handlePropChange('width', Number(e.target.value));
+                    handlePropChange('customWidth', Number(e.target.value));
+                  }}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Border Radius (px)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={props.borderRadius || 0}
+                  onChange={(e) => handlePropChange('borderRadius', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Width</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Destination Link (Optional)</label>
               <input
-                type="number"
-                value={props.width || 200}
-                onChange={(e) => handlePropChange('width', Number(e.target.value))}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                type="text"
+                value={props.link || ''}
+                placeholder="https://... or /page"
+                onChange={(e) => handlePropChange('link', e.target.value)}
+                style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
               />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(props.openInNewTab)}
+                  onChange={(e) => handlePropChange('openInNewTab', e.target.checked)}
+                />
+                Open in new tab
+              </label>
             </div>
           </>
         )}
 
-        {/* LINK LIST */}
-        {node.nodeType === 'link-list' && (
+        {/* CUSTOM COLUMN LINKS (or legacy link-list) */}
+        {(node.nodeType === 'column-links' || node.nodeType === 'link-list') && (
           <>
+            {/* Column Heading */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Heading</label>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Column Heading</label>
               <input
                 type="text"
                 value={props.heading || ''}
+                placeholder="e.g. Shop, Quick Links, Company"
                 onChange={(e) => handlePropChange('heading', e.target.value)}
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+
+            {/* Heading Styling */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Heading Size (px)</label>
+                <input
+                  type="number"
+                  min={10}
+                  max={36}
+                  value={props.headingSize || 14}
+                  onChange={(e) => handlePropChange('headingSize', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Heading Weight</label>
+                <select
+                  value={props.headingWeight || 700}
+                  onChange={(e) => handlePropChange('headingWeight', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value={400}>Regular (400)</option>
+                  <option value={500}>Medium (500)</option>
+                  <option value={600}>Semibold (600)</option>
+                  <option value={700}>Bold (700)</option>
+                  <option value={800}>Extra Bold (800)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Heading Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="color"
+                    value={props.headingColor && props.headingColor !== 'inherit' ? props.headingColor : '#0f172a'}
+                    onChange={(e) => handlePropChange('headingColor', e.target.value)}
+                    style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={props.headingColor || ''}
+                    placeholder="inherit"
+                    onChange={(e) => handlePropChange('headingColor', e.target.value)}
+                    style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '4px' }}>
+                  {(['left', 'center', 'right'] as const).map((align) => (
+                    <button
+                      key={align}
+                      type="button"
+                      onClick={() => handlePropChange('alignment', align)}
+                      style={{
+                        padding: '6px 0',
+                        borderRadius: '4px',
+                        border: (props.alignment || 'left') === align ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                        backgroundColor: (props.alignment || 'left') === align ? '#eff6ff' : '#ffffff',
+                        color: (props.alignment || 'left') === align ? '#1d4ed8' : '#475569',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {align}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Links Editor */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Links</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>Column Links</label>
+                  <span style={{ fontSize: '10px', color: '#64748b', background: '#f1f5f9', padding: '1px 6px', borderRadius: '9999px', fontWeight: 600 }}>
+                    {(props.links || []).length}
+                  </span>
+                </div>
                 <button
+                  type="button"
                   onClick={() => {
                     const currentLinks = props.links || [];
-                    handlePropChange('links', [...currentLinks, { label: 'New Link', href: '#' }]);
+                    handlePropChange('links', [...currentLinks, { label: 'New Link', href: '/', openInNewTab: false }]);
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid #bfdbfe',
+                    backgroundColor: '#eff6ff',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#2563eb',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Plus size={12} /> Add Link
+                </button>
+              </div>
+
+              {/* Links List Cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {(props.links || []).map((link: any, idx: number) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: '10px',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '6px',
+                      border: '1px solid #e2e8f0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', width: '16px' }}>#{idx + 1}</span>
+                      <input
+                        type="text"
+                        value={link.label || ''}
+                        placeholder="Link Label"
+                        onChange={(e) => {
+                          const newLinks = [...(props.links || [])];
+                          newLinks[idx] = { ...newLinks[idx], label: e.target.value };
+                          handlePropChange('links', newLinks);
+                        }}
+                        style={{ flex: 1, padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newLinks = (props.links || []).filter((_: any, i: number) => i !== idx);
+                          handlePropChange('links', newLinks);
+                        }}
+                        style={{ padding: '4px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                        title="Delete Link"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="text"
+                        value={link.href ?? link.path ?? ''}
+                        placeholder="Path / URL (e.g. /shop, /about)"
+                        onChange={(e) => {
+                          const newLinks = [...(props.links || [])];
+                          newLinks[idx] = { ...newLinks[idx], href: e.target.value, path: e.target.value };
+                          handlePropChange('links', newLinks);
+                        }}
+                        style={{ flex: 1, padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', color: '#334155' }}
+                      />
+                      <input
+                        type="text"
+                        value={link.badge || ''}
+                        placeholder="Badge (e.g. New)"
+                        onChange={(e) => {
+                          const newLinks = [...(props.links || [])];
+                          newLinks[idx] = { ...newLinks[idx], badge: e.target.value };
+                          handlePropChange('links', newLinks);
+                        }}
+                        style={{ width: '85px', padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(link.openInNewTab)}
+                          onChange={(e) => {
+                            const newLinks = [...(props.links || [])];
+                            newLinks[idx] = { ...newLinks[idx], openInNewTab: e.target.checked };
+                            handlePropChange('links', newLinks);
+                          }}
+                        />
+                        Open in new tab
+                      </label>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {idx > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newLinks = [...(props.links || [])];
+                              const temp = newLinks[idx];
+                              newLinks[idx] = newLinks[idx - 1];
+                              newLinks[idx - 1] = temp;
+                              handlePropChange('links', newLinks);
+                            }}
+                            style={{ padding: '2px 5px', fontSize: '10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '3px', cursor: 'pointer' }}
+                          >
+                            ↑
+                          </button>
+                        )}
+                        {idx < (props.links || []).length - 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newLinks = [...(props.links || [])];
+                              const temp = newLinks[idx];
+                              newLinks[idx] = newLinks[idx + 1];
+                              newLinks[idx + 1] = temp;
+                              handlePropChange('links', newLinks);
+                            }}
+                            style={{ padding: '2px 5px', fontSize: '10px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: '3px', cursor: 'pointer' }}
+                          >
+                            ↓
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Link Typography & Styling */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>Link Styling</label>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Size (px)</label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={28}
+                    value={props.fontSize || 14}
+                    onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
+                    style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Item Spacing (gap)</label>
+                  <input
+                    type="number"
+                    min={2}
+                    max={36}
+                    value={props.gap ?? props.verticalGap ?? 10}
+                    onChange={(e) => handlePropChange('gap', Number(e.target.value))}
+                    style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Link Color</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <input
+                      type="color"
+                      value={props.color && props.color !== 'inherit' ? props.color : '#475569'}
+                      onChange={(e) => handlePropChange('color', e.target.value)}
+                      style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    />
+                    <input
+                      type="text"
+                      value={props.color || ''}
+                      placeholder="inherit"
+                      onChange={(e) => handlePropChange('color', e.target.value)}
+                      style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Hover Color</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <input
+                      type="color"
+                      value={props.hoverColor || '#2563eb'}
+                      onChange={(e) => handlePropChange('hoverColor', e.target.value)}
+                      style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    />
+                    <input
+                      type="text"
+                      value={props.hoverColor || '#2563eb'}
+                      onChange={(e) => handlePropChange('hoverColor', e.target.value)}
+                      style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* MAP PREVIEW */}
+        {node.nodeType === 'map-preview' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Map Location / Address</label>
+              <input
+                type="text"
+                value={props.location || ''}
+                placeholder="e.g. 123 Commerce Way, New York, NY 10001"
+                onChange={(e) => handlePropChange('location', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+              <span style={{ fontSize: '11px', color: '#64748b' }}>Enter any exact address, postal code, or business location.</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Store / Location Title</label>
+              <input
+                type="text"
+                value={props.title || ''}
+                placeholder="e.g. Flagship Store"
+                onChange={(e) => handlePropChange('title', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            {/* Resizable Height Slider */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Map Height (Resize)</label>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '1px 6px', borderRadius: '4px' }}>
+                  {props.height || 160}px
+                </span>
+              </div>
+              <input
+                type="range"
+                min={80}
+                max={420}
+                step={10}
+                value={props.height || 160}
+                onChange={(e) => handlePropChange('height', Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8' }}>
+                <span>80px (Compact)</span>
+                <span>160px (Standard)</span>
+                <span>420px (Hero)</span>
+              </div>
+            </div>
+
+            {/* Zoom & Style */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Zoom Level ({props.zoom || 14})</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  value={props.zoom || 14}
+                  onChange={(e) => handlePropChange('zoom', Number(e.target.value))}
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Map View</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                  {[
+                    { id: 'roadmap', label: 'Road' },
+                    { id: 'satellite', label: 'Satellite' },
+                  ].map((styleOpt) => (
+                    <button
+                      key={styleOpt.id}
+                      type="button"
+                      onClick={() => handlePropChange('mapType', styleOpt.id)}
+                      style={{
+                        padding: '6px 0',
+                        borderRadius: '4px',
+                        border: (props.mapType || 'roadmap') === styleOpt.id ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                        backgroundColor: (props.mapType || 'roadmap') === styleOpt.id ? '#eff6ff' : '#ffffff',
+                        color: (props.mapType || 'roadmap') === styleOpt.id ? '#1d4ed8' : '#475569',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {styleOpt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Corner Radius & Pin Overlay */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Border Radius (px)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={30}
+                  value={props.borderRadius ?? 8}
+                  onChange={(e) => handlePropChange('borderRadius', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Location Pin Tag</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155', cursor: 'pointer', marginTop: '4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={props.showPin !== false}
+                    onChange={(e) => handlePropChange('showPin', e.target.checked)}
+                  />
+                  Show bottom badge
+                </label>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ICON */}
+        {node.nodeType === 'icon' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Select Icon</label>
+              <select
+                value={props.iconName || 'star'}
+                onChange={(e) => handlePropChange('iconName', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                {[
+                  'star', 'heart', 'shield', 'check', 'truck', 'phone', 'mail',
+                  'clock', 'map-pin', 'credit-card', 'package', 'sparkles',
+                  'award', 'zap', 'lock', 'globe', 'info', 'smile', 'share2',
+                ].map((name) => (
+                  <option key={name} value={name}>
+                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Size (px)</label>
+                <input
+                  type="number"
+                  min={12}
+                  max={64}
+                  value={props.size || 24}
+                  onChange={(e) => handlePropChange('size', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Icon Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="color"
+                    value={props.color && props.color !== 'currentColor' ? props.color : '#2563eb'}
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ width: '28px', height: '28px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={props.color || ''}
+                    placeholder="currentColor"
+                    onChange={(e) => handlePropChange('color', e.target.value)}
+                    style={{ flex: 1, padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Destination Link (Optional)</label>
+              <input
+                type="text"
+                value={props.link || ''}
+                placeholder="https://... or /page"
+                onChange={(e) => handlePropChange('link', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(props.openInNewTab)}
+                  onChange={(e) => handlePropChange('openInNewTab', e.target.checked)}
+                />
+                Open in new tab
+              </label>
+            </div>
+          </>
+        )}
+
+        {/* POLICY LINKS */}
+        {node.nodeType === 'policy-links' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>Policy Links</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentLinks = props.links || [];
+                    handlePropChange('links', [...currentLinks, { label: 'New Policy', href: '/policy' }]);
                   }}
                   style={{
                     padding: '3px 8px',
                     borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
+                    border: '1px solid #bfdbfe',
+                    backgroundColor: '#eff6ff',
                     fontSize: '11px',
                     fontWeight: 600,
                     color: '#2563eb',
@@ -1759,43 +2417,430 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                   + Add Link
                 </button>
               </div>
+
+              {(props.links || []).map((link: any, idx: number) => (
+                <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={link.label || ''}
+                    placeholder="Label"
+                    onChange={(e) => {
+                      const newLinks = [...(props.links || [])];
+                      newLinks[idx] = { ...newLinks[idx], label: e.target.value };
+                      handlePropChange('links', newLinks);
+                    }}
+                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                  <input
+                    type="text"
+                    value={link.href || ''}
+                    placeholder="URL (/privacy)"
+                    onChange={(e) => {
+                      const newLinks = [...(props.links || [])];
+                      newLinks[idx] = { ...newLinks[idx], href: e.target.value };
+                      handlePropChange('links', newLinks);
+                    }}
+                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newLinks = (props.links || []).filter((_: any, i: number) => i !== idx);
+                      handlePropChange('links', newLinks);
+                    }}
+                    style={{ padding: '6px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {(props.links || []).map((l: any, idx: number) => (
-                  <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center', width: '100%', minWidth: 0 }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Separator Character</label>
+                <input
+                  type="text"
+                  value={props.separator ?? '•'}
+                  placeholder="• or | or /"
+                  onChange={(e) => handlePropChange('separator', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Size (px)</label>
+                <input
+                  type="number"
+                  value={props.fontSize || 12}
+                  onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Gap (px)</label>
+                <input
+                  type="number"
+                  value={props.gap ?? 16}
+                  onChange={(e) => handlePropChange('gap', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <select
+                  value={props.alignment || 'left'}
+                  onChange={(e) => handlePropChange('alignment', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* CONTACT INFO */}
+        {node.nodeType === 'contact-info' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Section Heading</label>
+              <input
+                type="text"
+                value={props.heading || ''}
+                placeholder="e.g. Contact Us"
+                onChange={(e) => handlePropChange('heading', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Physical Address</label>
+              <input
+                type="text"
+                value={props.address || ''}
+                placeholder="123 Commerce Way, New York, NY"
+                onChange={(e) => handlePropChange('address', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Phone Number</label>
+              <input
+                type="text"
+                value={props.phone || ''}
+                placeholder="+1 (555) 123-4567"
+                onChange={(e) => handlePropChange('phone', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Support Email</label>
+              <input
+                type="email"
+                value={props.email || ''}
+                placeholder="support@example.com"
+                onChange={(e) => handlePropChange('email', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Business Hours</label>
+              <input
+                type="text"
+                value={props.hours || ''}
+                placeholder="Mon - Fri: 9am - 6pm EST"
+                onChange={(e) => handlePropChange('hours', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <input
+                type="checkbox"
+                checked={props.showIcons !== false}
+                onChange={(e) => handlePropChange('showIcons', e.target.checked)}
+              />
+              <label style={{ fontSize: '12px', color: '#334155' }}>Show icons next to contact items</label>
+            </div>
+          </>
+        )}
+
+        {/* TRUST BADGES */}
+        {node.nodeType === 'trust-badge' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: '#0f172a' }}>Badges List</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentBadges = props.badges || [];
+                    handlePropChange('badges', [
+                      ...currentBadges,
+                      { id: `badge-${Date.now()}`, icon: 'shield', title: 'New Guarantee', subtitle: '100% Quality' },
+                    ]);
+                  }}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid #bfdbfe',
+                    backgroundColor: '#eff6ff',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: '#2563eb',
+                    cursor: 'pointer',
+                  }}
+                >
+                  + Add Badge
+                </button>
+              </div>
+
+              {(props.badges || []).map((b: any, idx: number) => (
+                <div key={b.id || idx} style={{ padding: '8px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <select
+                      value={b.icon || 'shield'}
+                      onChange={(e) => {
+                        const newBadges = [...(props.badges || [])];
+                        newBadges[idx] = { ...newBadges[idx], icon: e.target.value };
+                        handlePropChange('badges', newBadges);
+                      }}
+                      style={{ padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                    >
+                      <option value="shield">Shield</option>
+                      <option value="check">Checkmark</option>
+                      <option value="truck">Truck / Shipping</option>
+                      <option value="headphones">Support</option>
+                      <option value="return">Easy Returns</option>
+                    </select>
                     <input
                       type="text"
-                      value={l.label}
-                      placeholder="Label"
+                      value={b.title || ''}
+                      placeholder="Title (e.g. Free Shipping)"
                       onChange={(e) => {
-                        const newLinks = [...(props.links || [])];
-                        newLinks[idx] = { ...newLinks[idx], label: e.target.value };
-                        handlePropChange('links', newLinks);
+                        const newBadges = [...(props.badges || [])];
+                        newBadges[idx] = { ...newBadges[idx], title: e.target.value };
+                        handlePropChange('badges', newBadges);
                       }}
-                      style={{ flex: 1, minWidth: 0, width: 0, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
-                    />
-                    <input
-                      type="text"
-                      value={l.href}
-                      placeholder="URL"
-                      onChange={(e) => {
-                        const newLinks = [...(props.links || [])];
-                        newLinks[idx] = { ...newLinks[idx], href: e.target.value };
-                        handlePropChange('links', newLinks);
-                      }}
-                      style={{ flex: 1, minWidth: 0, width: 0, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
+                      style={{ flex: 1, padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px', fontWeight: 600 }}
                     />
                     <button
+                      type="button"
                       onClick={() => {
-                        const newLinks = (props.links || []).filter((_: any, i: number) => i !== idx);
-                        handlePropChange('links', newLinks);
+                        const newBadges = (props.badges || []).filter((_: any, i: number) => i !== idx);
+                        handlePropChange('badges', newBadges);
                       }}
-                      style={{ flexShrink: 0, padding: '6px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                      style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}
                     >
                       <Trash2 size={13} />
                     </button>
                   </div>
-                ))}
+                  <input
+                    type="text"
+                    value={b.subtitle || ''}
+                    placeholder="Subtitle (e.g. On all orders over $50)"
+                    onChange={(e) => {
+                      const newBadges = [...(props.badges || [])];
+                      newBadges[idx] = { ...newBadges[idx], subtitle: e.target.value };
+                      handlePropChange('badges', newBadges);
+                    }}
+                    style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11px' }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Layout Direction</label>
+                <select
+                  value={props.layout || 'horizontal'}
+                  onChange={(e) => handlePropChange('layout', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="horizontal">Horizontal (Row)</option>
+                  <option value="vertical">Vertical (Stack)</option>
+                </select>
               </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <select
+                  value={props.alignment || 'left'}
+                  onChange={(e) => handlePropChange('alignment', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* APP DOWNLOAD */}
+        {node.nodeType === 'app-download' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Heading</label>
+              <input
+                type="text"
+                value={props.heading || ''}
+                placeholder="Experience BillionBiz Mobile"
+                onChange={(e) => handlePropChange('heading', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Subheading</label>
+              <input
+                type="text"
+                value={props.subheading || ''}
+                placeholder="Get exclusive deals and instant alerts"
+                onChange={(e) => handlePropChange('subheading', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={props.showApple !== false}
+                  onChange={(e) => handlePropChange('showApple', e.target.checked)}
+                />
+                Apple App Store Button
+              </label>
+              {props.showApple !== false && (
+                <input
+                  type="text"
+                  value={props.appleUrl || ''}
+                  placeholder="https://apps.apple.com/app/..."
+                  onChange={(e) => handlePropChange('appleUrl', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={props.showGoogle !== false}
+                  onChange={(e) => handlePropChange('showGoogle', e.target.checked)}
+                />
+                Google Play Store Button
+              </label>
+              {props.showGoogle !== false && (
+                <input
+                  type="text"
+                  value={props.googleUrl || ''}
+                  placeholder="https://play.google.com/store/apps/..."
+                  onChange={(e) => handlePropChange('googleUrl', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Layout</label>
+                <select
+                  value={props.layout || 'row'}
+                  onChange={(e) => handlePropChange('layout', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="row">Horizontal (Row)</option>
+                  <option value="column">Vertical (Column)</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <select
+                  value={props.alignment || 'left'}
+                  onChange={(e) => handlePropChange('alignment', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* LOCALIZATION */}
+        {node.nodeType === 'localization' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={props.showCountry !== false}
+                  onChange={(e) => handlePropChange('showCountry', e.target.checked)}
+                />
+                Show Country & Currency Selector
+              </label>
+              {props.showCountry !== false && (
+                <input
+                  type="text"
+                  value={props.currentCountry || 'United States (USD $)'}
+                  onChange={(e) => handlePropChange('currentCountry', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={props.showLanguage !== false}
+                  onChange={(e) => handlePropChange('showLanguage', e.target.checked)}
+                />
+                Show Language Selector
+              </label>
+              {props.showLanguage !== false && (
+                <input
+                  type="text"
+                  value={props.currentLanguage || 'English (US)'}
+                  onChange={(e) => handlePropChange('currentLanguage', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+              <select
+                value={props.alignment || 'left'}
+                onChange={(e) => handlePropChange('alignment', e.target.value)}
+                style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        {/* CUSTOM HTML */}
+        {node.nodeType === 'custom-html' && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Custom HTML / Embed Code</label>
+              <textarea
+                rows={8}
+                value={props.html || ''}
+                placeholder="<div>Custom content or widgets</div>"
+                onChange={(e) => handlePropChange('html', e.target.value)}
+                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', resize: 'vertical' }}
+              />
             </div>
           </>
         )}
@@ -1886,27 +2931,73 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 onChange={(e) => handlePropChange('link', e.target.value)}
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
               />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', cursor: 'pointer', marginTop: '2px' }}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(props.openInNewTab)}
+                  onChange={(e) => handlePropChange('openInNewTab', e.target.checked)}
+                />
+                Open in new tab
+              </label>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Variant</label>
-              <select
-                value={props.variant || 'primary'}
-                onChange={(e) => handlePropChange('variant', e.target.value)}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-              >
-                <option value="primary">Primary</option>
-                <option value="secondary">Secondary</option>
-                <option value="outline">Outline</option>
-                <option value="ghost">Ghost</option>
-              </select>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Variant</label>
+                <select
+                  value={props.variant || 'primary'}
+                  onChange={(e) => handlePropChange('variant', e.target.value)}
+                  style={{ padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="primary">Primary (Filled)</option>
+                  <option value="secondary">Secondary (Outline)</option>
+                  <option value="link">Underlined Link</option>
+                  <option value="custom">Custom Color</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Border Radius</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={28}
+                  value={props.borderRadius ?? 6}
+                  onChange={(e) => handlePropChange('borderRadius', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
             </div>
+            {props.variant === 'custom' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Button Background</label>
+                  <input
+                    type="color"
+                    value={props.buttonBackground || props.buttonColor || '#2563eb'}
+                    onChange={(e) => {
+                      handlePropChange('buttonBackground', e.target.value);
+                      handlePropChange('buttonColor', e.target.value);
+                    }}
+                    style={{ width: '100%', height: '32px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Button Text</label>
+                  <input
+                    type="color"
+                    value={props.buttonTextColor || '#ffffff'}
+                    onChange={(e) => handlePropChange('buttonTextColor', e.target.value)}
+                    style={{ width: '100%', height: '32px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  />
+                </div>
+              </div>
+            )}
           </>
         )}
 
         {/* SOCIAL LINKS */}
         {node.nodeType === 'social-links' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Platforms</label>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Social Platforms</label>
             {(props.platforms || []).map((p: any, idx: number) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
@@ -1924,7 +3015,7 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 <input
                   type="text"
                   value={p.url || ''}
-                  placeholder="URL"
+                  placeholder="URL (https://...)"
                   onChange={(e) => {
                     const newPlatforms = [...(props.platforms || [])];
                     newPlatforms[idx] = { ...newPlatforms[idx], url: e.target.value };
@@ -1934,6 +3025,38 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 />
               </div>
             ))}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Icon Size (px)</label>
+                <input
+                  type="number"
+                  value={props.iconSize || 18}
+                  onChange={(e) => handlePropChange('iconSize', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Spacing (gap)</label>
+                <input
+                  type="number"
+                  value={props.gap ?? 14}
+                  onChange={(e) => handlePropChange('gap', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+              <select
+                value={props.alignment || 'left'}
+                onChange={(e) => handlePropChange('alignment', e.target.value)}
+                style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
           </div>
         )}
 
@@ -1955,6 +3078,33 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 {m.name}
               </label>
             ))}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Size</label>
+                <select
+                  value={props.size || 'medium'}
+                  onChange={(e) => handlePropChange('size', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <select
+                  value={props.alignment || 'left'}
+                  onChange={(e) => handlePropChange('alignment', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                  <option value="space-between">Space Between</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1972,15 +3122,37 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Font Size</label>
-              <input
-                type="number"
-                value={props.fontSize || 12}
-                onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Font Size (px)</label>
+                <input
+                  type="number"
+                  value={props.fontSize || 12}
+                  onChange={(e) => handlePropChange('fontSize', Number(e.target.value))}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b' }}>Alignment</label>
+                <select
+                  value={props.alignment || 'left'}
+                  onChange={(e) => handlePropChange('alignment', e.target.value)}
+                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
             </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#334155', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={Boolean(props.showPlatformCredit)}
+                onChange={(e) => handlePropChange('showPlatformCredit', e.target.checked)}
+              />
+              Show "Powered by BillionBiz" credit
+            </label>
           </>
         )}
 
@@ -2008,18 +3180,33 @@ const ComponentInspector: React.FC<ComponentInspectorProps> = ({ node }) => {
                 <option value="dotted">Dotted</option>
               </select>
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Line Color</label>
+              <input
+                type="color"
+                value={props.color || '#e2e8f0'}
+                onChange={(e) => handlePropChange('color', e.target.value)}
+                style={{ width: '100%', height: '32px', padding: 0, border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+              />
+            </div>
           </>
         )}
 
         {/* SPACER */}
         {node.nodeType === 'spacer' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Height (px)</label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Height (px)</label>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb' }}>{props.height || 24}px</span>
+            </div>
             <input
-              type="number"
+              type="range"
+              min={4}
+              max={120}
+              step={4}
               value={props.height || 24}
               onChange={(e) => handlePropChange('height', Number(e.target.value))}
-              style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              style={{ width: '100%', cursor: 'pointer' }}
             />
           </div>
         )}
